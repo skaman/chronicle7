@@ -1,0 +1,7 @@
+# http://clang-format-configurator.site/
+
+---
+BasedOnStyle: WebKit
+ColumnLimit: 120
+
+...
