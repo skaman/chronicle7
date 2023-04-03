@@ -15,7 +15,7 @@ public:
 
     void Run(entt::registry& registry)
     {
-        std::ranges::for_each(_systems, [&registry](const std::unique_ptr<System>& system) { system->Run(registry); });
+        std::ranges::for_each(_systems, [&registry](const std::unique_ptr<System>& system) { system->run(registry); });
     }
 
 private:

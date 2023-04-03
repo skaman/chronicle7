@@ -26,12 +26,60 @@ add_executable(chronicle
     "main.cc"
     "Platform/App.h"
     "Platform/App.cc"
+    "Renderer/CommandBuffer.h"
+    "Renderer/CommandBuffer.cc"
+    "Renderer/Common.h"
+    "Renderer/DescriptorSet.h"
+    "Renderer/DescriptorSet.cc"
+    "Renderer/Fence.h"
+    "Renderer/Fence.cc"
+    "Renderer/Image.h"
+    "Renderer/Image.cc"
+    "Renderer/IndexBuffer.h"
+    "Renderer/IndexBuffer.cc"
+    "Renderer/Pipeline.h"
+    "Renderer/Pipeline.cc"
+    "Renderer/PipelineInfo.h"
     "Renderer/Renderer.h"
     "Renderer/Renderer.cc"
+    "Renderer/RendererError.h"
+    "Renderer/RenderPass.h"
+    "Renderer/RenderPass.cc"
+    "Renderer/RenderPassInfo.h"
+    "Renderer/Semaphore.h"
+    "Renderer/Semaphore.cc"
+    "Renderer/VertexBuffer.h"
+    "Renderer/VertexBuffer.cc"
+    "Renderer/VertexBufferInfo.h"
+    "Renderer/Vulkan/VulkanBuffer.h"
+    "Renderer/Vulkan/VulkanBuffer.cc"
+    "Renderer/Vulkan/VulkanCommandBuffer.h"
+    "Renderer/Vulkan/VulkanCommandBuffer.cc"
+    "Renderer/Vulkan/VulkanCommon.h"
+    "Renderer/Vulkan/VulkanDescriptorSet.h"
+    "Renderer/Vulkan/VulkanDescriptorSet.cc"
+    "Renderer/Vulkan/VulkanFence.h"
+    "Renderer/Vulkan/VulkanFence.cc"
+    "Renderer/Vulkan/VulkanImage.h"
+    "Renderer/Vulkan/VulkanImage.cc"
+    "Renderer/Vulkan/VulkanIndexBuffer.h"
+    "Renderer/Vulkan/VulkanIndexBuffer.cc"
+    "Renderer/Vulkan/VulkanPipeline.h"
+    "Renderer/Vulkan/VulkanPipeline.cc"
+    "Renderer/Vulkan/VulkanRenderer.h"
+    "Renderer/Vulkan/VulkanRenderer.cc"
+    "Renderer/Vulkan/VulkanRenderPass.h"
+    "Renderer/Vulkan/VulkanRenderPass.cc"
+    "Renderer/Vulkan/VulkanVertexBuffer.h"
+    "Renderer/Vulkan/VulkanVertexBuffer.cc"
+    "Renderer/Vulkan/VulkanSemaphore.h"
+    "Renderer/Vulkan/VulkanSemaphore.cc"
+    "Storage/File.h"
+    "Storage/File.cc"
     "Systems/MeshRendererSystem.h"
     "Systems/MeshRendererSystem.cc"
     "Systems/Systems.h"
-    "Systems/System.h" )
+    "Systems/System.h")
 
 compile_shader(chronicle
     ENV vulkan1.1
@@ -43,11 +91,18 @@ compile_shader(chronicle
 
 set_property(TARGET chronicle PROPERTY CXX_STANDARD 20)
 
-target_include_directories(chronicle
+target_compile_definitions(chronicle PUBLIC RENDERER=VULKAN)
+
+target_include_directories(chronicle    
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
     INTERFACE
         ${CMAKE_SOURCE_DIR}/include
+)
+
+target_precompile_headers(chronicle
+  PUBLIC
+    "pch.h"
 )
 
 target_link_libraries(chronicle
@@ -59,4 +114,5 @@ target_link_libraries(chronicle
         spdlog::spdlog
         glm::glm
         tinygltf
+        Tracy::TracyClient
 )

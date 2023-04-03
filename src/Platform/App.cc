@@ -1,8 +1,5 @@
 #include "App.h"
 
-#include <bit>
-#include <entt/entt.hpp>
-
 #include "Renderer/Renderer.h"
 #include "Systems/MeshRendererSystem.h"
 #include "Systems/Systems.h"
@@ -56,7 +53,7 @@ void App::MainLoop()
         _systems->Run(registry);
     }
 
-    _renderer->WaitIdle();
+    _renderer->waitIdle();
 }
 
 void App::Destroy()

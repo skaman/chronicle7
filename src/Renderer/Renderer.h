@@ -1,185 +1,95 @@
 #pragma once
 
-// this must be included before GLFW
-#include <vulkan/vulkan.hpp>
+#include "pch.h"
 
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#ifdef VULKAN_RENDERER
+#include "Vulkan/VulkanRenderer.h"
+#endif
 
-#include <optional>
-#include <vector>
+#include "CommandBuffer.h"
+#include "DescriptorSet.h"
+#include "Fence.h"
+#include "IndexBuffer.h"
+#include "Pipeline.h"
+#include "RenderPass.h"
+#include "RenderPassInfo.h"
+#include "Semaphore.h"
+#include "VertexBuffer.h"
 
 namespace chronicle {
 
 class App;
 
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
-
-    [[nodiscard]] bool IsComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
-};
-
-struct SwapChainSupportDetails {
-    vk::SurfaceCapabilitiesKHR capabilities;
-    std::vector<vk::SurfaceFormatKHR> formats;
-    std::vector<vk::PresentModeKHR> presentModes;
-};
-
-struct Vertex {
-    glm::vec2 pos;
-    glm::vec3 color;
-
-    static vk::VertexInputBindingDescription GetBindingDescription()
-    {
-        vk::VertexInputBindingDescription bindingDescription = {};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = vk::VertexInputRate::eVertex;
-
-        return bindingDescription;
-    }
-
-    static std::array<vk::VertexInputAttributeDescription, 2> GetAttributeDescriptions()
-    {
-        std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions = {};
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = vk::Format::eR32G32Sfloat;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = vk::Format::eR32G32B32Sfloat;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-        return attributeDescriptions;
-    }
-};
-
-struct UniformBufferObject {
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-};
-
-class RendererError : public std::runtime_error {
-public:
-    using runtime_error::runtime_error;
-
-    explicit RendererError(const std::string& message)
-        : runtime_error(message.c_str())
-    {
-    }
-};
-
 class Renderer {
 public:
-    explicit Renderer(App* app);
-    ~Renderer();
+    explicit Renderer(chronicle::App* app)
+        : _renderer(app) {};
 
-    void WaitIdle() const;
-    void DrawFrame();
+    inline void waitIdle() const { _renderer.waitIdle(); }
+
+    inline void waitForFence(const std::shared_ptr<Fence>& fence) const { _renderer.waitForFence(fence); }
+    inline void resetFence(const std::shared_ptr<Fence>& fence) const { _renderer.resetFence(fence); }
+    inline uint32_t acquireNextImage(const std::shared_ptr<Semaphore>& semaphore)
+    {
+        return _renderer.acquireNextImage(semaphore);
+    }
+    inline void submit(const std::shared_ptr<Fence>& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
+        const std::shared_ptr<Semaphore>& signalSemaphore, const std::shared_ptr<CommandBuffer>& commandBuffer) const
+    {
+        _renderer.submit(fence, waitSemaphore, signalSemaphore, commandBuffer);
+    }
+    inline bool present(const std::shared_ptr<Semaphore>& waitSemaphore, uint32_t imageIndex)
+    {
+        return _renderer.present(waitSemaphore, imageIndex);
+    }
+
+    inline void invalidateSwapChain() { _renderer.invalidateSwapChain(); }
+
+    [[nodiscard]] inline Format swapChainFormat() const { return _renderer.swapChainFormat(); }
+    [[nodiscard]] inline const std::vector<std::shared_ptr<Image>>& swapChainImages() const
+    {
+        return _renderer.swapChainImages();
+    }
+    [[nodiscard]] inline ExtentInt2D swapChainExtent() const { return _renderer.swapChainExtent(); }
+
+    [[nodiscard]] inline std::shared_ptr<RenderPass> createRenderPass(const RenderPassInfo& renderPassInfo) const
+    {
+        return std::make_shared<RenderPass>(this, renderPassInfo);
+    }
+    [[nodiscard]] inline std::shared_ptr<DescriptorSet> createDescriptorSet() const
+    {
+        return std::make_shared<DescriptorSet>(this);
+    }
+    [[nodiscard]] inline std::shared_ptr<Pipeline> createPipeline(const PipelineInfo& pipelineInfo) const
+    {
+        return std::make_shared<Pipeline>(this, pipelineInfo);
+    }
+    [[nodiscard]] inline std::shared_ptr<VertexBuffer> createVertexBuffer() const
+    {
+        return std::make_shared<VertexBuffer>(this);
+    }
+    [[nodiscard]] inline std::shared_ptr<IndexBuffer> createIndexBuffer() const
+    {
+        return std::make_shared<IndexBuffer>(this);
+    }
+    [[nodiscard]] inline std::shared_ptr<CommandBuffer> createCommandBuffer() const
+    {
+        return std::make_shared<CommandBuffer>(this);
+    }
+    [[nodiscard]] inline std::shared_ptr<Semaphore> createSemaphore() const
+    {
+        return std::make_shared<Semaphore>(this);
+    }
+    [[nodiscard]] inline std::shared_ptr<Fence> createFence() const { return std::make_shared<Fence>(this); }
+
+#ifdef VULKAN_RENDERER
+    [[nodiscard]] inline const VulkanRenderer& native() const { return _renderer; };
+#endif
 
 private:
-    App* _app;
-
-    vk::Instance _instance;
-    VkDebugUtilsMessengerEXT _debugCallback;
-    vk::SurfaceKHR _surface;
-
-    vk::PhysicalDevice _physicalDevice;
-    vk::Device _device;
-
-    vk::Queue _graphicsQueue;
-    vk::Queue _presentQueue;
-
-    vk::SwapchainKHR _swapChain;
-    std::vector<vk::Image> _swapChainImages;
-    vk::Format _swapChainImageFormat;
-    vk::Extent2D _swapChainExtent;
-    std::vector<vk::ImageView> _swapChainImageViews;
-    std::vector<vk::Framebuffer> _swapChainFramebuffers;
-
-    vk::RenderPass _renderPass;
-    vk::DescriptorSetLayout _descriptorSetLayout;
-    vk::PipelineLayout _pipelineLayout;
-    vk::Pipeline _graphicsPipeline;
-
-    vk::CommandPool _commandPool;
-
-    vk::Buffer _vertexBuffer;
-    vk::DeviceMemory _vertexBufferMemory;
-    vk::Buffer _indexBuffer;
-    vk::DeviceMemory _indexBufferMemory;
-
-    std::vector<vk::Buffer> _uniformBuffers;
-    std::vector<vk::DeviceMemory> _uniformBuffersMemory;
-    std::vector<void*> _uniformBuffersMapped;
-
-    vk::DescriptorPool _descriptorPool;
-    std::vector<vk::DescriptorSet> _descriptorSets;
-
-    std::vector<vk::CommandBuffer, std::allocator<vk::CommandBuffer>> _commandBuffers;
-
-    std::vector<vk::Semaphore> _imageAvailableSemaphores;
-    std::vector<vk::Semaphore> _renderFinishedSemaphores;
-    std::vector<vk::Fence> _inFlightFences;
-    size_t _currentFrame = 0;
-
-    bool _framebufferResized = false;
-
-    void CleanupSwapChain();
-    void RecreateSwapChain();
-
-    void CreateInstance();
-    void PopulateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo) const;
-    void SetupDebugCallback();
-    void CreateSurface();
-    void PickPhysicalDevice();
-    void CreateLogicalDevice();
-    void CreateSwapChain();
-    void CreateImageViews();
-    void CreateRenderPass();
-    void CreateDescriptorSetLayout();
-    void CreateGraphicsPipeline();
-    void CreateFramebuffers();
-    void CreateCommandPool();
-    void CreateVertexBuffer();
-    void CreateIndexBuffer();
-    void CreateUniformBuffers();
-    void CreateDescriptorPool();
-    void CreateDescriptorSets();
-
-    void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-        vk::Buffer& buffer, vk::DeviceMemory& bufferMemory);
-    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) const;
-    [[nodiscard]] uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
-
-    void CreateCommandBuffers();
-    void RecordCommandBuffer(const vk::CommandBuffer& commandBuffer, uint32_t imageIndex);
-    void CreateSyncObjects();
-    void UpdateUniformBuffer(uint32_t currentImage);
-
-    [[nodiscard]] bool CheckValidationLayerSupport() const;
-    [[nodiscard]] std::vector<const char*> GetRequiredExtensions() const;
-    [[nodiscard]] bool IsDeviceSuitable(const vk::PhysicalDevice& device) const;
-    [[nodiscard]] bool CheckDeviceExtensionSupport(const vk::PhysicalDevice& device) const;
-    [[nodiscard]] QueueFamilyIndices FindQueueFamilies(vk::PhysicalDevice device) const;
-    [[nodiscard]] SwapChainSupportDetails QuerySwapChainSupport(const vk::PhysicalDevice& device) const;
-    [[nodiscard]] vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(
-        const std::vector<vk::SurfaceFormatKHR>& availableFormats) const;
-    [[nodiscard]] vk::PresentModeKHR ChooseSwapPresentMode(
-        const std::vector<vk::PresentModeKHR>& availablePresentModes) const;
-    [[nodiscard]] vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const;
-
-    [[nodiscard]] vk::UniqueShaderModule CreateShaderModule(const std::vector<char>& code) const;
-
-    static std::vector<char> ReadFile(const std::string& filename);
-
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData);
+#ifdef VULKAN_RENDERER
+    VulkanRenderer _renderer;
+#endif
 };
 
 } // namespace chronicle
