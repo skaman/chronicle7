@@ -16,3 +16,6 @@
 [submodule "vendor/tracy"]
 	path = vendor/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "vendor/spirv-reflect"]
+	path = vendor/spirv-reflect
+	url = https://github.com/KhronosGroup/SPIRV-Reflect.git

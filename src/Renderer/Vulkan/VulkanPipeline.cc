@@ -2,6 +2,8 @@
 
 #include "VulkanCommon.h"
 
+#include <../vendor/spirv-reflect/spirv_reflect.h>
+
 namespace chronicle {
 
 VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pipelineInfo)
@@ -102,23 +104,19 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
     dynamicState.setDynamicStates(dynamicStates);
 
     // descriptor sets layout
-    std::vector<vk::DescriptorSetLayoutBinding> descriptorSetsLayout = {};
-    for (const auto& descriptorSet : pipelineInfo.descriptorSets) {
-        const auto& layoutBindings = descriptorSet->native().layoutBindings();
-        for (const auto& layoutBinding : layoutBindings) {
-            // TODO: handle the binding value?
-            descriptorSetsLayout.push_back(layoutBinding);
-        }
+    auto descriptorSetsLayoutData = getDescriptorSetsLayout(pipelineInfo.shaders);
+
+    _descriptorSetsLayout.reserve(descriptorSetsLayoutData.size());
+
+    for (const auto& descriptorSetLayoutData : descriptorSetsLayoutData) {
+        vk::DescriptorSetLayoutCreateInfo createInfo = {};
+        createInfo.setBindings(descriptorSetLayoutData.bindings);
+        _descriptorSetsLayout.push_back(_device.createDescriptorSetLayout(createInfo));
     }
-
-    vk::DescriptorSetLayoutCreateInfo layoutInfo = {};
-    layoutInfo.setBindings(descriptorSetsLayout);
-
-    _descriptorSetLayout = _device.createDescriptorSetLayout(layoutInfo);
 
     // pipeline layout
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
-    pipelineLayoutInfo.setSetLayouts(_descriptorSetLayout);
+    pipelineLayoutInfo.setSetLayouts(_descriptorSetsLayout);
 
     _pipelineLayout = _device.createPipelineLayout(pipelineLayoutInfo);
 
@@ -149,13 +147,72 @@ VulkanPipeline::~VulkanPipeline()
 {
     _device.destroyPipeline(_graphicsPipeline);
     _device.destroyPipelineLayout(_pipelineLayout);
-    _device.destroyDescriptorSetLayout(_descriptorSetLayout);
+
+    for (const auto& descriptorSetLayout : _descriptorSetsLayout)
+        _device.destroyDescriptorSetLayout(descriptorSetLayout);
 }
 
 vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const
 {
     return _device.createShaderModule(
         { vk::ShaderModuleCreateFlags(), code.size(), std::bit_cast<const uint32_t*>(code.data()) });
+}
+
+std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(
+    const std::unordered_map<ShaderStage, std::vector<char>>& shaders) const
+{
+    std::map<uint32_t, DescriptorSetLayoutData> sets = {};
+    for (auto const& [shaderStage, code] : shaders) {
+        auto descriptorSetsLayoutData = getDescriptorSetsLayout(code);
+        for (const auto& descriptorSetLayoutData : descriptorSetsLayoutData) {
+            if (!sets.contains(descriptorSetLayoutData.setNumber))
+                sets[descriptorSetLayoutData.setNumber] = descriptorSetLayoutData;
+        }
+    }
+
+    std::vector<DescriptorSetLayoutData> result = {};
+    for (auto const& [setNumber, descriptorSetLayoutData] : sets) {
+        result.push_back(descriptorSetLayoutData);
+    }
+
+    return result;
+}
+
+std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(const std::vector<char>& code) const
+{
+    SpvReflectShaderModule shaderModule = {};
+    SpvReflectResult result = spvReflectCreateShaderModule(code.size(), code.data(), &shaderModule);
+    assert(result == SPV_REFLECT_RESULT_SUCCESS);
+
+    uint32_t count = 0;
+    result = spvReflectEnumerateDescriptorSets(&shaderModule, &count, nullptr);
+    assert(result == SPV_REFLECT_RESULT_SUCCESS);
+
+    std::vector<SpvReflectDescriptorSet*> sets(count);
+    result = spvReflectEnumerateDescriptorSets(&shaderModule, &count, sets.data());
+    assert(result == SPV_REFLECT_RESULT_SUCCESS);
+
+    std::vector<DescriptorSetLayoutData> layoutSets(sets.size(), DescriptorSetLayoutData {});
+    for (size_t setIndex = 0; setIndex < sets.size(); ++setIndex) {
+        const SpvReflectDescriptorSet& setRefl = *(sets[setIndex]);
+        DescriptorSetLayoutData& layout = layoutSets[setIndex];
+        layout.bindings.resize(setRefl.binding_count);
+        for (uint32_t bindingIndex = 0; bindingIndex < setRefl.binding_count; ++bindingIndex) {
+            const SpvReflectDescriptorBinding& bindingRefl = *(setRefl.bindings[bindingIndex]);
+            vk::DescriptorSetLayoutBinding& layoutBinding = layout.bindings[bindingIndex];
+            layoutBinding.setBinding(bindingRefl.binding);
+            layoutBinding.descriptorType = static_cast<vk::DescriptorType>(bindingRefl.descriptor_type);
+            layoutBinding.setDescriptorCount(1);
+            for (uint32_t dimensionIndex = 0; dimensionIndex < bindingRefl.array.dims_count; ++dimensionIndex) {
+                layoutBinding.setDescriptorCount(
+                    layoutBinding.descriptorCount * bindingRefl.array.dims[dimensionIndex]);
+            }
+            layoutBinding.stageFlags = static_cast<vk::ShaderStageFlagBits>(shaderModule.shader_stage);
+        }
+        layout.setNumber = setRefl.set;
+    }
+
+    return layoutSets;
 }
 
 } // namespace chronicle

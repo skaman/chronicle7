@@ -80,7 +80,6 @@ MeshRendererSystem::MeshRendererSystem()
     vertexBufferInfo.attributeDescriptions.push_back(descriptorInfo1);
 
     pipelineInfo.vertexBuffers.push_back(vertexBufferInfo);
-    pipelineInfo.descriptorSets.push_back(_descriptorSets[0]); // something better? maybe just the layout
 
     _pipeline = renderer.createPipeline(pipelineInfo);
 

@@ -13,7 +13,6 @@ struct PipelineInfo {
     std::shared_ptr<RenderPass> renderPass = {};
     std::unordered_map<ShaderStage, std::vector<char>> shaders = {};
     std::vector<VertexBufferInfo> vertexBuffers = {};
-    std::vector<std::shared_ptr<DescriptorSet>> descriptorSets = {};
 };
 
 } // namespace chronicle

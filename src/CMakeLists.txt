@@ -115,4 +115,5 @@ target_link_libraries(chronicle
         glm::glm
         tinygltf
         Tracy::TracyClient
+        spirv-reflect-static
 )

@@ -6,6 +6,11 @@
 
 namespace chronicle {
 
+struct DescriptorSetLayoutData {
+    uint32_t setNumber = 0;
+    std::vector<vk::DescriptorSetLayoutBinding> bindings = {};
+};
+
 class VulkanPipeline {
 public:
     explicit VulkanPipeline(const vk::Device& device, const PipelineInfo& pipelineInfo);
@@ -18,7 +23,7 @@ public:
 private:
     vk::Device _device;
 
-    vk::DescriptorSetLayout _descriptorSetLayout;
+    std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout;
     vk::PipelineLayout _pipelineLayout;
     vk::Pipeline _graphicsPipeline;
 
@@ -26,6 +31,9 @@ private:
     std::vector<vk::DescriptorSet> _descriptorSets;
 
     vk::ShaderModule createShaderModule(const std::vector<char>& code) const;
+    std::vector<DescriptorSetLayoutData> getDescriptorSetsLayout(
+        const std::unordered_map<ShaderStage, std::vector<char>>& shaders) const;
+    std::vector<DescriptorSetLayoutData> getDescriptorSetsLayout(const std::vector<char>& code) const;
 };
 
 } // namespace chronicle

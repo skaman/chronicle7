@@ -27,3 +27,9 @@ add_subdirectory(tinygltf EXCLUDE_FROM_ALL)
 option(TRACY_ENABLE "" ON)
 #option(TRACY_ON_DEMAND "" ON)
 add_subdirectory(tracy)
+
+# SPIR-V Reflect
+set(SPIRV_REFLECT_EXAMPLES OFF CACHE INTERNAL "" FORCE)
+set(SPIRV_REFLECT_STATIC_LIB ON CACHE INTERNAL "" FORCE)
+set(SPIRV_REFLECT_EXECUTABLE OFF CACHE INTERNAL "" FORCE)
+add_subdirectory(spirv-reflect)
