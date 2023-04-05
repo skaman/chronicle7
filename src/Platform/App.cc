@@ -11,6 +11,8 @@ const uint32_t HEIGHT = 600;
 
 void App::Run(const std::string_view& appName)
 {
+    CHRZONE_PLATFORM
+
     _appName = appName;
 
     Init();
@@ -27,6 +29,8 @@ void App::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 
 void App::Init()
 {
+    CHRZONE_PLATFORM
+
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -46,6 +50,8 @@ void App::Init()
 
 void App::MainLoop()
 {
+    CHRZONE_PLATFORM
+
     entt::registry registry {};
 
     while (!glfwWindowShouldClose(_window)) {
@@ -58,6 +64,8 @@ void App::MainLoop()
 
 void App::Destroy()
 {
+    CHRZONE_PLATFORM
+
     entt::locator<Systems>::reset();
     entt::locator<Renderer>::reset();
 

@@ -4,13 +4,12 @@
 
 int main()
 {
-    // chronicle::HelloTriangleApplication app;
     chronicle::App app;
 
     try {
         app.Run("Test app");
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        CHRLOG_ERROR("Unhandled exception: {}", e.what());
         return EXIT_FAILURE;
     }
 

@@ -9,6 +9,8 @@ namespace chronicle {
 VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pipelineInfo)
     : _device(device)
 {
+    CHRZONE_VULKAN
+
     // shader stages
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     shaderStages.reserve(pipelineInfo.shaders.size());
@@ -145,6 +147,8 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
 
 VulkanPipeline::~VulkanPipeline()
 {
+    CHRZONE_VULKAN
+
     _device.destroyPipeline(_graphicsPipeline);
     _device.destroyPipelineLayout(_pipelineLayout);
 
@@ -154,6 +158,8 @@ VulkanPipeline::~VulkanPipeline()
 
 vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const
 {
+    CHRZONE_VULKAN
+
     return _device.createShaderModule(
         { vk::ShaderModuleCreateFlags(), code.size(), std::bit_cast<const uint32_t*>(code.data()) });
 }
@@ -161,6 +167,8 @@ vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& cod
 std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(
     const std::unordered_map<ShaderStage, std::vector<char>>& shaders) const
 {
+    CHRZONE_VULKAN
+
     std::map<uint32_t, DescriptorSetLayoutData> sets = {};
     for (auto const& [shaderStage, code] : shaders) {
         auto descriptorSetsLayoutData = getDescriptorSetsLayout(code);
@@ -180,6 +188,8 @@ std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(
 
 std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(const std::vector<char>& code) const
 {
+    CHRZONE_VULKAN
+
     SpvReflectShaderModule shaderModule = {};
     SpvReflectResult result = spvReflectCreateShaderModule(code.size(), code.data(), &shaderModule);
     assert(result == SPV_REFLECT_RESULT_SUCCESS);

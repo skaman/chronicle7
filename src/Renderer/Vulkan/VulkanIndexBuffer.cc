@@ -15,12 +15,16 @@ VulkanIndexBuffer::VulkanIndexBuffer(const vk::Device& device, const vk::Physica
 
 VulkanIndexBuffer::~VulkanIndexBuffer()
 {
+    CHRZONE_VULKAN
+
     if (_buffer)
         cleanup();
 }
 
 void VulkanIndexBuffer::set(void* src, size_t size)
 {
+    CHRZONE_VULKAN
+
     vk::DeviceSize bufferSize = size;
 
     vk::Buffer stagingBuffer;
@@ -45,6 +49,8 @@ void VulkanIndexBuffer::set(void* src, size_t size)
 
 void VulkanIndexBuffer::cleanup() const
 {
+    CHRZONE_VULKAN
+
     _device.destroyBuffer(_buffer);
     _device.freeMemory(_bufferMemory);
 }

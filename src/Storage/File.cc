@@ -4,6 +4,8 @@ namespace chronicle {
 
 std::vector<char> File::readBytes(const std::string& filename)
 {
+    CHRZONE_STORAGE
+
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open())

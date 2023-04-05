@@ -6,6 +6,8 @@ VulkanDescriptorSet::VulkanDescriptorSet(const vk::Device& device, const vk::Phy
     : _device(device)
     , _physicalDevice(physicalDevice)
 {
+    CHRZONE_VULKAN
+
     // TODO: allocate on build with the right size
     // create a descriptor pool that will hold 10 uniform buffers
     std::vector<vk::DescriptorPoolSize> sizes = { { vk::DescriptorType::eUniformBuffer, 10 } };
@@ -19,6 +21,8 @@ VulkanDescriptorSet::VulkanDescriptorSet(const vk::Device& device, const vk::Phy
 
 VulkanDescriptorSet::~VulkanDescriptorSet()
 {
+    CHRZONE_VULKAN
+
     for (const auto& buffer : _buffers)
         _device.destroyBuffer(buffer);
 
@@ -33,6 +37,8 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 
 void VulkanDescriptorSet::build()
 {
+    CHRZONE_VULKAN
+
     vk::DescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.setBindings(_layoutBindings);
     _descriptorSetLayout = _device.createDescriptorSetLayout(layoutInfo);

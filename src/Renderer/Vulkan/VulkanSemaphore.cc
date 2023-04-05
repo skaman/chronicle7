@@ -5,9 +5,16 @@ namespace chronicle {
 VulkanSemaphore::VulkanSemaphore(const vk::Device& device)
     : _device(device)
 {
+    CHRZONE_VULKAN
+
     _semaphore = _device.createSemaphore({});
 }
 
-VulkanSemaphore::~VulkanSemaphore() { _device.destroySemaphore(_semaphore); }
+VulkanSemaphore::~VulkanSemaphore()
+{
+    CHRZONE_VULKAN
 
+    _device.destroySemaphore(_semaphore);
 }
+
+} // namespace chronicle

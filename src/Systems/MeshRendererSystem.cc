@@ -32,7 +32,7 @@ const std::vector<uint16_t> Indices = { 0, 1, 2, 2, 3, 0 };
 
 MeshRendererSystem::MeshRendererSystem()
 {
-    ZoneScoped;
+    CHRZONE_RENDERER_SYSTEM;
 
     std::string filename = "D:\\Progetti\\glTF-Sample-Models\\2.0\\Triangle\\glTF-Embedded\\Triangle.gltf";
     // std::string filename = "D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf";
@@ -111,6 +111,8 @@ MeshRendererSystem::MeshRendererSystem()
 
 MeshRendererSystem::~MeshRendererSystem()
 {
+    CHRZONE_RENDERER_SYSTEM
+
     _inFlightFences.clear();
     _renderFinishedSemaphores.clear();
     _imageAvailableSemaphores.clear();
@@ -124,6 +126,8 @@ MeshRendererSystem::~MeshRendererSystem()
 
 void MeshRendererSystem::run(entt::registry& registry)
 {
+    CHRZONE_RENDERER_SYSTEM
+
     auto& renderer = entt::locator<Renderer>::value();
 
     renderer.waitForFence(_inFlightFences[_currentFrame]);
@@ -148,6 +152,8 @@ void MeshRendererSystem::run(entt::registry& registry)
 
 void MeshRendererSystem::recordCommandBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t imageIndex)
 {
+    CHRZONE_RENDERER_SYSTEM
+
     const auto& renderer = entt::locator<Renderer>::value();
 
     auto extent = renderer.swapChainExtent();
@@ -173,6 +179,8 @@ void MeshRendererSystem::recordCommandBuffer(const std::shared_ptr<CommandBuffer
 
 void MeshRendererSystem::updateUniformBuffer(uint32_t currentFrame)
 {
+    CHRZONE_RENDERER_SYSTEM
+
     const auto& renderer = entt::locator<Renderer>::value();
 
     auto extent = renderer.swapChainExtent();

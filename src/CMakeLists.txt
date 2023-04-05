@@ -24,6 +24,7 @@ endfunction()
 
 add_executable(chronicle
     "main.cc"
+    "Memory.cc"
     "Platform/App.h"
     "Platform/App.cc"
     "Renderer/CommandBuffer.h"

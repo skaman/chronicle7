@@ -10,6 +10,8 @@ namespace chronicle {
 VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInfo& renderPassInfo)
     : _device(device)
 {
+    CHRZONE_VULKAN
+
     // render pass
     vk::AttachmentDescription colorAttachment = {};
     colorAttachment.setFormat(formatToVulkan(renderPassInfo.colorAttachmentFormat));
@@ -60,6 +62,8 @@ VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInf
 
 VulkanRenderPass::~VulkanRenderPass()
 {
+    CHRZONE_VULKAN
+
     for (const auto& image : _images)
         image->native().updated.reset();
     _images.clear();
@@ -72,6 +76,8 @@ VulkanRenderPass::~VulkanRenderPass()
 
 vk::Framebuffer VulkanRenderPass::createFrameBuffer(const std::shared_ptr<Image>& image) const
 {
+    CHRZONE_VULKAN
+
     const auto& vulkanImage = image->native();
 
     std::array<vk::ImageView, 1> attachments = { vulkanImage.imageView() };
@@ -88,6 +94,8 @@ vk::Framebuffer VulkanRenderPass::createFrameBuffer(const std::shared_ptr<Image>
 
 void VulkanRenderPass::recreateFrameBuffer(uint32_t imageIndex)
 {
+    CHRZONE_VULKAN
+
     _device.destroyFramebuffer(_framebuffers[imageIndex]);
 
     _framebuffers[imageIndex] = createFrameBuffer(_images[imageIndex]);

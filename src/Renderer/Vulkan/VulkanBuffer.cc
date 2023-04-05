@@ -7,6 +7,8 @@ namespace chronicle {
 void VulkanBuffer::create(const vk::Device& device, const vk::PhysicalDevice& physicalDevice, vk::DeviceSize size,
     vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer, vk::DeviceMemory& bufferMemory)
 {
+    CHRZONE_VULKAN
+
     vk::BufferCreateInfo bufferInfo = {};
     bufferInfo.setSize(size);
     bufferInfo.setUsage(usage);
@@ -28,6 +30,8 @@ void VulkanBuffer::create(const vk::Device& device, const vk::PhysicalDevice& ph
 void VulkanBuffer::copy(const vk::Device& device, const vk::CommandPool& commandPool, const vk::Queue& graphicsQueue,
     VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
+    CHRZONE_VULKAN
+
     vk::CommandBufferAllocateInfo allocInfo = {};
     allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     allocInfo.setCommandPool(commandPool);
@@ -52,6 +56,8 @@ void VulkanBuffer::copy(const vk::Device& device, const vk::CommandPool& command
 uint32_t VulkanBuffer::findMemoryType(
     const vk::PhysicalDevice& physicalDevice, uint32_t typeFilter, vk::MemoryPropertyFlags properties)
 {
+    CHRZONE_VULKAN
+
     auto memProperties = physicalDevice.getMemoryProperties();
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {

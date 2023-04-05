@@ -15,12 +15,16 @@ VulkanVertexBuffer::VulkanVertexBuffer(const vk::Device& device, const vk::Physi
 
 VulkanVertexBuffer::~VulkanVertexBuffer()
 {
+    CHRZONE_VULKAN
+
     if (_buffer)
         cleanup();
 }
 
 void VulkanVertexBuffer::set(void* src, size_t size)
 {
+    CHRZONE_VULKAN
+
     if (_buffer)
         cleanup();
 
@@ -48,6 +52,8 @@ void VulkanVertexBuffer::set(void* src, size_t size)
 
 void VulkanVertexBuffer::cleanup() const
 {
+    CHRZONE_VULKAN
+
     _device.destroyBuffer(_buffer);
     _device.freeMemory(_bufferMemory);
 }
