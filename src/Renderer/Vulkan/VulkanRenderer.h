@@ -88,7 +88,7 @@ private:
 
     [[nodiscard]] bool checkValidationLayerSupport() const;
     [[nodiscard]] std::vector<const char*> getRequiredExtensions() const;
-    [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
+    [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) const;
     [[nodiscard]] bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device) const;
     [[nodiscard]] VulkanQueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device) const;
     [[nodiscard]] VulkanSwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const;

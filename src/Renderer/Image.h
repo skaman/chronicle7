@@ -8,11 +8,14 @@
 
 namespace chronicle {
 
+class Renderer;
+
 class Image {
 public:
+    Image(const Renderer* renderer, const ImageInfo& imageInfo);
+
 #ifdef VULKAN_RENDERER
-    Image(const vk::Device& device, const vk::Image& image, const vk::ImageView& imageView, int imageViewWidth,
-        int imageViewHeight);
+    Image(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height);
 #endif
 
 #ifdef VULKAN_RENDERER

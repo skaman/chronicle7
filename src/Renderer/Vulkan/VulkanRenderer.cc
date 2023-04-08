@@ -292,6 +292,8 @@ void VulkanRenderer::createLogicalDevice()
     }
 
     auto deviceFeatures = vk::PhysicalDeviceFeatures();
+    deviceFeatures.setSamplerAnisotropy(true);
+
     vk::DeviceCreateInfo createInfo = {};
     createInfo.setQueueCreateInfos(queueCreateInfos);
     createInfo.setPEnabledFeatures(&deviceFeatures);
@@ -350,33 +352,12 @@ void VulkanRenderer::createSwapChain()
     _swapChainImages.reserve(swapChainImages.size());
 
     for (size_t i = 0; i < swapChainImages.size(); i++) {
-        using enum vk::ComponentSwizzle;
-
-        vk::ComponentMapping components = {};
-        components.setR(eIdentity);
-        components.setG(eIdentity);
-        components.setB(eIdentity);
-        components.setA(eIdentity);
-
-        vk::ImageSubresourceRange subresourceRange = {};
-        subresourceRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
-        subresourceRange.setBaseMipLevel(0);
-        subresourceRange.setLevelCount(1);
-        subresourceRange.setBaseArrayLayer(0);
-        subresourceRange.setLayerCount(1);
-
-        vk::ImageViewCreateInfo imageViewCreateInfo = {};
-        imageViewCreateInfo.setImage(swapChainImages[i]);
-        imageViewCreateInfo.setViewType(vk::ImageViewType::e2D);
-        imageViewCreateInfo.setFormat(surfaceFormat.format);
-        imageViewCreateInfo.setComponents(components);
-        imageViewCreateInfo.setSubresourceRange(subresourceRange);
-
-        auto imageView = _device.createImageView(imageViewCreateInfo);
         if (_swapChainImages.size() > i) {
-            _swapChainImages[i]->native().updateImage(swapChainImages[i], imageView, extent.width, extent.height);
+            _swapChainImages[i]->native().updateImage(
+                swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
         } else {
-            auto image = std::make_shared<Image>(_device, swapChainImages[i], imageView, extent.width, extent.height);
+            auto image = std::make_shared<Image>(
+                _device, swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
             _swapChainImages.push_back(image);
         }
     }
@@ -435,21 +416,22 @@ std::vector<const char*> VulkanRenderer::getRequiredExtensions() const
     return extensions;
 }
 
-bool VulkanRenderer::isDeviceSuitable(const vk::PhysicalDevice& device) const
+bool VulkanRenderer::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) const
 {
     CHRZONE_VULKAN
 
-    VulkanQueueFamilyIndices indices = findQueueFamilies(device);
+    VulkanQueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-    bool extensionsSupported = checkDeviceExtensionSupport(device);
+    bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
 
     bool swapChainAdequate = false;
     if (extensionsSupported) {
-        VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
+        VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
-    return indices.IsComplete() && extensionsSupported && swapChainAdequate;
+    const auto supportedFeatures = physicalDevice.getFeatures();
+    return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
 bool VulkanRenderer::checkDeviceExtensionSupport(const vk::PhysicalDevice& device) const

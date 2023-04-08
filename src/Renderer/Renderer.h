@@ -9,6 +9,7 @@
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
 #include "Fence.h"
+#include "Image.h"
 #include "IndexBuffer.h"
 #include "Pipeline.h"
 #include "RenderPass.h"
@@ -81,6 +82,10 @@ public:
         return std::make_shared<Semaphore>(this);
     }
     [[nodiscard]] inline std::shared_ptr<Fence> createFence() const { return std::make_shared<Fence>(this); }
+    [[nodiscard]] inline std::shared_ptr<Image> createImage(const ImageInfo& imageInfo) const
+    {
+        return std::make_shared<Image>(this, imageInfo);
+    }
 
 #ifdef VULKAN_RENDERER
     [[nodiscard]] inline const VulkanRenderer& native() const { return _renderer; };

@@ -31,8 +31,8 @@ private:
     std::vector<vk::DescriptorSet> _descriptorSets;
 
     vk::ShaderModule createShaderModule(const std::vector<char>& code) const;
-    std::vector<DescriptorSetLayoutData> getDescriptorSetsLayout(
-        const std::unordered_map<ShaderStage, std::vector<char>>& shaders) const;
+    std::vector<vk::DescriptorSetLayout> getDescriptorSetsLayout(
+        const std::vector<std::vector<char>>& shadersCode) const;
     std::vector<DescriptorSetLayoutData> getDescriptorSetsLayout(const std::vector<char>& code) const;
 };
 

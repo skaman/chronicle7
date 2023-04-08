@@ -1,10 +1,16 @@
 #include "Image.h"
 
-namespace chronicle {
+#include "Renderer.h"
 
-Image::Image(const vk::Device& device, const vk::Image& image, const vk::ImageView& imageView, int imageViewWidth,
-    int imageViewHeight)
-    : _image(device, image, imageView, imageViewWidth, imageViewHeight)
+namespace chronicle {
+Image::Image(const Renderer* renderer, const ImageInfo& imageInfo)
+    : _image(renderer->native().device(), renderer->native().physicalDevice(), renderer->native().commandPool(),
+        renderer->native().graphicsQueue(), imageInfo)
+{
+}
+
+Image::Image(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height)
+    : _image(device, image, format, width, height)
 {
 }
 

@@ -11,7 +11,7 @@ namespace chronicle {
 
 struct PipelineInfo {
     std::shared_ptr<RenderPass> renderPass = {};
-    std::unordered_map<ShaderStage, std::vector<char>> shaders = {};
+    std::unordered_map<ShaderStage, std::string> shaders = {};
     std::vector<VertexBufferInfo> vertexBuffers = {};
 };
 

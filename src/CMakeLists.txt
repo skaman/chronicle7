@@ -24,7 +24,7 @@ endfunction()
 
 add_executable(chronicle
     "main.cc"
-    "Memory.cc"
+    "pch.cc"
     "Platform/App.h"
     "Platform/App.cc"
     "Renderer/CommandBuffer.h"
@@ -36,6 +36,7 @@ add_executable(chronicle
     "Renderer/Fence.cc"
     "Renderer/Image.h"
     "Renderer/Image.cc"
+    "Renderer/ImageInfo.h"
     "Renderer/IndexBuffer.h"
     "Renderer/IndexBuffer.cc"
     "Renderer/Pipeline.h"
@@ -97,8 +98,7 @@ target_compile_definitions(chronicle PUBLIC RENDERER=VULKAN)
 target_include_directories(chronicle    
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-    INTERFACE
-        ${CMAKE_SOURCE_DIR}/include
+        "${CMAKE_CURRENT_SOURCE_DIR}/../vendor"
 )
 
 target_precompile_headers(chronicle

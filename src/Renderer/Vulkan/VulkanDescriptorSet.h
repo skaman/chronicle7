@@ -3,12 +3,31 @@
 #include "pch.h"
 
 #include "Renderer/Common.h"
+#include "Renderer/Image.h"
 #include "Renderer/RendererError.h"
 
 #include "VulkanBuffer.h"
 #include "VulkanCommon.h"
 
 namespace chronicle {
+
+struct VulkanDescriptorSetUniformState {
+    vk::DeviceMemory bufferMemory;
+    vk::DescriptorBufferInfo bufferInfo;
+};
+
+struct VulkanDescriptorSetCombinedImageSamplerState {
+    vk::DescriptorImageInfo imageInfo;
+};
+
+struct VulkanDescriptorSetState {
+    vk::DescriptorType type;
+
+    union {
+        VulkanDescriptorSetUniformState uniform;
+        VulkanDescriptorSetCombinedImageSamplerState combinedImageSampler;
+    };
+};
 
 class VulkanDescriptorSet {
 public:
@@ -35,10 +54,36 @@ public:
 
         bufferMapped = _device.mapMemory(bufferMemory, 0, bufferSize);
 
-        _buffers.push_back(buffer);
-        _buffersMemory.push_back(bufferMemory);
+        vk::DescriptorBufferInfo bufferInfo = {};
+        bufferInfo.setBuffer(buffer);
+        bufferInfo.setOffset(0);
+        bufferInfo.setRange(bufferSize);
+
+        VulkanDescriptorSetState descriptorSetState = { .type = vk::DescriptorType::eUniformBuffer,
+            .uniform = { .bufferMemory = bufferMemory, .bufferInfo = bufferInfo } };
+
+        _descriptorSetsState.push_back(descriptorSetState);
         _buffersMapped[id] = bufferMapped;
-        _buffersSize.push_back(bufferSize);
+    }
+
+    void addSampler(ShaderStage stage, const std::shared_ptr<Image> image)
+    {
+        vk::DescriptorSetLayoutBinding layoutBinding = {};
+        layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
+        layoutBinding.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
+        layoutBinding.setDescriptorCount(1);
+        layoutBinding.setStageFlags(shaderStageToVulkan(stage));
+        _layoutBindings.push_back(layoutBinding);
+
+        vk::DescriptorImageInfo imageInfo {};
+        imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
+        imageInfo.setImageView(image->native().imageView());
+        imageInfo.setSampler(image->native().sampler());
+
+        VulkanDescriptorSetState descriptorSetState
+            = { .type = vk::DescriptorType::eCombinedImageSampler, .combinedImageSampler = { .imageInfo = imageInfo } };
+
+        _descriptorSetsState.push_back(descriptorSetState);
     }
 
     template <class T> void setUniform(entt::hashed_string::hash_type id, const T& data)
@@ -64,11 +109,14 @@ private:
     vk::DescriptorSetLayout _descriptorSetLayout;
 
     std::vector<vk::DescriptorSetLayoutBinding> _layoutBindings = {};
+    std::vector<VulkanDescriptorSetState> _descriptorSetsState = {};
 
-    std::vector<vk::Buffer> _buffers = {};
-    std::vector<vk::DeviceMemory> _buffersMemory = {};
     std::unordered_map<entt::hashed_string::hash_type, void*> _buffersMapped = {};
-    std::vector<uint32_t> _buffersSize = {};
+
+    [[nodiscard]] vk::WriteDescriptorSet createUniformWriteDescriptorSet(
+        uint32_t index, const VulkanDescriptorSetState& state) const;
+    [[nodiscard]] vk::WriteDescriptorSet createCombinedImageSamplerWriteDescriptorSet(
+        uint32_t index, const VulkanDescriptorSetState& state) const;
 };
 
 } // namespace chronicle

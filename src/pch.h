@@ -24,8 +24,14 @@
 // entt
 #include <entt/entt.hpp>
 
+// tiny gltf
+#include <tiny_gltf.h>
+
 // tracy
 #include <tracy/Tracy.hpp>
+
+// stb
+#include <stb/stb_image.h>
 
 // std lib
 #include <bit>

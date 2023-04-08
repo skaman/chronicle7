@@ -18,6 +18,12 @@ public:
     {
         _descriptorSet.addUniform<T>(id, stage);
     }
+
+    inline void addSampler(ShaderStage stage, const std::shared_ptr<Image> image)
+    {
+        _descriptorSet.addSampler(stage, image);
+    }
+
     template <class T> inline void setUniform(entt::hashed_string::hash_type id, const T& data)
     {
         _descriptorSet.setUniform<T>(id, data);

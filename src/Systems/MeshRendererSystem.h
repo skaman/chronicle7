@@ -27,6 +27,8 @@ private:
     std::vector<std::shared_ptr<Semaphore>> _renderFinishedSemaphores;
     std::vector<std::shared_ptr<Fence>> _inFlightFences;
     uint32_t _currentFrame = 0;
+
+    std::shared_ptr<Image> _texture;
 };
 
 } // namespace chronicle

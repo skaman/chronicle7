@@ -1,11 +1,4 @@
 #include "MeshRendererSystem.h"
-#include "Storage/File.h"
-
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-// #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
-#include <tiny_gltf.h>
 
 namespace chronicle {
 
@@ -22,11 +15,12 @@ struct UniformBufferObject {
 struct Vertex {
     glm::vec2 pos;
     glm::vec3 color;
+    glm::vec2 texCoord;
 };
 
-const std::vector<Vertex> Vertices
-    = { { { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } }, { { 0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
-          { { 0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } }, { { -0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } } };
+const std::vector<Vertex> Vertices = { { { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } },
+    { { 0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f } }, { { 0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
+    { { -0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } } };
 
 const std::vector<uint16_t> Indices = { 0, 1, 2, 2, 3, 0 };
 
@@ -51,11 +45,17 @@ MeshRendererSystem::MeshRendererSystem()
     renderPassInfo.images = renderer.swapChainImages();
     _renderPass = renderer.createRenderPass(renderPassInfo);
 
+    // texture
+    ImageInfo imageInfo = {};
+    imageInfo.filename = "D:\\texture.jpg";
+    _texture = renderer.createImage(imageInfo);
+
     // descriptor sets
     _descriptorSets.reserve(MAX_FRAMES_IN_FLIGHT);
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         auto descriptorSet = renderer.createDescriptorSet();
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, ShaderStage::Vertex);
+        descriptorSet->addSampler(ShaderStage::Fragment, _texture);
         descriptorSet->build();
         _descriptorSets.push_back(descriptorSet);
     }
@@ -63,8 +63,8 @@ MeshRendererSystem::MeshRendererSystem()
     // pipeline
     PipelineInfo pipelineInfo = {};
     pipelineInfo.renderPass = _renderPass;
-    pipelineInfo.shaders[ShaderStage::Vertex] = File::readBytes("Shaders/triangle.vert.bin");
-    pipelineInfo.shaders[ShaderStage::Fragment] = File::readBytes("Shaders/triangle.frag.bin");
+    pipelineInfo.shaders[ShaderStage::Vertex] = "Shaders/triangle.vert.bin";
+    pipelineInfo.shaders[ShaderStage::Fragment] = "Shaders/triangle.frag.bin";
 
     VertexBufferInfo vertexBufferInfo = {};
     vertexBufferInfo.stride = sizeof(Vertex);
@@ -78,6 +78,11 @@ MeshRendererSystem::MeshRendererSystem()
     descriptorInfo1.format = Format::R32G32B32Sfloat;
     descriptorInfo1.offset = offsetof(Vertex, color);
     vertexBufferInfo.attributeDescriptions.push_back(descriptorInfo1);
+
+    AttributeDescriptionInfo descriptorInfo2 = {};
+    descriptorInfo2.format = Format::R32G32Sfloat;
+    descriptorInfo2.offset = offsetof(Vertex, texCoord);
+    vertexBufferInfo.attributeDescriptions.push_back(descriptorInfo2);
 
     pipelineInfo.vertexBuffers.push_back(vertexBufferInfo);
 
@@ -113,6 +118,7 @@ MeshRendererSystem::~MeshRendererSystem()
 {
     CHRZONE_RENDERER_SYSTEM
 
+    _texture.reset();
     _inFlightFences.clear();
     _renderFinishedSemaphores.clear();
     _imageAvailableSemaphores.clear();

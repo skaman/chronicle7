@@ -10,7 +10,8 @@ VulkanDescriptorSet::VulkanDescriptorSet(const vk::Device& device, const vk::Phy
 
     // TODO: allocate on build with the right size
     // create a descriptor pool that will hold 10 uniform buffers
-    std::vector<vk::DescriptorPoolSize> sizes = { { vk::DescriptorType::eUniformBuffer, 10 } };
+    std::vector<vk::DescriptorPoolSize> sizes
+        = { { vk::DescriptorType::eUniformBuffer, 10 }, { vk::DescriptorType::eCombinedImageSampler, 10 } };
 
     vk::DescriptorPoolCreateInfo poolInfo = {};
     poolInfo.setMaxSets(1);
@@ -23,11 +24,12 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 {
     CHRZONE_VULKAN
 
-    for (const auto& buffer : _buffers)
-        _device.destroyBuffer(buffer);
-
-    for (const auto& bufferMemory : _buffersMemory)
-        _device.freeMemory(bufferMemory);
+    for (const auto& state : _descriptorSetsState) {
+        if (state.type == vk::DescriptorType::eUniformBuffer) {
+            _device.destroyBuffer(state.uniform.bufferInfo.buffer);
+            _device.freeMemory(state.uniform.bufferMemory);
+        }
+    }
 
     if (_descriptorSetLayout)
         _device.destroyDescriptorSetLayout(_descriptorSetLayout);
@@ -49,22 +51,49 @@ void VulkanDescriptorSet::build()
 
     _descriptorSet = _device.allocateDescriptorSets(allocInfo)[0];
 
-    for (size_t i = 0; i < _layoutBindings.size(); i++) {
-        vk::DescriptorBufferInfo bufferInfo = {};
-        bufferInfo.setBuffer(_buffers[i]);
-        bufferInfo.setOffset(0);
-        bufferInfo.setRange(_buffersSize[i]);
+    std::vector<vk::WriteDescriptorSet> descriptorWrites = {};
+    descriptorWrites.reserve(_descriptorSetsState.size());
 
-        vk::WriteDescriptorSet descriptorWrite = {};
-        descriptorWrite.setDstSet(_descriptorSet);
-        descriptorWrite.setDstBinding(static_cast<uint32_t>(i));
-        descriptorWrite.setDstArrayElement(0);
-        descriptorWrite.setDescriptorType(vk::DescriptorType::eUniformBuffer);
-        descriptorWrite.setDescriptorCount(1);
-        descriptorWrite.setBufferInfo(bufferInfo);
-
-        _device.updateDescriptorSets(descriptorWrite, nullptr);
+    for (uint32_t i = 0; i < _descriptorSetsState.size(); i++) {
+        switch (_descriptorSetsState[i].type) {
+        case vk::DescriptorType::eUniformBuffer:
+            descriptorWrites.push_back(createUniformWriteDescriptorSet(i, _descriptorSetsState[i]));
+            break;
+        case vk::DescriptorType::eCombinedImageSampler:
+            descriptorWrites.push_back(createCombinedImageSamplerWriteDescriptorSet(i, _descriptorSetsState[i]));
+            break;
+        default:
+            throw RendererError("Unsupported descriptor type");
+        }
     }
+
+    _device.updateDescriptorSets(descriptorWrites, nullptr);
+}
+
+vk::WriteDescriptorSet VulkanDescriptorSet::createUniformWriteDescriptorSet(
+    uint32_t index, const VulkanDescriptorSetState& state) const
+{
+    vk::WriteDescriptorSet descriptorWrite = {};
+    descriptorWrite.setDstSet(_descriptorSet);
+    descriptorWrite.setDstBinding(index);
+    descriptorWrite.setDstArrayElement(0);
+    descriptorWrite.setDescriptorType(vk::DescriptorType::eUniformBuffer);
+    descriptorWrite.setDescriptorCount(1);
+    descriptorWrite.setBufferInfo(state.uniform.bufferInfo);
+    return descriptorWrite;
+}
+
+vk::WriteDescriptorSet VulkanDescriptorSet::createCombinedImageSamplerWriteDescriptorSet(
+    uint32_t index, const VulkanDescriptorSetState& state) const
+{
+    vk::WriteDescriptorSet descriptorWrite = {};
+    descriptorWrite.setDstSet(_descriptorSet);
+    descriptorWrite.setDstBinding(index);
+    descriptorWrite.setDstArrayElement(0);
+    descriptorWrite.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
+    descriptorWrite.setDescriptorCount(1);
+    descriptorWrite.setImageInfo(state.combinedImageSampler.imageInfo);
+    return descriptorWrite;
 }
 
 } // namespace chronicle
