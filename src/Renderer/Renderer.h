@@ -28,13 +28,13 @@ public:
 
     inline void waitIdle() const { _renderer.waitIdle(); }
 
-    inline void waitForFence(const std::shared_ptr<Fence>& fence) const { _renderer.waitForFence(fence); }
-    inline void resetFence(const std::shared_ptr<Fence>& fence) const { _renderer.resetFence(fence); }
+    inline void waitForFence(const FenceRef& fence) const { _renderer.waitForFence(fence); }
+    inline void resetFence(const FenceRef& fence) const { _renderer.resetFence(fence); }
     inline uint32_t acquireNextImage(const std::shared_ptr<Semaphore>& semaphore)
     {
         return _renderer.acquireNextImage(semaphore);
     }
-    inline void submit(const std::shared_ptr<Fence>& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
+    inline void submit(const FenceRef& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
         const std::shared_ptr<Semaphore>& signalSemaphore, const std::shared_ptr<CommandBuffer>& commandBuffer) const
     {
         _renderer.submit(fence, waitSemaphore, signalSemaphore, commandBuffer);
@@ -59,7 +59,7 @@ public:
     }
     [[nodiscard]] inline std::shared_ptr<DescriptorSet> createDescriptorSet() const
     {
-        return std::make_shared<DescriptorSet>(this);
+        return std::make_shared<DescriptorSet>(DescriptorSet::create(this));
     }
     [[nodiscard]] inline std::shared_ptr<Pipeline> createPipeline(const PipelineInfo& pipelineInfo) const
     {
@@ -73,15 +73,12 @@ public:
     {
         return std::make_shared<IndexBuffer>(this);
     }
-    [[nodiscard]] inline std::shared_ptr<CommandBuffer> createCommandBuffer() const
-    {
-        return std::make_shared<CommandBuffer>(this);
-    }
+    [[nodiscard]] inline CommandBufferRef createCommandBuffer() const { return CommandBuffer::create(this); }
     [[nodiscard]] inline std::shared_ptr<Semaphore> createSemaphore() const
     {
         return std::make_shared<Semaphore>(this);
     }
-    [[nodiscard]] inline std::shared_ptr<Fence> createFence() const { return std::make_shared<Fence>(this); }
+    [[nodiscard]] inline FenceRef createFence() const { return Fence::create(this); }
     [[nodiscard]] inline std::shared_ptr<Image> createImage(const ImageInfo& imageInfo) const
     {
         return std::make_shared<Image>(this, imageInfo);

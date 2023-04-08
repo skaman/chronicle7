@@ -2,26 +2,21 @@
 
 #include "pch.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanFence.h"
-#endif
-
 namespace chronicle {
 
 class Renderer;
+template <class T> class FenceI;
 
-class Fence {
+#ifdef VULKAN_RENDERER
+class VulkanFence;
+using Fence = FenceI<VulkanFence>;
+#endif
+
+using FenceRef = std::shared_ptr<Fence>;
+
+template <class T> class FenceI {
 public:
-    explicit Fence(const Renderer* renderer);
-
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline const VulkanFence& native() const { return _fence; };
-#endif
-
-private:
-#ifdef VULKAN_RENDERER
-    VulkanFence _fence;
-#endif
+    static FenceRef create(const Renderer* renderer) { return T::createImpl(renderer); }
 };
 
 } // namespace chronicle

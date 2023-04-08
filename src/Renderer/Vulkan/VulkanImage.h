@@ -34,7 +34,7 @@ private:
     vk::ImageView _imageView;
     vk::Sampler _sampler;
 
-    bool _externalImage = false;
+    bool _swapchainImage = false;
 
     uint32_t _width;
     uint32_t _height;

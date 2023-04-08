@@ -89,20 +89,22 @@ void VulkanRenderer::waitIdle() const
     _device.waitIdle();
 }
 
-void VulkanRenderer::waitForFence(const std::shared_ptr<Fence>& fence) const
+void VulkanRenderer::waitForFence(const FenceRef& fence) const
 {
     CHRZONE_VULKAN
 
-        (void)
-    _device.waitForFences(fence->native().fence(), true, std::numeric_limits<uint64_t>::max());
+    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
+
+    (void)_device.waitForFences(vulkanFence->fence(), true, std::numeric_limits<uint64_t>::max());
 }
 
-void VulkanRenderer::resetFence(const std::shared_ptr<Fence>& fence) const
+void VulkanRenderer::resetFence(const FenceRef& fence) const
 {
     CHRZONE_VULKAN
 
-        (void)
-    _device.resetFences(fence->native().fence());
+    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
+
+    (void)_device.resetFences(vulkanFence->fence());
 }
 
 uint32_t VulkanRenderer::acquireNextImage(const std::shared_ptr<Semaphore>& semaphore)
@@ -119,19 +121,23 @@ uint32_t VulkanRenderer::acquireNextImage(const std::shared_ptr<Semaphore>& sema
     }
 }
 
-void VulkanRenderer::submit(const std::shared_ptr<Fence>& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
+void VulkanRenderer::submit(const FenceRef& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
     const std::shared_ptr<Semaphore>& signalSemaphore, const std::shared_ptr<CommandBuffer>& commandBuffer) const
 {
     CHRZONE_VULKAN
+
+    const auto vulkanCommandBuffer = static_cast<const VulkanCommandBuffer*>(commandBuffer.get());
 
     vk::SubmitInfo submitInfo = {};
     std::array<vk::PipelineStageFlags, 1> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
     submitInfo.setWaitSemaphores(waitSemaphore->native().semaphore());
     submitInfo.setWaitDstStageMask(waitStages);
-    submitInfo.setCommandBuffers(commandBuffer->native().commandBuffer());
+    submitInfo.setCommandBuffers(vulkanCommandBuffer->commandBuffer());
     submitInfo.setSignalSemaphores(signalSemaphore->native().semaphore());
 
-    _graphicsQueue.submit(submitInfo, fence->native().fence());
+    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
+
+    _graphicsQueue.submit(submitInfo, vulkanFence->fence());
 }
 
 bool VulkanRenderer::present(const std::shared_ptr<Semaphore>& waitSemaphore, uint32_t imageIndex)
@@ -216,13 +222,11 @@ void VulkanRenderer::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCre
 {
     CHRZONE_VULKAN
 
-    createInfo.setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
-        | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
-        | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
+    using enum vk::DebugUtilsMessageSeverityFlagBitsEXT;
+    using enum vk::DebugUtilsMessageTypeFlagBitsEXT;
 
-    createInfo.setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral
-        | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance);
-
+    createInfo.setMessageSeverity(eVerbose | eInfo | eWarning | eError);
+    createInfo.setMessageType(eGeneral | eValidation | ePerformance);
     createInfo.setPfnUserCallback(debugCallback);
 }
 
@@ -364,6 +368,13 @@ void VulkanRenderer::createSwapChain()
 
     _swapChainImageFormat = surfaceFormat.format;
     _swapChainExtent = extent;
+}
+
+void VulkanRenderer::createDepthResources()
+{
+    CHRZONE_VULKAN
+
+    auto depthFormat = findDepthFormat();
 }
 
 void VulkanRenderer::createCommandPool()
@@ -539,6 +550,33 @@ vk::Extent2D VulkanRenderer::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& 
 
         return actualExtent;
     }
+}
+
+vk::Format VulkanRenderer::findSupportedFormat(
+    const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const
+{
+    for (const auto& format : candidates) {
+        auto props = _physicalDevice.getFormatProperties(format);
+
+        if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
+            return format;
+        } else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
+    }
+
+    throw RendererError("Failed to find supported format");
+}
+
+vk::Format VulkanRenderer::findDepthFormat() const
+{
+    return findSupportedFormat({ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
+        vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+}
+
+bool VulkanRenderer::hasStencilComponent(vk::Format format) const
+{
+    return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 }
 
 } // namespace chronicle

@@ -45,6 +45,16 @@ using RectInt2D = Rect2D<int32_t>;
 using RectFloat2D = Rect2D<float>;
 
 enum class ShaderStage { Fragment, Vertex };
-enum class Format { Undefined, B8G8R8A8Unorm, R32G32Sfloat, R32G32B32Sfloat };
+enum class Format {
+    Undefined,
+
+    B8G8R8A8Unorm,
+    R32G32Sfloat,
+    R32G32B32Sfloat,
+
+    D32Sfloat,
+    D32SfloatS8Uint,
+    D24UnormS8Uint
+};
 enum class VertexInputRate { Vertex, Instance };
 // enum class DescriptorType { UniformBuffer };

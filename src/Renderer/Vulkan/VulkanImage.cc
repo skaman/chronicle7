@@ -65,7 +65,7 @@ VulkanImage::VulkanImage(const vk::Device& device, const vk::PhysicalDevice& phy
 VulkanImage::VulkanImage(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height)
     : _device(device)
     , _image(image)
-    , _externalImage(true)
+    , _swapchainImage(true)
     , _width(width)
     , _height(height)
 {
@@ -80,7 +80,7 @@ VulkanImage::~VulkanImage()
 
     _device.destroyImageView(_imageView);
 
-    if (!_externalImage) {
+    if (!_swapchainImage) {
         _device.destroySampler(_sampler);
         _device.destroyImage(_image);
         _device.freeMemory(_imageMemory);

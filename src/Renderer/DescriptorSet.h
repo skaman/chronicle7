@@ -12,8 +12,6 @@ class Renderer;
 
 class DescriptorSet {
 public:
-    explicit DescriptorSet(const Renderer* renderer);
-
     template <class T> inline void addUniform(entt::hashed_string::hash_type id, ShaderStage stage)
     {
         _descriptorSet.addUniform<T>(id, stage);
@@ -31,13 +29,23 @@ public:
 
     inline void build() { _descriptorSet.build(); }
 
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline const VulkanDescriptorSet& native() const { return _descriptorSet; };
-#endif
+    static DescriptorSet create(const Renderer* renderer)
+    {
+        return DescriptorSet(VulkanDescriptorSet::create(renderer));
+    }
 
 private:
 #ifdef VULKAN_RENDERER
     VulkanDescriptorSet _descriptorSet;
+
+    explicit DescriptorSet(VulkanDescriptorSet descriptorSet)
+        : _descriptorSet(std::move(descriptorSet))
+    {
+    }
+
+    [[nodiscard]] inline const VulkanDescriptorSet& native() const { return _descriptorSet; };
+
+    friend class VulkanCommandBuffer;
 #endif
 };
 

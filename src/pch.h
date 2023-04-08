@@ -18,6 +18,7 @@
 
 // glm
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -91,3 +92,33 @@
 #define CHRZONE_RENDERER_SYSTEM ZoneScopedC(tracy::Color::Green4);
 #define CHRZONE_STORAGE ZoneScopedC(tracy::Color::Chocolate4);
 #endif
+
+// stringify
+#define STRINGIFY(x) #x
+
+// concrete for private constructors
+#define CHR_CONCRETE(x)                                                                                                \
+    struct Concrete##x : public x {                                                                                    \
+        template <typename... Args>                                                                                    \
+        explicit Concrete##x(Args&&... args)                                                                           \
+            : x(std::forward<Args>(args)...)                                                                           \
+        {                                                                                                              \
+        }                                                                                                              \
+    };
+
+namespace chronicle {
+
+// non copyable classes
+template <class T> class NonCopyable {
+protected:
+    constexpr NonCopyable() = default;
+    ~NonCopyable() = default;
+
+    // disallow copy constructor
+    NonCopyable(const NonCopyable&) = delete;
+
+    // disallow copy assignment
+    NonCopyable& operator=(const NonCopyable&) = delete;
+};
+
+} // namespace chronicle

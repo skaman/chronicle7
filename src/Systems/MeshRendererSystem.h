@@ -25,7 +25,7 @@ private:
     std::vector<std::shared_ptr<CommandBuffer>> _commandBuffers;
     std::vector<std::shared_ptr<Semaphore>> _imageAvailableSemaphores;
     std::vector<std::shared_ptr<Semaphore>> _renderFinishedSemaphores;
-    std::vector<std::shared_ptr<Fence>> _inFlightFences;
+    std::vector<FenceRef> _inFlightFences;
     uint32_t _currentFrame = 0;
 
     std::shared_ptr<Image> _texture;

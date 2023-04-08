@@ -4,13 +4,14 @@
 
 #include "VulkanCommon.h"
 
+#include "VulkanFence.h"
+#include "VulkanCommandBuffer.h"
+
 namespace chronicle {
 
 class App;
 class Image;
-class Fence;
 class Semaphore;
-class CommandBuffer;
 
 struct VulkanQueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
@@ -31,10 +32,10 @@ public:
     ~VulkanRenderer();
 
     void waitIdle() const;
-    void waitForFence(const std::shared_ptr<Fence>& fence) const;
-    void resetFence(const std::shared_ptr<Fence>& fence) const;
+    void waitForFence(const FenceRef& fence) const;
+    void resetFence(const FenceRef& fence) const;
     uint32_t acquireNextImage(const std::shared_ptr<Semaphore>& semaphore);
-    void submit(const std::shared_ptr<Fence>& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
+    void submit(const FenceRef& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
         const std::shared_ptr<Semaphore>& signalSemaphore, const std::shared_ptr<CommandBuffer>& commandBuffer) const;
     bool present(const std::shared_ptr<Semaphore>& waitSemaphore, uint32_t imageIndex);
 
@@ -84,6 +85,7 @@ private:
     void pickPhysicalDevice();
     void createLogicalDevice();
     void createSwapChain();
+    void createDepthResources();
     void createCommandPool();
 
     [[nodiscard]] bool checkValidationLayerSupport() const;
@@ -97,6 +99,10 @@ private:
     [[nodiscard]] vk::PresentModeKHR chooseSwapPresentMode(
         const std::vector<vk::PresentModeKHR>& availablePresentModes) const;
     [[nodiscard]] vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const;
+    [[nodiscard]] vk::Format findSupportedFormat(
+        const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
+    [[nodiscard]] vk::Format findDepthFormat() const;
+    [[nodiscard]] bool hasStencilComponent(vk::Format format) const;
 };
 
 } // namespace chronicle
