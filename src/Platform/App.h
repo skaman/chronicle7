@@ -12,10 +12,10 @@ class App {
 public:
     void Run(const std::string_view& appName);
 
-    [[nodiscard]] inline std::string AppName() const { return _appName; }
-    [[nodiscard]] inline int Width() const { return _width; }
-    [[nodiscard]] inline int Height() const { return _height; }
-    [[nodiscard]] inline GLFWwindow* Window() const { return _window; }
+    [[nodiscard]] std::string AppName() const { return _appName; }
+    [[nodiscard]] int Width() const { return _width; }
+    [[nodiscard]] int Height() const { return _height; }
+    [[nodiscard]] GLFWwindow* Window() const { return _window; }
 
 private:
     GLFWwindow* _window = nullptr;

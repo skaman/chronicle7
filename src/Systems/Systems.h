@@ -1,9 +1,6 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
-#include <entt/entt.hpp>
+#include "pch.h"
 
 #include "System.h"
 
@@ -11,7 +8,7 @@ namespace chronicle {
 
 class Systems {
 public:
-    template <typename Impl> inline void Register() { _systems.push_back(std::make_unique<Impl>()); }
+    template <typename Impl> void Register() { _systems.push_back(std::make_unique<Impl>()); }
 
     void Run(entt::registry& registry)
     {
@@ -21,5 +18,7 @@ public:
 private:
     std::vector<std::unique_ptr<System>> _systems;
 };
+
+using SystemsUnique = std::unique_ptr<Systems>;
 
 } // namespace chronicle

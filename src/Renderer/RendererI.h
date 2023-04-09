@@ -6,26 +6,7 @@
 
 #include "ImageInfo.h"
 #include "PipelineInfo.h"
-
-// #include "CommandBuffer.h"
-// #include "DescriptorSet.h"
-// #include "Fence.h"
-// #include "Image.h"
-// #include "IndexBuffer.h"
-// #include "Pipeline.h"
-// #include "RenderPass.h"
-// #include "RenderPassInfo.h"
-// #include "Semaphore.h"
-// #include "VertexBuffer.h"
-
-// #include "Vulkan/VulkanCommandBuffer.h"
-// #include "Vulkan/VulkanFence.h"
-// #include "Vulkan/VulkanImage.h"
-// #include "Vulkan/VulkanIndexBuffer.h"
-// #include "Vulkan/VulkanPipeline.h"
-// #include "Vulkan/VulkanRenderPass.h"
-// #include "Vulkan/VulkanSemaphore.h"
-// #include "Vulkan/VulkanVertexBuffer.h"
+#include "RenderPassInfo.h"
 
 namespace chronicle {
 
@@ -76,7 +57,7 @@ public:
     [[nodiscard]] FenceRef createFence() const { return Fence::create(this); }
     [[nodiscard]] ImageRef createImage(const ImageInfo& imageInfo) const { return Image::create(this, imageInfo); }
 
-    static RendererRef create(App* app) { return T::create(app); }
+    static RendererUnique create(App* app) { return T::create(app); }
 
 private:
     RendererI() = default;

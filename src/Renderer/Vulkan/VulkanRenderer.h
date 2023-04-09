@@ -52,7 +52,7 @@ public:
     [[nodiscard]] const vk::Queue& graphicsQueue() const { return _graphicsQueue; }
     [[nodiscard]] const vk::CommandPool& commandPool() const { return _commandPool; }
 
-    static RendererRef create(App* app);
+    static RendererUnique create(App* app);
 
 private:
     App* _app;

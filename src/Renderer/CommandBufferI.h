@@ -14,8 +14,7 @@ public:
 
     void end() const { static_cast<const T*>(this)->end(); }
 
-    void beginRenderPass(
-        const std::shared_ptr<RenderPass>& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
+    void beginRenderPass(const RenderPassRef& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
     {
         static_cast<const T*>(this)->beginRenderPass(renderPass, renderArea, imageIndex);
     }
@@ -34,16 +33,16 @@ public:
         static_cast<const T*>(this)->drawIndexed(indexCount, instanceCount);
     }
 
-    void bindPipeline(const std::shared_ptr<Pipeline>& pipeline) { static_cast<T*>(this)->bindPipeline(pipeline); }
-    void bindVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) const
+    void bindPipeline(const PipelineRef& pipeline) { static_cast<T*>(this)->bindPipeline(pipeline); }
+    void bindVertexBuffer(const VertexBufferRef& vertexBuffer) const
     {
         static_cast<const T*>(this)->bindVertexBuffer(vertexBuffer);
     }
-    void bindIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) const
+    void bindIndexBuffer(const IndexBufferRef& indexBuffer) const
     {
         static_cast<const T*>(this)->bindIndexBuffer(indexBuffer);
     }
-    void bindDescriptorSet(const std::shared_ptr<DescriptorSet>& descriptorSet, uint32_t index) const
+    void bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const
     {
         static_cast<const T*>(this)->bindDescriptorSet(descriptorSet, index);
     }

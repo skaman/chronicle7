@@ -18,11 +18,8 @@ protected:
 public:
     ~VulkanRenderPass();
 
-    [[nodiscard]] inline const vk::RenderPass& renderPass() const { return _renderPass; }
-    [[nodiscard]] inline const vk::Framebuffer& frameBuffer(uint32_t imageIndex) const
-    {
-        return _framebuffers[imageIndex];
-    }
+    [[nodiscard]] const vk::RenderPass& renderPass() const { return _renderPass; }
+    [[nodiscard]] const vk::Framebuffer& frameBuffer(uint32_t imageIndex) const { return _framebuffers[imageIndex]; }
 
     static RenderPassRef create(const Renderer* renderer, const RenderPassInfo& renderPassInfo);
 
@@ -30,10 +27,10 @@ private:
     vk::Device _device;
     vk::RenderPass _renderPass;
     std::vector<vk::Framebuffer> _framebuffers;
-    std::vector<std::shared_ptr<Image>> _images;
+    std::vector<ImageRef> _images;
     std::vector<ImageUpdateData> _updateData;
 
-    vk::Framebuffer createFrameBuffer(const std::shared_ptr<Image>& image) const;
+    vk::Framebuffer createFrameBuffer(const ImageRef& image) const;
     void recreateFrameBuffer(uint32_t imageIndex);
 
     static void imageUpdatedEvent(ImageUpdateData* data);

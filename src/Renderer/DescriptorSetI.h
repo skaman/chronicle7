@@ -13,10 +13,7 @@ public:
         static_cast<T*>(this)->addUniform<Tx>(id, stage);
     }
 
-    void addSampler(ShaderStage stage, const std::shared_ptr<Image> image)
-    {
-        static_cast<T*>(this)->addSampler(stage, image);
-    }
+    void addSampler(ShaderStage stage, const ImageRef image) { static_cast<T*>(this)->addSampler(stage, image); }
 
     template <class Tx> void setUniform(entt::hashed_string::hash_type id, const Tx& data)
     {

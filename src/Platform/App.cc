@@ -2,10 +2,10 @@
 
 #include "Locator.h"
 
-//#include "Renderer/Renderer.h"
+// #include "Renderer/Renderer.h"
+#include "Renderer/Renderer.h"
 #include "Systems/MeshRendererSystem.h"
 #include "Systems/Systems.h"
-#include "Renderer/Renderer.h"
 
 namespace chronicle {
 
@@ -46,12 +46,11 @@ void App::Init()
     glfwSetFramebufferSizeCallback(_window, FramebufferSizeCallback);
 
     Locator::renderer = Renderer::create(this);
+    Locator::systems = std::make_unique<Systems>();
+
     _renderer = Locator::renderer.get();
 
-    //_renderer = &entt::locator<Renderer>::emplace<Renderer>(this);
-    //auto tmp = Renderer::create();
-
-    _systems = &entt::locator<Systems>::emplace<Systems>();
+    _systems = Locator::systems.get();
     _systems->Register<MeshRendererSystem>();
 }
 
@@ -73,9 +72,8 @@ void App::Destroy()
 {
     CHRZONE_PLATFORM
 
-    entt::locator<Systems>::reset();
+    Locator::systems.reset();
     Locator::renderer.reset();
-    //entt::locator<Renderer>::reset();
 
     glfwDestroyWindow(_window);
     glfwTerminate();

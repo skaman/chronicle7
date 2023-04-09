@@ -8,7 +8,7 @@ namespace chronicle {
 
 struct RenderPassInfo {
     Format colorAttachmentFormat = Format::Undefined;
-    std::vector<std::shared_ptr<Image>> images = {};
+    std::vector<ImageRef> images = {};
 };
 
 } // namespace chronicle

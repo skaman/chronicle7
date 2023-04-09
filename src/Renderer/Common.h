@@ -104,6 +104,6 @@ using RenderPassRef = std::shared_ptr<RenderPass>;
 using PipelineRef = std::shared_ptr<Pipeline>;
 using IndexBufferRef = std::shared_ptr<IndexBuffer>;
 using ImageRef = std::shared_ptr<Image>;
-using RendererRef = std::shared_ptr<Renderer>;
+using RendererUnique = std::unique_ptr<Renderer>;
 
 } // namespace chronicle

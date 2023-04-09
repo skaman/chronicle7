@@ -176,7 +176,7 @@ bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIn
     return true;
 }
 
-RendererRef VulkanRenderer::create(App* app) { return std::make_shared<ConcreteVulkanRenderer>(app); }
+RendererUnique VulkanRenderer::create(App* app) { return std::make_unique<ConcreteVulkanRenderer>(app); }
 
 void VulkanRenderer::recreateSwapChain()
 {

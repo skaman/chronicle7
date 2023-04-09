@@ -88,7 +88,7 @@ RenderPassRef VulkanRenderPass::create(const Renderer* renderer, const RenderPas
     return std::make_shared<ConcreteVulkanRenderPass>(vulkanRenderer->device(), renderPassInfo);
 }
 
-vk::Framebuffer VulkanRenderPass::createFrameBuffer(const std::shared_ptr<Image>& image) const
+vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image) const
 {
     CHRZONE_VULKAN
 

@@ -1,12 +1,12 @@
 #include "MeshRendererSystem.h"
 
-//#include "Renderer/CommandBuffer.h"
-//#include "Renderer/Vulkan/VulkanCommandBuffer.h"
-//#include "Renderer/Vulkan/VulkanFence.h"
-//#include "Renderer/Vulkan/VulkanImage.h"
+// #include "Renderer/CommandBuffer.h"
+// #include "Renderer/Vulkan/VulkanCommandBuffer.h"
+// #include "Renderer/Vulkan/VulkanFence.h"
+// #include "Renderer/Vulkan/VulkanImage.h"
 
-#include "Renderer/Renderer.h"
 #include "Locator.h"
+#include "Renderer/Renderer.h"
 
 namespace chronicle {
 
@@ -170,7 +170,7 @@ void MeshRendererSystem::run(entt::registry& registry)
     FrameMark;
 }
 
-void MeshRendererSystem::recordCommandBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t imageIndex)
+void MeshRendererSystem::recordCommandBuffer(const CommandBufferRef& commandBuffer, uint32_t imageIndex)
 {
     CHRZONE_RENDERER_SYSTEM
 

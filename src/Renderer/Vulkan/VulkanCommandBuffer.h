@@ -13,7 +13,7 @@ protected:
 public:
     ~VulkanCommandBuffer() = default;
 
-    [[nodiscard]] inline const vk::CommandBuffer& commandBuffer() const { return _commandBuffer; }
+    [[nodiscard]] const vk::CommandBuffer& commandBuffer() const { return _commandBuffer; }
 
     void reset() const;
     void begin() const;

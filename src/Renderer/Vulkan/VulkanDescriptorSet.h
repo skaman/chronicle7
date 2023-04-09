@@ -67,7 +67,7 @@ public:
         _buffersMapped[id] = bufferMapped;
     }
 
-    void addSampler(ShaderStage stage, const std::shared_ptr<Image> image)
+    void addSampler(ShaderStage stage, const ImageRef image)
     {
         vk::DescriptorSetLayoutBinding layoutBinding = {};
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
