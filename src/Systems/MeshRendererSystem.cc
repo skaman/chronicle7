@@ -5,7 +5,7 @@
 //#include "Renderer/Vulkan/VulkanFence.h"
 //#include "Renderer/Vulkan/VulkanImage.h"
 
-#include "Renderer/Vulkan/Vulkan.h"
+#include "Renderer/Renderer.h"
 #include "Locator.h"
 
 namespace chronicle {

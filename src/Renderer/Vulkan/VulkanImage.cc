@@ -1,6 +1,7 @@
 #include "VulkanImage.h"
 
-#include "Vulkan.h"
+#include "VulkanBuffer.h"
+#include "VulkanRenderer.h"
 
 namespace chronicle {
 

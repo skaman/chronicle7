@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/Pipeline.h"
+#include "Renderer/PipelineI.h"
 
 namespace chronicle {
 

@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/VertexBuffer.h"
+#include "Renderer/VertexBufferI.h"
 
 namespace chronicle {
 

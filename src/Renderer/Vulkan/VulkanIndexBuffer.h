@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/IndexBuffer.h"
+#include "Renderer/IndexBufferI.h"
 
 namespace chronicle {
 

@@ -2,7 +2,11 @@
 
 #include "Platform/App.h"
 
-#include "Vulkan.h"
+#include "VulkanCommandBuffer.h"
+#include "VulkanFence.h"
+#include "VulkanImage.h"
+#include "VulkanRenderer.h"
+#include "VulkanSemaphore.h"
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 

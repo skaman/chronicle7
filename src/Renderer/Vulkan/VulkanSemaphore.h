@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/Semaphore.h"
+#include "Renderer/SemaphoreI.h"
 
 namespace chronicle {
 

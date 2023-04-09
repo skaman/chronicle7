@@ -3,8 +3,8 @@
 #include "pch.h"
 
 #include "Common.h"
-#include "DescriptorSet.h"
-#include "RenderPass.h"
+#include "DescriptorSetI.h"
+#include "RenderPassI.h"
 #include "VertexBufferInfo.h"
 
 namespace chronicle {

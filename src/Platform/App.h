@@ -3,7 +3,6 @@
 #include "pch.h"
 
 #include "Renderer/Common.h"
-#include "Renderer/Vulkan/Vulkan.h"
 
 namespace chronicle {
 

@@ -1,6 +1,6 @@
 #include "VulkanSemaphore.h"
 
-#include "Vulkan.h"
+#include "VulkanRenderer.h"
 
 namespace chronicle {
 

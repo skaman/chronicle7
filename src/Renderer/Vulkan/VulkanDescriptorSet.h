@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/DescriptorSet.h"
+#include "Renderer/DescriptorSetI.h"
 
 #include "VulkanBuffer.h"
 #include "VulkanCommon.h"

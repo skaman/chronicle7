@@ -2,19 +2,9 @@
 
 #include "pch.h"
 
+#include "Renderer/RendererI.h"
+
 #include "VulkanCommon.h"
-
-// #include "VulkanCommandBuffer.h"
-// #include "VulkanDescriptorSet.h"
-// #include "VulkanFence.h"
-// #include "VulkanImage.h"
-// #include "VulkanIndexBuffer.h"
-// #include "VulkanPipeline.h"
-// #include "VulkanRenderPass.h"
-// #include "VulkanSemaphore.h"
-// #include "VulkanVertexBuffer.h"
-
-#include "Renderer/Renderer.h"
 
 namespace chronicle {
 

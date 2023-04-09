@@ -1,7 +1,9 @@
 #include "VulkanPipeline.h"
 
 #include "Storage/File.h"
-#include "Vulkan.h"
+
+#include "VulkanRenderPass.h"
+#include "VulkanRenderer.h"
 
 #include <spirv-reflect/spirv_reflect.h>
 

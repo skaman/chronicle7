@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/Fence.h"
+#include "Renderer/FenceI.h"
 
 namespace chronicle {
 

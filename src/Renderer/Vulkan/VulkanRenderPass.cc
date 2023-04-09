@@ -1,10 +1,7 @@
 #include "VulkanRenderPass.h"
 
-#include "Renderer/Image.h"
-#include "Renderer/RenderPassInfo.h"
-
-#include "Vulkan.h"
-
+#include "VulkanImage.h"
+#include "VulkanRenderer.h"
 
 namespace chronicle {
 

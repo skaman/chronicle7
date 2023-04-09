@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/Image.h"
+#include "Renderer/ImageI.h"
 
 namespace chronicle {
 

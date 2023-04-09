@@ -1,9 +1,11 @@
 #include "VulkanCommandBuffer.h"
 
-#include "Renderer/IndexBuffer.h"
-#include "Renderer/Pipeline.h"
-
-#include "Vulkan.h"
+#include "VulkanDescriptorSet.h"
+#include "VulkanIndexBuffer.h"
+#include "VulkanPipeline.h"
+#include "VulkanRenderPass.h"
+#include "VulkanRenderer.h"
+#include "VulkanVertexBuffer.h"
 
 namespace chronicle {
 
