@@ -2,26 +2,17 @@
 
 #include "pch.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanSemaphore.h"
-#endif
+#include "Common.h"
 
 namespace chronicle {
 
-class Renderer;
-
-class Semaphore {
+template <class T> class SemaphoreI {
 public:
-    explicit Semaphore(const Renderer* renderer);
-
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline const VulkanSemaphore& native() const { return _semaphore; };
-#endif
+    static SemaphoreRef create(const Renderer* renderer) { return T::create(renderer); }
 
 private:
-#ifdef VULKAN_RENDERER
-    VulkanSemaphore _semaphore;
-#endif
+    SemaphoreI() = default;
+    friend T;
 };
 
 } // namespace chronicle

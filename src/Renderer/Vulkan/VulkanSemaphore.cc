@@ -1,6 +1,10 @@
 #include "VulkanSemaphore.h"
 
+#include "Renderer/Renderer.h"
+
 namespace chronicle {
+
+CHR_CONCRETE(VulkanSemaphore)
 
 VulkanSemaphore::VulkanSemaphore(const vk::Device& device)
     : _device(device)
@@ -15,6 +19,11 @@ VulkanSemaphore::~VulkanSemaphore()
     CHRZONE_VULKAN
 
     _device.destroySemaphore(_semaphore);
+}
+
+SemaphoreRef VulkanSemaphore::create(const Renderer* renderer)
+{
+    return std::make_shared<ConcreteVulkanSemaphore>(renderer->native().device());
 }
 
 } // namespace chronicle

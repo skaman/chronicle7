@@ -2,11 +2,11 @@
 
 #include "Renderer/IndexBuffer.h"
 #include "Renderer/Pipeline.h"
-#include "Renderer/RenderPass.h"
 #include "Renderer/Renderer.h"
 
 #include "VulkanDescriptorSet.h"
 #include "VulkanVertexBuffer.h"
+#include "VulkanRenderPass.h"
 
 namespace chronicle {
 
@@ -48,10 +48,12 @@ void VulkanCommandBuffer::beginRenderPass(
 {
     CHRZONE_VULKAN
 
+    const auto vulkanRenderPass = static_cast<VulkanRenderPass*>(renderPass.get());
+
     vk::ClearValue clearColor = { std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } };
     vk::RenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.setRenderPass(renderPass->native().renderPass());
-    renderPassInfo.setFramebuffer(renderPass->native().frameBuffer(imageIndex));
+    renderPassInfo.setRenderPass(vulkanRenderPass->renderPass());
+    renderPassInfo.setFramebuffer(vulkanRenderPass->frameBuffer(imageIndex));
     renderPassInfo.setRenderArea(vk::Rect2D(
         { renderArea.offset.x, renderArea.offset.y }, vk::Extent2D(renderArea.extent.width, renderArea.extent.height)));
     renderPassInfo.setClearValues(clearColor);

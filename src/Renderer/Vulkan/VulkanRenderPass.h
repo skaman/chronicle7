@@ -2,21 +2,20 @@
 
 #include "pch.h"
 
-namespace chronicle {
+#include "Renderer/RenderPass.h"
 
-class VulkanRenderer;
-struct RenderPassInfo;
-class Image;
-class VulkanRenderPass;
+namespace chronicle {
 
 struct ImageUpdateData {
     uint32_t index = 0;
     VulkanRenderPass* renderPass = nullptr;
 };
 
-class VulkanRenderPass {
-public:
+class VulkanRenderPass : public RenderPassI<VulkanRenderPass>, private NonCopyable<VulkanRenderPass> {
+protected:
     explicit VulkanRenderPass(const vk::Device& device, const RenderPassInfo& renderPassInfo);
+
+public:
     ~VulkanRenderPass();
 
     [[nodiscard]] inline const vk::RenderPass& renderPass() const { return _renderPass; }
@@ -24,6 +23,8 @@ public:
     {
         return _framebuffers[imageIndex];
     }
+
+    static RenderPassRef create(const Renderer* renderer, const RenderPassInfo& renderPassInfo);
 
 private:
     vk::Device _device;

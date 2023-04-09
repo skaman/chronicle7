@@ -64,28 +64,34 @@ template <class T> class CommandBufferI;
 template <class T> class DescriptorSetI;
 template <class T> class FenceI;
 template <class T> class VertexBufferI;
+template <class T> class SemaphoreI;
+template <class T> class RenderPassI;
 
 #ifdef VULKAN_RENDERER
 class VulkanCommandBuffer;
 class VulkanDescriptorSet;
 class VulkanFence;
 class VulkanVertexBuffer;
+class VulkanSemaphore;
+class VulkanRenderPass;
 
 using CommandBuffer = CommandBufferI<VulkanCommandBuffer>;
 using DescriptorSet = DescriptorSetI<VulkanDescriptorSet>;
 using Fence = FenceI<VulkanFence>;
 using VertexBuffer = VertexBufferI<VulkanVertexBuffer>;
+using Semaphore = SemaphoreI<VulkanSemaphore>;
+using RenderPass = RenderPassI<VulkanRenderPass>;
 #endif
 
 using CommandBufferRef = std::shared_ptr<CommandBuffer>;
 using DescriptorSetRef = std::shared_ptr<DescriptorSet>;
 using FenceRef = std::shared_ptr<Fence>;
 using VertexBufferRef = std::shared_ptr<VertexBuffer>;
+using SemaphoreRef = std::shared_ptr<Semaphore>;
+using RenderPassRef = std::shared_ptr<RenderPass>;
 
 class IndexBuffer;
 class Pipeline;
-class RenderPass;
-class Semaphore;
 class Renderer;
 class Image;
 

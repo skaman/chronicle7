@@ -107,13 +107,15 @@ void VulkanRenderer::resetFence(const FenceRef& fence) const
     (void)_device.resetFences(vulkanFence->fence());
 }
 
-uint32_t VulkanRenderer::acquireNextImage(const std::shared_ptr<Semaphore>& semaphore)
+uint32_t VulkanRenderer::acquireNextImage(const SemaphoreRef& semaphore)
 {
     CHRZONE_VULKAN
 
+    const auto vulkanSemaphore = static_cast<const VulkanSemaphore*>(semaphore.get());
+
     try {
         auto result = _device.acquireNextImageKHR(
-            _swapChain, std::numeric_limits<uint64_t>::max(), semaphore->native().semaphore(), nullptr);
+            _swapChain, std::numeric_limits<uint64_t>::max(), vulkanSemaphore->semaphore(), nullptr);
         return result.value;
     } catch (vk::OutOfDateKHRError err) {
         recreateSwapChain();
@@ -121,31 +123,36 @@ uint32_t VulkanRenderer::acquireNextImage(const std::shared_ptr<Semaphore>& sema
     }
 }
 
-void VulkanRenderer::submit(const FenceRef& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
-    const std::shared_ptr<Semaphore>& signalSemaphore, const std::shared_ptr<CommandBuffer>& commandBuffer) const
+void VulkanRenderer::submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore,
+    const SemaphoreRef& signalSemaphore, const CommandBufferRef& commandBuffer) const
 {
     CHRZONE_VULKAN
+
+    const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
+    const auto vulkanSignalSemaphore = static_cast<const VulkanSemaphore*>(signalSemaphore.get());
 
     const auto vulkanCommandBuffer = static_cast<const VulkanCommandBuffer*>(commandBuffer.get());
 
     vk::SubmitInfo submitInfo = {};
     std::array<vk::PipelineStageFlags, 1> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-    submitInfo.setWaitSemaphores(waitSemaphore->native().semaphore());
+    submitInfo.setWaitSemaphores(vulkanWaitSemaphore->semaphore());
     submitInfo.setWaitDstStageMask(waitStages);
     submitInfo.setCommandBuffers(vulkanCommandBuffer->commandBuffer());
-    submitInfo.setSignalSemaphores(signalSemaphore->native().semaphore());
+    submitInfo.setSignalSemaphores(vulkanSignalSemaphore->semaphore());
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
 
     _graphicsQueue.submit(submitInfo, vulkanFence->fence());
 }
 
-bool VulkanRenderer::present(const std::shared_ptr<Semaphore>& waitSemaphore, uint32_t imageIndex)
+bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
 {
     CHRZONE_VULKAN
 
+    const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
+
     vk::PresentInfoKHR presentInfo = {};
-    presentInfo.setWaitSemaphores(waitSemaphore->native().semaphore());
+    presentInfo.setWaitSemaphores(vulkanWaitSemaphore->semaphore());
     presentInfo.setSwapchains(_swapChain);
     presentInfo.setImageIndices(imageIndex);
 

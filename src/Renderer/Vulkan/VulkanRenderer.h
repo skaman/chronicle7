@@ -8,12 +8,13 @@
 #include "VulkanDescriptorSet.h"
 #include "VulkanFence.h"
 #include "VulkanVertexBuffer.h"
+#include "VulkanSemaphore.h"
+#include "VulkanRenderPass.h"
 
 namespace chronicle {
 
 class App;
 class Image;
-class Semaphore;
 
 struct VulkanQueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
@@ -36,10 +37,10 @@ public:
     void waitIdle() const;
     void waitForFence(const FenceRef& fence) const;
     void resetFence(const FenceRef& fence) const;
-    uint32_t acquireNextImage(const std::shared_ptr<Semaphore>& semaphore);
-    void submit(const FenceRef& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
-        const std::shared_ptr<Semaphore>& signalSemaphore, const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-    bool present(const std::shared_ptr<Semaphore>& waitSemaphore, uint32_t imageIndex);
+    uint32_t acquireNextImage(const SemaphoreRef& semaphore);
+    void submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore, const SemaphoreRef& signalSemaphore,
+        const CommandBufferRef& commandBuffer) const;
+    bool present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex);
 
     void invalidateSwapChain() { _swapChainInvalidated = true; }
 

@@ -30,16 +30,13 @@ public:
 
     inline void waitForFence(const FenceRef& fence) const { _renderer.waitForFence(fence); }
     inline void resetFence(const FenceRef& fence) const { _renderer.resetFence(fence); }
-    inline uint32_t acquireNextImage(const std::shared_ptr<Semaphore>& semaphore)
-    {
-        return _renderer.acquireNextImage(semaphore);
-    }
-    inline void submit(const FenceRef& fence, const std::shared_ptr<Semaphore>& waitSemaphore,
-        const std::shared_ptr<Semaphore>& signalSemaphore, const std::shared_ptr<CommandBuffer>& commandBuffer) const
+    inline uint32_t acquireNextImage(const SemaphoreRef& semaphore) { return _renderer.acquireNextImage(semaphore); }
+    inline void submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore, const SemaphoreRef& signalSemaphore,
+        const CommandBufferRef& commandBuffer) const
     {
         _renderer.submit(fence, waitSemaphore, signalSemaphore, commandBuffer);
     }
-    inline bool present(const std::shared_ptr<Semaphore>& waitSemaphore, uint32_t imageIndex)
+    inline bool present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
     {
         return _renderer.present(waitSemaphore, imageIndex);
     }
@@ -53,30 +50,24 @@ public:
     }
     [[nodiscard]] inline ExtentInt2D swapChainExtent() const { return _renderer.swapChainExtent(); }
 
-    [[nodiscard]] inline std::shared_ptr<RenderPass> createRenderPass(const RenderPassInfo& renderPassInfo) const
+    [[nodiscard]] inline RenderPassRef createRenderPass(const RenderPassInfo& renderPassInfo) const
     {
-        return std::make_shared<RenderPass>(this, renderPassInfo);
+        return RenderPass::create(this, renderPassInfo);
     }
-    [[nodiscard]] inline DescriptorSetRef createDescriptorSet() const
-    {
-        return DescriptorSet::create(this);
-    }
+    [[nodiscard]] inline DescriptorSetRef createDescriptorSet() const { return DescriptorSet::create(this); }
     [[nodiscard]] inline std::shared_ptr<Pipeline> createPipeline(const PipelineInfo& pipelineInfo) const
     {
         return std::make_shared<Pipeline>(this, pipelineInfo);
     }
-    [[nodiscard]] inline VertexBufferRef createVertexBuffer() const
-    {
-        return VertexBuffer::create(this);
-    }
+    [[nodiscard]] inline VertexBufferRef createVertexBuffer() const { return VertexBuffer::create(this); }
     [[nodiscard]] inline std::shared_ptr<IndexBuffer> createIndexBuffer() const
     {
         return std::make_shared<IndexBuffer>(this);
     }
     [[nodiscard]] inline CommandBufferRef createCommandBuffer() const { return CommandBuffer::create(this); }
-    [[nodiscard]] inline std::shared_ptr<Semaphore> createSemaphore() const
+    [[nodiscard]] inline SemaphoreRef createSemaphore() const
     {
-        return std::make_shared<Semaphore>(this);
+        return Semaphore::create(this);
     }
     [[nodiscard]] inline FenceRef createFence() const { return Fence::create(this); }
     [[nodiscard]] inline std::shared_ptr<Image> createImage(const ImageInfo& imageInfo) const

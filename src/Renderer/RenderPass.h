@@ -4,27 +4,20 @@
 
 #include "RenderPassInfo.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanRenderPass.h"
-#endif
+#include "Common.h"
 
 namespace chronicle {
 
-class Renderer;
-struct RenderPassInfo;
-
-class RenderPass {
+template <class T> class RenderPassI {
 public:
-    explicit RenderPass(const Renderer* renderer, const RenderPassInfo& renderPassInfo);
-
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline const VulkanRenderPass& native() const { return _renderPass; };
-#endif
+    static RenderPassRef create(const Renderer* renderer, const RenderPassInfo& renderPassInfo)
+    {
+        return T::create(renderer, renderPassInfo);
+    }
 
 private:
-#ifdef VULKAN_RENDERER
-    VulkanRenderPass _renderPass;
-#endif
+    RenderPassI() = default;
+    friend T;
 };
 
 } // namespace chronicle

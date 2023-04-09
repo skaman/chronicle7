@@ -2,6 +2,7 @@
 
 #include "Storage/File.h"
 #include "VulkanCommon.h"
+#include "VulkanRenderPass.h"
 
 #include <spirv-reflect/spirv_reflect.h>
 
@@ -125,6 +126,8 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
     _pipelineLayout = _device.createPipelineLayout(pipelineLayoutInfo);
 
     // graphics pipeline
+    const auto vulkanRenderPass = static_cast<VulkanRenderPass*>(pipelineInfo.renderPass.get());
+
     vk::GraphicsPipelineCreateInfo graphicsPipelineInfo = {};
     graphicsPipelineInfo.setStages(shaderStages);
     graphicsPipelineInfo.setPVertexInputState(&vertexInputInfo);
@@ -135,7 +138,7 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
     graphicsPipelineInfo.setPColorBlendState(&colorBlending);
     graphicsPipelineInfo.setPDynamicState(&dynamicState);
     graphicsPipelineInfo.setLayout(_pipelineLayout);
-    graphicsPipelineInfo.setRenderPass(pipelineInfo.renderPass->native().renderPass());
+    graphicsPipelineInfo.setRenderPass(vulkanRenderPass->renderPass());
     graphicsPipelineInfo.setSubpass(0);
 
     vk::Result result;
