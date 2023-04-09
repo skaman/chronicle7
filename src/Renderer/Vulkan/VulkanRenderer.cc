@@ -71,6 +71,7 @@ VulkanRenderer::~VulkanRenderer()
 {
     CHRZONE_VULKAN
 
+    _depthImage.reset();
     _swapChainImages.clear();
 
     _device.destroySwapchainKHR(_swapChain);
@@ -363,6 +364,20 @@ void VulkanRenderer::createSwapChain()
 
     _swapChain = _device.createSwapchainKHR(createInfo);
 
+    // create depth buffer
+    // NOTE: the depth buffer MUST be updated before the swap chain images!
+    // the render pass is updated the the swapchain image trigger it, during
+    // the framebuffer recreate the depth image must be already updated.
+    if (_depthImage) {
+        const auto vulkanDepthImage = static_cast<VulkanImage*>(_depthImage.get());
+        vulkanDepthImage->updateDepthBuffer(extent.width, extent.height, _depthImageFormat);
+    } else {
+        _depthImageFormat = findDepthFormat();
+        _depthImage
+            = VulkanImage::createDepthBuffer(_device, _physicalDevice, extent.width, extent.height, _depthImageFormat);
+    }
+
+    // create swap chain images
     auto swapChainImages = _device.getSwapchainImagesKHR(_swapChain);
 
     _swapChainImages.reserve(swapChainImages.size());
@@ -370,23 +385,16 @@ void VulkanRenderer::createSwapChain()
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         if (_swapChainImages.size() > i) {
             const auto vulkanImage = static_cast<VulkanImage*>(_swapChainImages[i].get());
-            vulkanImage->updateImage(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
+            vulkanImage->updateSwapchain(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
         } else {
-            auto image
-                = VulkanImage::create(_device, swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
+            auto image = VulkanImage::createSwapchain(
+                _device, swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
             _swapChainImages.push_back(image);
         }
     }
 
     _swapChainImageFormat = surfaceFormat.format;
     _swapChainExtent = extent;
-}
-
-void VulkanRenderer::createDepthResources()
-{
-    CHRZONE_VULKAN
-
-    auto depthFormat = findDepthFormat();
 }
 
 void VulkanRenderer::createCommandPool()

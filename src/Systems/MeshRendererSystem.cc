@@ -56,13 +56,15 @@ MeshRendererSystem::MeshRendererSystem()
     // render pass
     RenderPassInfo renderPassInfo = {};
     renderPassInfo.colorAttachmentFormat = renderer->swapChainFormat();
+    renderPassInfo.depthAttachmentFormat = renderer->depthFormat();
     renderPassInfo.images = renderer->swapChainImages();
+    renderPassInfo.depthImage = renderer->depthImage();
     _renderPass = renderer->createRenderPass(renderPassInfo);
 
     // texture
     ImageInfo imageInfo = {};
     imageInfo.filename = "D:\\texture.jpg";
-    _texture = renderer->createImage(imageInfo);
+    _texture = renderer->createTextureImage(imageInfo);
 
     // descriptor sets
     _descriptorSets.reserve(MAX_FRAMES_IN_FLIGHT);

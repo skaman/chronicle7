@@ -46,6 +46,8 @@ public:
     {
         return ExtentInt2D(_swapChainExtent.width, _swapChainExtent.height);
     }
+    [[nodiscard]] Format depthFormat() const { return formatFromVulkan(_depthImageFormat); }
+    [[nodiscard]] const ImageRef& depthImage() const { return _depthImage; }
 
     [[nodiscard]] const vk::Device& device() const { return _device; }
     [[nodiscard]] const vk::PhysicalDevice& physicalDevice() const { return _physicalDevice; }
@@ -71,6 +73,8 @@ private:
     std::vector<ImageRef> _swapChainImages;
     vk::Format _swapChainImageFormat;
     vk::Extent2D _swapChainExtent;
+    ImageRef _depthImage;
+    vk::Format _depthImageFormat;
 
     vk::CommandPool _commandPool;
 
@@ -85,7 +89,6 @@ private:
     void pickPhysicalDevice();
     void createLogicalDevice();
     void createSwapChain();
-    void createDepthResources();
     void createCommandPool();
 
     [[nodiscard]] bool checkValidationLayerSupport() const;

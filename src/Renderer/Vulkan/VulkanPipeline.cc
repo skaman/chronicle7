@@ -101,6 +101,14 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
     multisampling.setSampleShadingEnable(false);
     multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
 
+    // depth stencil
+    vk::PipelineDepthStencilStateCreateInfo depthStencil {};
+    depthStencil.setDepthTestEnable(true);
+    depthStencil.setDepthWriteEnable(true);
+    depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
+    depthStencil.setDepthBoundsTestEnable(false);
+    depthStencil.setStencilTestEnable(false);
+
     // color blend attachment state
     vk::PipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
@@ -138,6 +146,7 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
     graphicsPipelineInfo.setPViewportState(&viewportState);
     graphicsPipelineInfo.setPRasterizationState(&rasterizer);
     graphicsPipelineInfo.setPMultisampleState(&multisampling);
+    graphicsPipelineInfo.setPDepthStencilState(&depthStencil);
     graphicsPipelineInfo.setPColorBlendState(&colorBlending);
     graphicsPipelineInfo.setPDynamicState(&dynamicState);
     graphicsPipelineInfo.setLayout(_pipelineLayout);

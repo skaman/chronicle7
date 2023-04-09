@@ -7,12 +7,44 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanImage)
 
-VulkanImage::VulkanImage(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
-    const vk::CommandPool& commandPool, const vk::Queue& graphicsQueue, const ImageInfo& imageInfo)
-    : _device(device)
-    , _physicalDevice(physicalDevice)
+VulkanImage::~VulkanImage() { cleanup(); }
+
+void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, int width, int height)
 {
     CHRZONE_VULKAN
+
+    cleanup();
+
+    _image = image;
+    _width = width;
+    _height = height;
+
+    createImageView(format, vk::ImageAspectFlagBits::eColor);
+
+    updated();
+}
+
+void VulkanImage::updateDepthBuffer(uint32_t width, uint32_t height, vk::Format format)
+{
+    cleanup();
+
+    createImage(width, height, format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment,
+        vk::MemoryPropertyFlagBits::eDeviceLocal);
+    createImageView(format, vk::ImageAspectFlagBits::eDepth);
+
+    _width = width;
+    _height = height;
+}
+
+ImageRef VulkanImage::createTexture(const Renderer* renderer, const ImageInfo& imageInfo)
+{
+    CHRZONE_VULKAN
+
+    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
+
+    auto result = std::make_shared<ConcreteVulkanImage>();
+    result->_device = vulkanRenderer->device();
+    result->_physicalDevice = vulkanRenderer->physicalDevice();
 
     int texWidth;
     int texHeight;
@@ -29,55 +61,84 @@ VulkanImage::VulkanImage(const vk::Device& device, const vk::PhysicalDevice& phy
     vk::Buffer stagingBuffer;
     vk::DeviceMemory stagingBufferMemory;
 
-    VulkanBuffer::create(_device, physicalDevice, imageSize, vk::BufferUsageFlagBits::eTransferSrc,
+    VulkanBuffer::create(vulkanRenderer->device(), vulkanRenderer->physicalDevice(), imageSize,
+        vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
         stagingBufferMemory);
 
-    const auto data = device.mapMemory(stagingBufferMemory, 0, imageSize, vk::MemoryMapFlags());
+    const auto data = vulkanRenderer->device().mapMemory(stagingBufferMemory, 0, imageSize, vk::MemoryMapFlags());
     memcpy(data, pixels, imageSize);
-    device.unmapMemory(stagingBufferMemory);
+    vulkanRenderer->device().unmapMemory(stagingBufferMemory);
 
     stbi_image_free(pixels);
 
     // create vulkan image
-    createImage(texWidth, texHeight, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
+    result->createImage(texWidth, texHeight, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     // copy image buffer
-    VulkanBuffer::transitionImageLayout(_device, commandPool, graphicsQueue, _image, vk::Format::eR8G8B8A8Srgb,
-        vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-    VulkanBuffer::copyToImage(_device, commandPool, graphicsQueue, stagingBuffer, _image,
-        static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-    VulkanBuffer::transitionImageLayout(_device, commandPool, graphicsQueue, _image, vk::Format::eR8G8B8A8Srgb,
+    VulkanBuffer::transitionImageLayout(vulkanRenderer->device(), vulkanRenderer->commandPool(),
+        vulkanRenderer->graphicsQueue(), result->_image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eTransferDstOptimal);
+    VulkanBuffer::copyToImage(vulkanRenderer->device(), vulkanRenderer->commandPool(), vulkanRenderer->graphicsQueue(),
+        stagingBuffer, result->_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    VulkanBuffer::transitionImageLayout(vulkanRenderer->device(), vulkanRenderer->commandPool(),
+        vulkanRenderer->graphicsQueue(), result->_image, vk::Format::eR8G8B8A8Srgb,
         vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
-    device.destroyBuffer(stagingBuffer);
-    device.freeMemory(stagingBufferMemory);
+    vulkanRenderer->device().destroyBuffer(stagingBuffer);
+    vulkanRenderer->device().freeMemory(stagingBufferMemory);
 
-    _width = texWidth;
-    _height = texHeight;
+    result->_width = texWidth;
+    result->_height = texHeight;
 
     // image view
-    createImageView(vk::Format::eR8G8B8A8Srgb);
+    result->createImageView(vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 
     // texture sampler
-    createTextureSampler();
+    result->createTextureSampler();
+
+    return result;
 }
 
-VulkanImage::VulkanImage(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height)
-    : _device(device)
-    , _image(image)
-    , _swapchainImage(true)
-    , _width(width)
-    , _height(height)
+ImageRef VulkanImage::createSwapchain(
+    const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height)
 {
     CHRZONE_VULKAN
 
-    createImageView(format);
+    auto result = std::make_shared<ConcreteVulkanImage>();
+    result->_device = device;
+    result->_image = image;
+    result->_swapchainImage = true;
+    result->_width = width;
+    result->_height = height;
+
+    result->createImageView(format, vk::ImageAspectFlagBits::eColor);
+
+    return result;
 }
 
-VulkanImage::~VulkanImage()
+ImageRef VulkanImage::createDepthBuffer(
+    const vk::Device device, vk::PhysicalDevice physicalDevice, uint32_t width, uint32_t height, vk::Format format)
+{
+    CHRZONE_VULKAN
+
+    auto result = std::make_shared<ConcreteVulkanImage>();
+    result->_device = device;
+    result->_physicalDevice = physicalDevice;
+
+    result->createImage(width, height, format, vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    result->createImageView(format, vk::ImageAspectFlagBits::eDepth);
+
+    result->_width = width;
+    result->_height = height;
+
+    return result;
+}
+
+void VulkanImage::cleanup()
 {
     CHRZONE_VULKAN
 
@@ -88,33 +149,6 @@ VulkanImage::~VulkanImage()
         _device.destroyImage(_image);
         _device.freeMemory(_imageMemory);
     }
-}
-
-void VulkanImage::updateImage(const vk::Image& image, vk::Format format, int width, int height)
-{
-    CHRZONE_VULKAN
-
-    _device.destroyImageView(_imageView);
-
-    _image = image;
-    _width = width;
-    _height = height;
-
-    createImageView(format);
-
-    updated();
-}
-
-ImageRef VulkanImage::create(const Renderer* renderer, const ImageInfo& imageInfo)
-{
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
-    return std::make_shared<ConcreteVulkanImage>(vulkanRenderer->device(), vulkanRenderer->physicalDevice(),
-        vulkanRenderer->commandPool(), vulkanRenderer->graphicsQueue(), imageInfo);
-}
-
-ImageRef VulkanImage::create(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height)
-{
-    return std::make_shared<ConcreteVulkanImage>(device, image, format, width, height);
 }
 
 void VulkanImage::createImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
@@ -155,12 +189,12 @@ void VulkanImage::createImage(uint32_t width, uint32_t height, vk::Format format
     vkBindImageMemory(_device, _image, _imageMemory, 0);
 }
 
-void VulkanImage::createImageView(vk::Format format)
+void VulkanImage::createImageView(vk::Format format, vk::ImageAspectFlags aspectFlags)
 {
     CHRZONE_VULKAN
 
     vk::ImageSubresourceRange subresourceRange = {};
-    subresourceRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
+    subresourceRange.setAspectMask(aspectFlags);
     subresourceRange.setBaseMipLevel(0);
     subresourceRange.setLevelCount(1);
     subresourceRange.setBaseArrayLayer(0);

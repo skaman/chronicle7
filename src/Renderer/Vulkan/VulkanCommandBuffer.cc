@@ -49,13 +49,16 @@ void VulkanCommandBuffer::beginRenderPass(
 
     const auto vulkanRenderPass = static_cast<VulkanRenderPass*>(renderPass.get());
 
-    vk::ClearValue clearColor = { std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } };
+    std::array<vk::ClearValue, 2> clearValues {};
+    clearValues[0].setColor({ std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } });
+    clearValues[1].setDepthStencil({ 1.0f, 0 });
+
     vk::RenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.setRenderPass(vulkanRenderPass->renderPass());
     renderPassInfo.setFramebuffer(vulkanRenderPass->frameBuffer(imageIndex));
     renderPassInfo.setRenderArea(vk::Rect2D(
         { renderArea.offset.x, renderArea.offset.y }, vk::Extent2D(renderArea.extent.width, renderArea.extent.height)));
-    renderPassInfo.setClearValues(clearColor);
+    renderPassInfo.setClearValues(clearValues);
 
     _commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }

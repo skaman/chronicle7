@@ -8,10 +8,7 @@ namespace chronicle {
 
 class VulkanImage : public ImageI<VulkanImage>, private NonCopyable<VulkanImage> {
 protected:
-    explicit VulkanImage(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
-        const vk::CommandPool& commandPool, const vk::Queue& graphicsQueue, const ImageInfo& imageInfo);
-
-    explicit VulkanImage(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height);
+    explicit VulkanImage() = default;
 
 public:
     ~VulkanImage();
@@ -23,10 +20,14 @@ public:
     [[nodiscard]] const vk::ImageView& imageView() const { return _imageView; }
     [[nodiscard]] const vk::Sampler& sampler() const { return _sampler; }
 
-    void updateImage(const vk::Image& image, vk::Format format, int width, int height);
+    void updateSwapchain(const vk::Image& image, vk::Format format, int width, int height);
+    void updateDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
 
-    static ImageRef create(const Renderer* renderer, const ImageInfo& imageInfo);
-    static ImageRef create(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height);
+    static ImageRef createTexture(const Renderer* renderer, const ImageInfo& imageInfo);
+    static ImageRef createSwapchain(
+        const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height);
+    static ImageRef createDepthBuffer(
+        const vk::Device device, vk::PhysicalDevice physicalDevice, uint32_t width, uint32_t height, vk::Format format);
 
     entt::delegate<void(void)> updated {};
 
@@ -43,9 +44,11 @@ private:
     uint32_t _width;
     uint32_t _height;
 
+    void cleanup();
+
     void createImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
         vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties);
-    void createImageView(vk::Format format);
+    void createImageView(vk::Format format, vk::ImageAspectFlags aspectFlags);
     void createTextureSampler();
 };
 

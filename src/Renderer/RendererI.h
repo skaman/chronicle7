@@ -35,10 +35,12 @@ public:
     void invalidateSwapChain() { static_cast<T*>(this)->invalidateSwapChain(); }
 
     [[nodiscard]] Format swapChainFormat() const { return static_cast<const T*>(this)->swapChainFormat(); }
+    [[nodiscard]] Format depthFormat() const { return static_cast<const T*>(this)->depthFormat(); }
     [[nodiscard]] const std::vector<ImageRef>& swapChainImages() const
     {
         return static_cast<const T*>(this)->swapChainImages();
     }
+    [[nodiscard]] const ImageRef& depthImage() const { return static_cast<const T*>(this)->depthImage(); }
     [[nodiscard]] ExtentInt2D swapChainExtent() const { return static_cast<const T*>(this)->swapChainExtent(); }
 
     [[nodiscard]] RenderPassRef createRenderPass(const RenderPassInfo& renderPassInfo) const
@@ -55,7 +57,10 @@ public:
     [[nodiscard]] CommandBufferRef createCommandBuffer() const { return CommandBuffer::create(this); }
     [[nodiscard]] SemaphoreRef createSemaphore() const { return Semaphore::create(this); }
     [[nodiscard]] FenceRef createFence() const { return Fence::create(this); }
-    [[nodiscard]] ImageRef createImage(const ImageInfo& imageInfo) const { return Image::create(this, imageInfo); }
+    [[nodiscard]] ImageRef createTextureImage(const ImageInfo& imageInfo) const
+    {
+        return Image::createTexture(this, imageInfo);
+    }
 
     static RendererUnique create(App* app) { return T::create(app); }
 

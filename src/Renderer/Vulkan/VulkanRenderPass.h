@@ -28,9 +28,10 @@ private:
     vk::RenderPass _renderPass;
     std::vector<vk::Framebuffer> _framebuffers;
     std::vector<ImageRef> _images;
+    ImageRef _depthImage;
     std::vector<ImageUpdateData> _updateData;
 
-    vk::Framebuffer createFrameBuffer(const ImageRef& image) const;
+    vk::Framebuffer createFrameBuffer(const ImageRef& image, const ImageRef& depthImage) const;
     void recreateFrameBuffer(uint32_t imageIndex);
 
     static void imageUpdatedEvent(ImageUpdateData* data);

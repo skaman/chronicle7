@@ -9,10 +9,11 @@ CHR_CONCRETE(VulkanRenderPass)
 
 VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInfo& renderPassInfo)
     : _device(device)
+    , _depthImage(renderPassInfo.depthImage)
 {
     CHRZONE_VULKAN
 
-    // render pass
+    // color attachment
     vk::AttachmentDescription colorAttachment = {};
     colorAttachment.setFormat(formatToVulkan(renderPassInfo.colorAttachmentFormat));
     colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
@@ -27,19 +28,43 @@ VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInf
     colorAttachmentRef.setAttachment(0);
     colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
+    // depth attachment
+    vk::AttachmentDescription depthAttachment = {};
+    depthAttachment.setFormat(formatToVulkan(renderPassInfo.depthAttachmentFormat));
+    depthAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+    vk::AttachmentReference depthAttachmentRef = {};
+    depthAttachmentRef.setAttachment(1);
+    depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+    // subpass
     vk::SubpassDescription subpass = {};
     subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
     subpass.setColorAttachments(colorAttachmentRef);
+    subpass.setPDepthStencilAttachment(&depthAttachmentRef);
 
+    // dependency
     vk::SubpassDependency dependency = {};
     dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
     dependency.setDstSubpass(0);
-    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
+    dependency.setSrcStageMask(
+        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests);
+    dependency.setDstStageMask(
+        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests);
+    dependency.setDstAccessMask(
+        vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite);
+
+    // render pass
+    std::array<vk::AttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 
     vk::RenderPassCreateInfo createRenderPassInfo = {};
-    createRenderPassInfo.setAttachments(colorAttachment);
+    createRenderPassInfo.setAttachments(attachments);
     createRenderPassInfo.setSubpasses(subpass);
     createRenderPassInfo.setDependencies(dependency);
 
@@ -59,7 +84,7 @@ VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInf
         vulkanImage->updated.connect<&VulkanRenderPass::imageUpdatedEvent>(&_updateData[i]);
 
         _images.push_back(image);
-        _framebuffers.push_back(createFrameBuffer(image));
+        _framebuffers.push_back(createFrameBuffer(image, renderPassInfo.depthImage));
     }
 }
 
@@ -88,13 +113,14 @@ RenderPassRef VulkanRenderPass::create(const Renderer* renderer, const RenderPas
     return std::make_shared<ConcreteVulkanRenderPass>(vulkanRenderer->device(), renderPassInfo);
 }
 
-vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image) const
+vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image, const ImageRef& depthImage) const
 {
     CHRZONE_VULKAN
 
     const auto vulkanImage = static_cast<const VulkanImage*>(image.get());
+    const auto vulkanDepthImage = static_cast<const VulkanImage*>(depthImage.get());
 
-    std::array<vk::ImageView, 1> attachments = { vulkanImage->imageView() };
+    std::array<vk::ImageView, 2> attachments = { vulkanImage->imageView(), vulkanDepthImage->imageView() };
 
     vk::FramebufferCreateInfo framebufferInfo = {};
     framebufferInfo.setRenderPass(_renderPass);
@@ -112,7 +138,7 @@ void VulkanRenderPass::recreateFrameBuffer(uint32_t imageIndex)
 
     _device.destroyFramebuffer(_framebuffers[imageIndex]);
 
-    _framebuffers[imageIndex] = createFrameBuffer(_images[imageIndex]);
+    _framebuffers[imageIndex] = createFrameBuffer(_images[imageIndex], _depthImage);
 }
 
 void VulkanRenderPass::imageUpdatedEvent(ImageUpdateData* data) { data->renderPass->recreateFrameBuffer(data->index); }

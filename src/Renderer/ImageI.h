@@ -9,9 +9,9 @@ namespace chronicle {
 
 template <class T> class ImageI {
 public:
-    static ImageRef create(const Renderer* renderer, const ImageInfo& imageInfo)
+    static ImageRef createTexture(const Renderer* renderer, const ImageInfo& imageInfo)
     {
-        return T::create(renderer, imageInfo);
+        return T::createTexture(renderer, imageInfo);
     }
 
 private:
