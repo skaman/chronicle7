@@ -7,15 +7,16 @@
 #include "VulkanCommandBuffer.h"
 #include "VulkanDescriptorSet.h"
 #include "VulkanFence.h"
-#include "VulkanVertexBuffer.h"
-#include "VulkanSemaphore.h"
-#include "VulkanRenderPass.h"
+#include "VulkanIndexBuffer.h"
 #include "VulkanPipeline.h"
+#include "VulkanRenderPass.h"
+#include "VulkanSemaphore.h"
+#include "VulkanVertexBuffer.h"
+#include "VulkanImage.h"
 
 namespace chronicle {
 
 class App;
-class Image;
 
 struct VulkanQueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
@@ -46,7 +47,7 @@ public:
     void invalidateSwapChain() { _swapChainInvalidated = true; }
 
     [[nodiscard]] inline Format swapChainFormat() const { return formatFromVulkan(_swapChainImageFormat); }
-    [[nodiscard]] inline const std::vector<std::shared_ptr<Image>>& swapChainImages() const { return _swapChainImages; }
+    [[nodiscard]] inline const std::vector<ImageRef>& swapChainImages() const { return _swapChainImages; }
     [[nodiscard]] inline ExtentInt2D swapChainExtent() const
     {
         return ExtentInt2D(_swapChainExtent.width, _swapChainExtent.height);
@@ -72,7 +73,7 @@ private:
     vk::Queue _presentQueue;
 
     vk::SwapchainKHR _swapChain;
-    std::vector<std::shared_ptr<Image>> _swapChainImages;
+    std::vector<ImageRef> _swapChainImages;
     vk::Format _swapChainImageFormat;
     vk::Extent2D _swapChainExtent;
 

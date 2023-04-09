@@ -5,6 +5,7 @@
 #include "Renderer/Image.h"
 #include "Renderer/RenderPassInfo.h"
 #include "VulkanCommon.h"
+#include "VulkanImage.h"
 #include "VulkanRenderer.h"
 
 namespace chronicle {
@@ -57,7 +58,10 @@ VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInf
         const auto& image = renderPassInfo.images[i];
         _updateData[i].index = i;
         _updateData[i].renderPass = this;
-        image->native().updated.connect<&VulkanRenderPass::imageUpdatedEvent>(&_updateData[i]);
+
+        const auto vulkanImage = static_cast<VulkanImage*>(image.get());
+
+        vulkanImage->updated.connect<&VulkanRenderPass::imageUpdatedEvent>(&_updateData[i]);
 
         _images.push_back(image);
         _framebuffers.push_back(createFrameBuffer(image));
@@ -68,8 +72,12 @@ VulkanRenderPass::~VulkanRenderPass()
 {
     CHRZONE_VULKAN
 
-    for (const auto& image : _images)
-        image->native().updated.reset();
+    for (const auto& image : _images) {
+        const auto vulkanImage = static_cast<VulkanImage*>(image.get());
+
+        vulkanImage->updated.reset();
+    }
+
     _images.clear();
 
     for (const auto& framebuffer : _framebuffers)
@@ -87,15 +95,15 @@ vk::Framebuffer VulkanRenderPass::createFrameBuffer(const std::shared_ptr<Image>
 {
     CHRZONE_VULKAN
 
-    const auto& vulkanImage = image->native();
+    const auto vulkanImage = static_cast<const VulkanImage*>(image.get());
 
-    std::array<vk::ImageView, 1> attachments = { vulkanImage.imageView() };
+    std::array<vk::ImageView, 1> attachments = { vulkanImage->imageView() };
 
     vk::FramebufferCreateInfo framebufferInfo = {};
     framebufferInfo.setRenderPass(_renderPass);
     framebufferInfo.setAttachments(attachments);
-    framebufferInfo.setWidth(vulkanImage.width());
-    framebufferInfo.setHeight(vulkanImage.height());
+    framebufferInfo.setWidth(vulkanImage->width());
+    framebufferInfo.setHeight(vulkanImage->height());
     framebufferInfo.setLayers(1);
 
     return _device.createFramebuffer(framebufferInfo);

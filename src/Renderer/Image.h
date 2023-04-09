@@ -2,30 +2,21 @@
 
 #include "pch.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanImage.h"
-#endif
+#include "Common.h"
+#include "ImageInfo.h"
 
 namespace chronicle {
 
-class Renderer;
-
-class Image {
+template <class T> class ImageI {
 public:
-    Image(const Renderer* renderer, const ImageInfo& imageInfo);
-
-#ifdef VULKAN_RENDERER
-    Image(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height);
-#endif
-
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline VulkanImage& native() { return _image; };
-#endif
+    static ImageRef create(const Renderer* renderer, const ImageInfo& imageInfo)
+    {
+        return T::create(renderer, imageInfo);
+    }
 
 private:
-#ifdef VULKAN_RENDERER
-    VulkanImage _image;
-#endif
+    ImageI() = default;
+    friend T;
 };
 
 } // namespace chronicle

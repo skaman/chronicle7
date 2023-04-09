@@ -44,10 +44,7 @@ public:
     inline void invalidateSwapChain() { _renderer.invalidateSwapChain(); }
 
     [[nodiscard]] inline Format swapChainFormat() const { return _renderer.swapChainFormat(); }
-    [[nodiscard]] inline const std::vector<std::shared_ptr<Image>>& swapChainImages() const
-    {
-        return _renderer.swapChainImages();
-    }
+    [[nodiscard]] inline const std::vector<ImageRef>& swapChainImages() const { return _renderer.swapChainImages(); }
     [[nodiscard]] inline ExtentInt2D swapChainExtent() const { return _renderer.swapChainExtent(); }
 
     [[nodiscard]] inline RenderPassRef createRenderPass(const RenderPassInfo& renderPassInfo) const
@@ -55,25 +52,16 @@ public:
         return RenderPass::create(this, renderPassInfo);
     }
     [[nodiscard]] inline DescriptorSetRef createDescriptorSet() const { return DescriptorSet::create(this); }
-    [[nodiscard]] inline std::shared_ptr<Pipeline> createPipeline(const PipelineInfo& pipelineInfo) const
+    [[nodiscard]] inline PipelineRef createPipeline(const PipelineInfo& pipelineInfo) const
     {
         return Pipeline::create(this, pipelineInfo);
     }
     [[nodiscard]] inline VertexBufferRef createVertexBuffer() const { return VertexBuffer::create(this); }
-    [[nodiscard]] inline std::shared_ptr<IndexBuffer> createIndexBuffer() const
-    {
-        return std::make_shared<IndexBuffer>(this);
-    }
+    [[nodiscard]] inline IndexBufferRef createIndexBuffer() const { return IndexBuffer::create(this); }
     [[nodiscard]] inline CommandBufferRef createCommandBuffer() const { return CommandBuffer::create(this); }
-    [[nodiscard]] inline SemaphoreRef createSemaphore() const
-    {
-        return Semaphore::create(this);
-    }
+    [[nodiscard]] inline SemaphoreRef createSemaphore() const { return Semaphore::create(this); }
     [[nodiscard]] inline FenceRef createFence() const { return Fence::create(this); }
-    [[nodiscard]] inline std::shared_ptr<Image> createImage(const ImageInfo& imageInfo) const
-    {
-        return std::make_shared<Image>(this, imageInfo);
-    }
+    [[nodiscard]] inline ImageRef createImage(const ImageInfo& imageInfo) const { return Image::create(this, imageInfo); }
 
 #ifdef VULKAN_RENDERER
     [[nodiscard]] inline const VulkanRenderer& native() const { return _renderer; };

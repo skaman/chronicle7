@@ -2,28 +2,19 @@
 
 #include "pch.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanIndexBuffer.h"
-#endif
+#include "Common.h"
 
 namespace chronicle {
 
-class Renderer;
-
-class IndexBuffer {
+template <class T> class IndexBufferI {
 public:
-    explicit IndexBuffer(const Renderer* renderer);
+    void set(void* src, size_t size) { static_cast<T*>(this)->set(src, size); }
 
-    void set(void* src, size_t size) { _indexBuffer.set(src, size); }
-
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline const VulkanIndexBuffer& native() const { return _indexBuffer; };
-#endif
+    static IndexBufferRef create(const Renderer* renderer) { return T::create(renderer); }
 
 private:
-#ifdef VULKAN_RENDERER
-    VulkanIndexBuffer _indexBuffer;
-#endif
+    IndexBufferI() = default;
+    friend T;
 };
 
 } // namespace chronicle

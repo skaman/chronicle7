@@ -6,8 +6,6 @@
 
 namespace chronicle {
 
-class Image;
-
 struct RenderPassInfo {
     Format colorAttachmentFormat = Format::Undefined;
     std::vector<std::shared_ptr<Image>> images = {};

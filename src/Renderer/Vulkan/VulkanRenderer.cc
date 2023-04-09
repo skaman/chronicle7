@@ -364,11 +364,11 @@ void VulkanRenderer::createSwapChain()
 
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         if (_swapChainImages.size() > i) {
-            _swapChainImages[i]->native().updateImage(
-                swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
+            const auto vulkanImage = static_cast<VulkanImage*>(_swapChainImages[i].get());
+            vulkanImage->updateImage(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
         } else {
-            auto image = std::make_shared<Image>(
-                _device, swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
+            auto image
+                = VulkanImage::create(_device, swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
             _swapChainImages.push_back(image);
         }
     }

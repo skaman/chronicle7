@@ -4,10 +4,10 @@
 
 #include "Renderer/DescriptorSet.h"
 #include "Renderer/RendererError.h"
-#include "Renderer/Image.h"
 
 #include "VulkanBuffer.h"
 #include "VulkanCommon.h"
+#include "VulkanImage.h"
 
 namespace chronicle {
 
@@ -77,10 +77,12 @@ public:
         layoutBinding.setStageFlags(shaderStageToVulkan(stage));
         _layoutBindings.push_back(layoutBinding);
 
+        const auto vulkanImage = static_cast<const VulkanImage*>(image.get());
+
         vk::DescriptorImageInfo imageInfo {};
         imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
-        imageInfo.setImageView(image->native().imageView());
-        imageInfo.setSampler(image->native().sampler());
+        imageInfo.setImageView(vulkanImage->imageView());
+        imageInfo.setSampler(vulkanImage->sampler());
 
         VulkanDescriptorSetState descriptorSetState
             = { .type = vk::DescriptorType::eCombinedImageSampler, .combinedImageSampler = { .imageInfo = imageInfo } };

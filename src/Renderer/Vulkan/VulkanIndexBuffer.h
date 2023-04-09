@@ -2,18 +2,23 @@
 
 #include "pch.h"
 
+#include "Renderer/IndexBuffer.h"
+
 namespace chronicle {
 
-class VulkanIndexBuffer {
-public:
+class VulkanIndexBuffer : public IndexBufferI<VulkanIndexBuffer>, private NonCopyable<VulkanIndexBuffer> {
+protected:
     explicit VulkanIndexBuffer(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
         const vk::CommandPool& commandPool, const vk::Queue& queue);
+
+public:
     ~VulkanIndexBuffer();
 
     void set(void* src, size_t size);
 
-    // internal
     [[nodiscard]] inline const vk::Buffer& buffer() const { return _buffer; }
+
+    static IndexBufferRef create(const Renderer* renderer);
 
 private:
     vk::Device _device;

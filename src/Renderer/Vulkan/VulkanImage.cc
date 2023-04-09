@@ -1,9 +1,13 @@
 #include "VulkanImage.h"
 
+#include "Renderer/Renderer.h"
 #include "Renderer/RendererError.h"
 #include "VulkanBuffer.h"
 
 namespace chronicle {
+
+CHR_CONCRETE(VulkanImage)
+
 VulkanImage::VulkanImage(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
     const vk::CommandPool& commandPool, const vk::Queue& graphicsQueue, const ImageInfo& imageInfo)
     : _device(device)
@@ -100,6 +104,17 @@ void VulkanImage::updateImage(const vk::Image& image, vk::Format format, int wid
     createImageView(format);
 
     updated();
+}
+
+ImageRef VulkanImage::create(const Renderer* renderer, const ImageInfo& imageInfo)
+{
+    return std::make_shared<ConcreteVulkanImage>(renderer->native().device(), renderer->native().physicalDevice(),
+        renderer->native().commandPool(), renderer->native().graphicsQueue(), imageInfo);
+}
+
+ImageRef VulkanImage::create(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height)
+{
+    return std::make_shared<ConcreteVulkanImage>(device, image, format, width, height);
 }
 
 void VulkanImage::createImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,

@@ -121,7 +121,9 @@ void VulkanCommandBuffer::bindIndexBuffer(const std::shared_ptr<IndexBuffer>& in
 {
     CHRZONE_VULKAN
 
-    _commandBuffer.bindIndexBuffer(indexBuffer->native().buffer(), vk::DeviceSize(0), vk::IndexType::eUint16);
+    const auto vulkanIndexBuffer = static_cast<VulkanIndexBuffer*>(indexBuffer.get());
+
+    _commandBuffer.bindIndexBuffer(vulkanIndexBuffer->buffer(), vk::DeviceSize(0), vk::IndexType::eUint16);
 }
 
 void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const

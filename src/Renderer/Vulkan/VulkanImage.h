@@ -2,27 +2,31 @@
 
 #include "pch.h"
 
-#include "Renderer/ImageInfo.h"
+#include "Renderer/Image.h"
 
 namespace chronicle {
 
-class VulkanImage {
-public:
+class VulkanImage : public ImageI<VulkanImage>, private NonCopyable<VulkanImage> {
+protected:
     explicit VulkanImage(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
         const vk::CommandPool& commandPool, const vk::Queue& graphicsQueue, const ImageInfo& imageInfo);
 
     explicit VulkanImage(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height);
+
+public:
     ~VulkanImage();
 
-    [[nodiscard]] inline uint32_t width() const { return _width; }
-    [[nodiscard]] inline uint32_t height() const { return _height; }
+    [[nodiscard]] uint32_t width() const { return _width; }
+    [[nodiscard]] uint32_t height() const { return _height; }
 
-    // internal
-    [[nodiscard]] inline const vk::Image& image() const { return _image; }
-    [[nodiscard]] inline const vk::ImageView& imageView() const { return _imageView; }
-    [[nodiscard]] inline const vk::Sampler& sampler() const { return _sampler; }
+    [[nodiscard]] const vk::Image& image() const { return _image; }
+    [[nodiscard]] const vk::ImageView& imageView() const { return _imageView; }
+    [[nodiscard]] const vk::Sampler& sampler() const { return _sampler; }
 
     void updateImage(const vk::Image& image, vk::Format format, int width, int height);
+
+    static ImageRef create(const Renderer* renderer, const ImageInfo& imageInfo);
+    static ImageRef create(const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height);
 
     entt::delegate<void(void)> updated {};
 

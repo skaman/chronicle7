@@ -16,7 +16,7 @@ public:
 
     void set(void* src, size_t size);
 
-    [[nodiscard]] inline const vk::Buffer& buffer() const { return _buffer; }
+    [[nodiscard]] const vk::Buffer& buffer() const { return _buffer; }
 
     static VertexBufferRef create(const Renderer* renderer);
 

@@ -1,8 +1,11 @@
 #include "VulkanIndexBuffer.h"
 
+#include "Renderer/Renderer.h"
 #include "VulkanBuffer.h"
 
 namespace chronicle {
+
+CHR_CONCRETE(VulkanIndexBuffer)
 
 VulkanIndexBuffer::VulkanIndexBuffer(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
     const vk::CommandPool& commandPool, const vk::Queue& queue)
@@ -45,6 +48,12 @@ void VulkanIndexBuffer::set(void* src, size_t size)
 
     _device.destroyBuffer(stagingBuffer);
     _device.freeMemory(stagingBufferMemory);
+}
+
+IndexBufferRef VulkanIndexBuffer::create(const Renderer* renderer)
+{
+    return std::make_shared<ConcreteVulkanIndexBuffer>(renderer->native().device(),
+        renderer->native().physicalDevice(), renderer->native().commandPool(), renderer->native().graphicsQueue());
 }
 
 void VulkanIndexBuffer::cleanup() const
