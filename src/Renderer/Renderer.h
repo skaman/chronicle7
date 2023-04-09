@@ -57,7 +57,7 @@ public:
     [[nodiscard]] inline DescriptorSetRef createDescriptorSet() const { return DescriptorSet::create(this); }
     [[nodiscard]] inline std::shared_ptr<Pipeline> createPipeline(const PipelineInfo& pipelineInfo) const
     {
-        return std::make_shared<Pipeline>(this, pipelineInfo);
+        return Pipeline::create(this, pipelineInfo);
     }
     [[nodiscard]] inline VertexBufferRef createVertexBuffer() const { return VertexBuffer::create(this); }
     [[nodiscard]] inline std::shared_ptr<IndexBuffer> createIndexBuffer() const

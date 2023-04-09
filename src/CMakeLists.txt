@@ -37,7 +37,6 @@ add_executable(chronicle
     "Renderer/IndexBuffer.h"
     "Renderer/IndexBuffer.cc"
     "Renderer/Pipeline.h"
-    "Renderer/Pipeline.cc"
     "Renderer/PipelineInfo.h"
     "Renderer/Renderer.h"
     "Renderer/Renderer.cc"

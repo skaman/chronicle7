@@ -2,26 +2,21 @@
 
 #include "pch.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanPipeline.h"
-#endif
+#include "Common.h"
+#include "PipelineInfo.h"
 
 namespace chronicle {
 
-class Renderer;
-
-class Pipeline {
+template <class T> class PipelineI {
 public:
-    explicit Pipeline(const Renderer* renderer, const PipelineInfo& pipelineInfo);
-
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline const VulkanPipeline& native() const { return _pipeline; };
-#endif
+    static PipelineRef create(const Renderer* renderer, const PipelineInfo& pipelineInfo)
+    {
+        return T::create(renderer, pipelineInfo);
+    }
 
 private:
-#ifdef VULKAN_RENDERER
-    VulkanPipeline _pipeline;
-#endif
+    PipelineI() = default;
+    friend T;
 };
 
 } // namespace chronicle

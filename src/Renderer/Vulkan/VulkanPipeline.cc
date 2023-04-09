@@ -1,5 +1,7 @@
 #include "VulkanPipeline.h"
 
+#include "Renderer/Renderer.h"
+
 #include "Storage/File.h"
 #include "VulkanCommon.h"
 #include "VulkanRenderPass.h"
@@ -9,6 +11,8 @@
 namespace chronicle {
 
 const int MAX_DESCRIPTOR_SETS = 4;
+
+CHR_CONCRETE(VulkanPipeline)
 
 VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pipelineInfo)
     : _device(device)
@@ -159,6 +163,11 @@ VulkanPipeline::~VulkanPipeline()
 
     for (const auto& descriptorSetLayout : _descriptorSetsLayout)
         _device.destroyDescriptorSetLayout(descriptorSetLayout);
+}
+
+PipelineRef VulkanPipeline::create(const Renderer* renderer, const PipelineInfo& pipelineInfo)
+{
+    return std::make_shared<ConcreteVulkanPipeline>(renderer->native().device(), pipelineInfo);
 }
 
 vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const

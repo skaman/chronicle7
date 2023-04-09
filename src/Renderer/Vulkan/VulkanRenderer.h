@@ -10,6 +10,7 @@
 #include "VulkanVertexBuffer.h"
 #include "VulkanSemaphore.h"
 #include "VulkanRenderPass.h"
+#include "VulkanPipeline.h"
 
 namespace chronicle {
 

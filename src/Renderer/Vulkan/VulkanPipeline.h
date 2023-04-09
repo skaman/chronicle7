@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Renderer/PipelineInfo.h"
+#include "Renderer/Pipeline.h"
 
 namespace chronicle {
 
@@ -11,14 +11,17 @@ struct DescriptorSetLayoutData {
     std::vector<vk::DescriptorSetLayoutBinding> bindings = {};
 };
 
-class VulkanPipeline {
-public:
+class VulkanPipeline : public PipelineI<VulkanPipeline>, private NonCopyable<VulkanPipeline> {
+protected:
     explicit VulkanPipeline(const vk::Device& device, const PipelineInfo& pipelineInfo);
+
+public:
     ~VulkanPipeline();
 
-    // internal
-    [[nodiscard]] inline const vk::Pipeline& pipeline() const { return _graphicsPipeline; }
-    [[nodiscard]] inline const vk::PipelineLayout& pipelineLayout() const { return _pipelineLayout; }
+    [[nodiscard]] const vk::Pipeline& pipeline() const { return _graphicsPipeline; }
+    [[nodiscard]] const vk::PipelineLayout& pipelineLayout() const { return _pipelineLayout; }
+
+    static PipelineRef create(const Renderer* renderer, const PipelineInfo& pipelineInfo);
 
 private:
     vk::Device _device;

@@ -102,8 +102,10 @@ void VulkanCommandBuffer::bindPipeline(const std::shared_ptr<Pipeline>& pipeline
 {
     CHRZONE_VULKAN
 
-    _commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline->native().pipeline());
-    _currentPipelineLayout = pipeline->native().pipelineLayout();
+    const auto vulkanPipeline = static_cast<VulkanPipeline*>(pipeline.get());
+
+    _commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, vulkanPipeline->pipeline());
+    _currentPipelineLayout = vulkanPipeline->pipelineLayout();
 }
 
 void VulkanCommandBuffer::bindVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) const
