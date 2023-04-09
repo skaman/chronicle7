@@ -1,6 +1,6 @@
 #include "VulkanFence.h"
 
-#include "Renderer/Renderer.h"
+#include "Vulkan.h"
 
 namespace chronicle {
 
@@ -23,7 +23,8 @@ VulkanFence::~VulkanFence()
 
 FenceRef VulkanFence::create(const Renderer* renderer)
 {
-    return std::make_shared<ConcreteVulkanFence>(renderer->native().device());
+    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
+    return std::make_shared<ConcreteVulkanFence>(vulkanRenderer->device());
 }
 
 } // namespace chronicle

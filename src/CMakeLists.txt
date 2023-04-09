@@ -23,6 +23,7 @@ function(compile_shader target)
 endfunction()
 
 add_executable(chronicle
+    "Locator.h"
     "main.cc"
     "pch.cc"
     "Platform/App.h"
@@ -37,7 +38,6 @@ add_executable(chronicle
     "Renderer/Pipeline.h"
     "Renderer/PipelineInfo.h"
     "Renderer/Renderer.h"
-    "Renderer/Renderer.cc"
     "Renderer/RendererError.h"
     "Renderer/RenderPass.h"
     "Renderer/RenderPassInfo.h"

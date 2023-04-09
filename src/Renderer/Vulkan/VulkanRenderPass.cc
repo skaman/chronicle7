@@ -1,12 +1,10 @@
 #include "VulkanRenderPass.h"
 
-#include "Renderer/Renderer.h"
-
 #include "Renderer/Image.h"
 #include "Renderer/RenderPassInfo.h"
-#include "VulkanCommon.h"
-#include "VulkanImage.h"
-#include "VulkanRenderer.h"
+
+#include "Vulkan.h"
+
 
 namespace chronicle {
 
@@ -88,7 +86,9 @@ VulkanRenderPass::~VulkanRenderPass()
 
 RenderPassRef VulkanRenderPass::create(const Renderer* renderer, const RenderPassInfo& renderPassInfo)
 {
-    return std::make_shared<ConcreteVulkanRenderPass>(renderer->native().device(), renderPassInfo);
+    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
+
+    return std::make_shared<ConcreteVulkanRenderPass>(vulkanRenderer->device(), renderPassInfo);
 }
 
 vk::Framebuffer VulkanRenderPass::createFrameBuffer(const std::shared_ptr<Image>& image) const

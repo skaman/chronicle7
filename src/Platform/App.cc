@@ -1,6 +1,8 @@
 #include "App.h"
 
-#include "Renderer/Renderer.h"
+#include "Locator.h"
+
+//#include "Renderer/Renderer.h"
 #include "Systems/MeshRendererSystem.h"
 #include "Systems/Systems.h"
 
@@ -42,7 +44,11 @@ void App::Init()
     glfwSetWindowUserPointer(_window, this);
     glfwSetFramebufferSizeCallback(_window, FramebufferSizeCallback);
 
-    _renderer = &entt::locator<Renderer>::emplace<Renderer>(this);
+    Locator::renderer = Renderer::create(this);
+    _renderer = Locator::renderer.get();
+
+    //_renderer = &entt::locator<Renderer>::emplace<Renderer>(this);
+    //auto tmp = Renderer::create();
 
     _systems = &entt::locator<Systems>::emplace<Systems>();
     _systems->Register<MeshRendererSystem>();
@@ -67,7 +73,8 @@ void App::Destroy()
     CHRZONE_PLATFORM
 
     entt::locator<Systems>::reset();
-    entt::locator<Renderer>::reset();
+    Locator::renderer.reset();
+    //entt::locator<Renderer>::reset();
 
     glfwDestroyWindow(_window);
     glfwTerminate();

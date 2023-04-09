@@ -1,11 +1,8 @@
 #include "VulkanRenderer.h"
 
 #include "Platform/App.h"
-#include "Renderer/CommandBuffer.h"
-#include "Renderer/Fence.h"
-#include "Renderer/Image.h"
-#include "Renderer/RendererError.h"
-#include "Renderer/Semaphore.h"
+
+#include "Vulkan.h"
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
@@ -18,6 +15,8 @@ const bool ENABLED_VALIDATION_LAYERS = true;
 #endif
 
 namespace chronicle {
+
+CHR_CONCRETE(VulkanRenderer)
 
 VkResult createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback)
@@ -172,6 +171,8 @@ bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIn
 
     return true;
 }
+
+RendererRef VulkanRenderer::create(App* app) { return std::make_shared<ConcreteVulkanRenderer>(app); }
 
 void VulkanRenderer::recreateSwapChain()
 {

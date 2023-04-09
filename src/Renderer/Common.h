@@ -69,6 +69,7 @@ template <class T> class RenderPassI;
 template <class T> class PipelineI;
 template <class T> class IndexBufferI;
 template <class T> class ImageI;
+template <class T> class RendererI;
 
 #ifdef VULKAN_RENDERER
 class VulkanCommandBuffer;
@@ -80,6 +81,7 @@ class VulkanRenderPass;
 class VulkanPipeline;
 class VulkanIndexBuffer;
 class VulkanImage;
+class VulkanRenderer;
 
 using CommandBuffer = CommandBufferI<VulkanCommandBuffer>;
 using DescriptorSet = DescriptorSetI<VulkanDescriptorSet>;
@@ -90,6 +92,7 @@ using RenderPass = RenderPassI<VulkanRenderPass>;
 using Pipeline = PipelineI<VulkanPipeline>;
 using IndexBuffer = IndexBufferI<VulkanIndexBuffer>;
 using Image = ImageI<VulkanImage>;
+using Renderer = RendererI<VulkanRenderer>;
 #endif
 
 using CommandBufferRef = std::shared_ptr<CommandBuffer>;
@@ -101,7 +104,6 @@ using RenderPassRef = std::shared_ptr<RenderPass>;
 using PipelineRef = std::shared_ptr<Pipeline>;
 using IndexBufferRef = std::shared_ptr<IndexBuffer>;
 using ImageRef = std::shared_ptr<Image>;
-
-class Renderer;
+using RendererRef = std::shared_ptr<Renderer>;
 
 } // namespace chronicle

@@ -4,15 +4,17 @@
 
 #include "VulkanCommon.h"
 
-#include "VulkanCommandBuffer.h"
-#include "VulkanDescriptorSet.h"
-#include "VulkanFence.h"
-#include "VulkanIndexBuffer.h"
-#include "VulkanPipeline.h"
-#include "VulkanRenderPass.h"
-#include "VulkanSemaphore.h"
-#include "VulkanVertexBuffer.h"
-#include "VulkanImage.h"
+// #include "VulkanCommandBuffer.h"
+// #include "VulkanDescriptorSet.h"
+// #include "VulkanFence.h"
+// #include "VulkanImage.h"
+// #include "VulkanIndexBuffer.h"
+// #include "VulkanPipeline.h"
+// #include "VulkanRenderPass.h"
+// #include "VulkanSemaphore.h"
+// #include "VulkanVertexBuffer.h"
+
+#include "Renderer/Renderer.h"
 
 namespace chronicle {
 
@@ -31,9 +33,11 @@ struct VulkanSwapChainSupportDetails {
     std::vector<vk::PresentModeKHR> presentModes;
 };
 
-class VulkanRenderer {
-public:
+class VulkanRenderer : public RendererI<VulkanRenderer>, private NonCopyable<VulkanRenderer> {
+protected:
     explicit VulkanRenderer(chronicle::App* app);
+
+public:
     ~VulkanRenderer();
 
     void waitIdle() const;
@@ -46,18 +50,19 @@ public:
 
     void invalidateSwapChain() { _swapChainInvalidated = true; }
 
-    [[nodiscard]] inline Format swapChainFormat() const { return formatFromVulkan(_swapChainImageFormat); }
-    [[nodiscard]] inline const std::vector<ImageRef>& swapChainImages() const { return _swapChainImages; }
-    [[nodiscard]] inline ExtentInt2D swapChainExtent() const
+    [[nodiscard]] Format swapChainFormat() const { return formatFromVulkan(_swapChainImageFormat); }
+    [[nodiscard]] const std::vector<ImageRef>& swapChainImages() const { return _swapChainImages; }
+    [[nodiscard]] ExtentInt2D swapChainExtent() const
     {
         return ExtentInt2D(_swapChainExtent.width, _swapChainExtent.height);
     }
 
-    // internal
-    [[nodiscard]] inline const vk::Device& device() const { return _device; }
-    [[nodiscard]] inline const vk::PhysicalDevice& physicalDevice() const { return _physicalDevice; }
-    [[nodiscard]] inline const vk::Queue& graphicsQueue() const { return _graphicsQueue; }
-    [[nodiscard]] inline const vk::CommandPool& commandPool() const { return _commandPool; }
+    [[nodiscard]] const vk::Device& device() const { return _device; }
+    [[nodiscard]] const vk::PhysicalDevice& physicalDevice() const { return _physicalDevice; }
+    [[nodiscard]] const vk::Queue& graphicsQueue() const { return _graphicsQueue; }
+    [[nodiscard]] const vk::CommandPool& commandPool() const { return _commandPool; }
+
+    static RendererRef create(App* app);
 
 private:
     App* _app;

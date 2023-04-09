@@ -1,5 +1,13 @@
 #include "MeshRendererSystem.h"
 
+//#include "Renderer/CommandBuffer.h"
+//#include "Renderer/Vulkan/VulkanCommandBuffer.h"
+//#include "Renderer/Vulkan/VulkanFence.h"
+//#include "Renderer/Vulkan/VulkanImage.h"
+
+#include "Renderer/Vulkan/Vulkan.h"
+#include "Locator.h"
+
 namespace chronicle {
 
 using namespace entt::literals;
@@ -43,23 +51,23 @@ MeshRendererSystem::MeshRendererSystem()
     auto test = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
     // https://github.com/SaschaWillems/Vulkan-glTF-PBR/blob/master/base/VulkanglTFModel.cpp
 
-    const auto& renderer = entt::locator<Renderer>::value();
+    const auto renderer = Locator::renderer.get();
 
     // render pass
     RenderPassInfo renderPassInfo = {};
-    renderPassInfo.colorAttachmentFormat = renderer.swapChainFormat();
-    renderPassInfo.images = renderer.swapChainImages();
-    _renderPass = renderer.createRenderPass(renderPassInfo);
+    renderPassInfo.colorAttachmentFormat = renderer->swapChainFormat();
+    renderPassInfo.images = renderer->swapChainImages();
+    _renderPass = renderer->createRenderPass(renderPassInfo);
 
     // texture
     ImageInfo imageInfo = {};
     imageInfo.filename = "D:\\texture.jpg";
-    _texture = renderer.createImage(imageInfo);
+    _texture = renderer->createImage(imageInfo);
 
     // descriptor sets
     _descriptorSets.reserve(MAX_FRAMES_IN_FLIGHT);
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto descriptorSet = renderer.createDescriptorSet();
+        auto descriptorSet = renderer->createDescriptorSet();
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, ShaderStage::Vertex);
         descriptorSet->addSampler(ShaderStage::Fragment, _texture);
         descriptorSet->build();
@@ -92,11 +100,11 @@ MeshRendererSystem::MeshRendererSystem()
 
     pipelineInfo.vertexBuffers.push_back(vertexBufferInfo);
 
-    _pipeline = renderer.createPipeline(pipelineInfo);
+    _pipeline = renderer->createPipeline(pipelineInfo);
 
     // vertex and index buffer
-    _vertexBuffer = renderer.createVertexBuffer();
-    _indexBuffer = renderer.createIndexBuffer();
+    _vertexBuffer = renderer->createVertexBuffer();
+    _indexBuffer = renderer->createIndexBuffer();
 
     _vertexBuffer->set((void*)Vertices.data(), sizeof(Vertices[0]) * Vertices.size());
     _indexBuffer->set((void*)Indices.data(), sizeof(Indices[0]) * Indices.size());
@@ -104,7 +112,7 @@ MeshRendererSystem::MeshRendererSystem()
     // command buffer
     _commandBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto commandBuffer = renderer.createCommandBuffer();
+        auto commandBuffer = renderer->createCommandBuffer();
         _commandBuffers.push_back(commandBuffer);
     }
 
@@ -114,9 +122,9 @@ MeshRendererSystem::MeshRendererSystem()
     _inFlightFences.reserve(MAX_FRAMES_IN_FLIGHT);
 
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        _imageAvailableSemaphores.push_back(renderer.createSemaphore());
-        _renderFinishedSemaphores.push_back(renderer.createSemaphore());
-        _inFlightFences.push_back(renderer.createFence());
+        _imageAvailableSemaphores.push_back(renderer->createSemaphore());
+        _renderFinishedSemaphores.push_back(renderer->createSemaphore());
+        _inFlightFences.push_back(renderer->createFence());
     }
 }
 
@@ -140,22 +148,22 @@ void MeshRendererSystem::run(entt::registry& registry)
 {
     CHRZONE_RENDERER_SYSTEM
 
-    auto& renderer = entt::locator<Renderer>::value();
+    const auto renderer = Locator::renderer.get();
 
-    renderer.waitForFence(_inFlightFences[_currentFrame]);
+    renderer->waitForFence(_inFlightFences[_currentFrame]);
 
-    auto imageIndex = renderer.acquireNextImage(_imageAvailableSemaphores[_currentFrame]);
+    auto imageIndex = renderer->acquireNextImage(_imageAvailableSemaphores[_currentFrame]);
 
-    renderer.resetFence(_inFlightFences[_currentFrame]);
+    renderer->resetFence(_inFlightFences[_currentFrame]);
     _commandBuffers[_currentFrame]->reset();
 
     recordCommandBuffer(_commandBuffers[_currentFrame], imageIndex);
     updateUniformBuffer(_currentFrame);
 
-    renderer.submit(_inFlightFences[_currentFrame], _imageAvailableSemaphores[_currentFrame],
+    renderer->submit(_inFlightFences[_currentFrame], _imageAvailableSemaphores[_currentFrame],
         _renderFinishedSemaphores[_currentFrame], _commandBuffers[_currentFrame]);
 
-    renderer.present(_renderFinishedSemaphores[_currentFrame], imageIndex);
+    renderer->present(_renderFinishedSemaphores[_currentFrame], imageIndex);
 
     _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
@@ -166,9 +174,9 @@ void MeshRendererSystem::recordCommandBuffer(const std::shared_ptr<CommandBuffer
 {
     CHRZONE_RENDERER_SYSTEM
 
-    const auto& renderer = entt::locator<Renderer>::value();
+    const auto renderer = Locator::renderer.get();
 
-    auto extent = renderer.swapChainExtent();
+    auto extent = renderer->swapChainExtent();
 
     commandBuffer->begin();
     commandBuffer->beginRenderPass(_renderPass, RectInt2D({ 0, 0 }, extent), imageIndex);
@@ -193,9 +201,9 @@ void MeshRendererSystem::updateUniformBuffer(uint32_t currentFrame)
 {
     CHRZONE_RENDERER_SYSTEM
 
-    const auto& renderer = entt::locator<Renderer>::value();
+    const auto renderer = Locator::renderer.get();
 
-    auto extent = renderer.swapChainExtent();
+    auto extent = renderer->swapChainExtent();
 
     static auto startTime = std::chrono::high_resolution_clock::now();
 

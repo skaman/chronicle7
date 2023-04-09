@@ -3,7 +3,6 @@
 #include "pch.h"
 
 #include "Renderer/DescriptorSet.h"
-#include "Renderer/RendererError.h"
 
 #include "VulkanBuffer.h"
 #include "VulkanCommon.h"

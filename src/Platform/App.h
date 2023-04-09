@@ -2,9 +2,11 @@
 
 #include "pch.h"
 
+#include "Renderer/Common.h"
+#include "Renderer/Vulkan/Vulkan.h"
+
 namespace chronicle {
 
-class Renderer;
 class Systems;
 
 class App {

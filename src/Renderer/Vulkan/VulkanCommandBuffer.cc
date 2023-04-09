@@ -2,11 +2,8 @@
 
 #include "Renderer/IndexBuffer.h"
 #include "Renderer/Pipeline.h"
-#include "Renderer/Renderer.h"
 
-#include "VulkanDescriptorSet.h"
-#include "VulkanVertexBuffer.h"
-#include "VulkanRenderPass.h"
+#include "Vulkan.h"
 
 namespace chronicle {
 
@@ -44,7 +41,7 @@ void VulkanCommandBuffer::begin() const
 void VulkanCommandBuffer::end() const { _commandBuffer.end(); }
 
 void VulkanCommandBuffer::beginRenderPass(
-    const std::shared_ptr<RenderPass>& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
+    const RenderPassRef& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
 {
     CHRZONE_VULKAN
 
@@ -98,7 +95,7 @@ void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCoun
     _commandBuffer.drawIndexed(indexCount, instanceCount, 0, 0, 0);
 }
 
-void VulkanCommandBuffer::bindPipeline(const std::shared_ptr<Pipeline>& pipeline)
+void VulkanCommandBuffer::bindPipeline(const PipelineRef& pipeline)
 {
     CHRZONE_VULKAN
 
@@ -108,7 +105,7 @@ void VulkanCommandBuffer::bindPipeline(const std::shared_ptr<Pipeline>& pipeline
     _currentPipelineLayout = vulkanPipeline->pipelineLayout();
 }
 
-void VulkanCommandBuffer::bindVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) const
+void VulkanCommandBuffer::bindVertexBuffer(const VertexBufferRef& vertexBuffer) const
 {
     CHRZONE_VULKAN
 
@@ -117,7 +114,7 @@ void VulkanCommandBuffer::bindVertexBuffer(const std::shared_ptr<VertexBuffer>& 
     _commandBuffer.bindVertexBuffers(0, vulkanVertexBuffer->buffer(), vk::DeviceSize(0));
 }
 
-void VulkanCommandBuffer::bindIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) const
+void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer) const
 {
     CHRZONE_VULKAN
 
@@ -138,7 +135,9 @@ void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSe
 
 CommandBufferRef VulkanCommandBuffer::create(const Renderer* renderer)
 {
-    return std::make_shared<ConcreteVulkanCommandBuffer>(renderer->native().device(), renderer->native().commandPool());
+    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
+
+    return std::make_shared<ConcreteVulkanCommandBuffer>(vulkanRenderer->device(), vulkanRenderer->commandPool());
 }
 
 } // namespace chronicle

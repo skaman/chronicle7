@@ -2,75 +2,85 @@
 
 #include "pch.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanRenderer.h"
-#endif
+#include "Common.h"
 
-#include "CommandBuffer.h"
-#include "DescriptorSet.h"
-#include "Fence.h"
-#include "Image.h"
-#include "IndexBuffer.h"
-#include "Pipeline.h"
-#include "RenderPass.h"
-#include "RenderPassInfo.h"
-#include "Semaphore.h"
-#include "VertexBuffer.h"
+#include "ImageInfo.h"
+#include "PipelineInfo.h"
+
+// #include "CommandBuffer.h"
+// #include "DescriptorSet.h"
+// #include "Fence.h"
+// #include "Image.h"
+// #include "IndexBuffer.h"
+// #include "Pipeline.h"
+// #include "RenderPass.h"
+// #include "RenderPassInfo.h"
+// #include "Semaphore.h"
+// #include "VertexBuffer.h"
+
+// #include "Vulkan/VulkanCommandBuffer.h"
+// #include "Vulkan/VulkanFence.h"
+// #include "Vulkan/VulkanImage.h"
+// #include "Vulkan/VulkanIndexBuffer.h"
+// #include "Vulkan/VulkanPipeline.h"
+// #include "Vulkan/VulkanRenderPass.h"
+// #include "Vulkan/VulkanSemaphore.h"
+// #include "Vulkan/VulkanVertexBuffer.h"
 
 namespace chronicle {
 
 class App;
 
-class Renderer {
+template <class T> class RendererI {
 public:
-    explicit Renderer(chronicle::App* app)
-        : _renderer(app) {};
+    void waitIdle() const { static_cast<const T*>(this)->waitIdle(); }
 
-    inline void waitIdle() const { _renderer.waitIdle(); }
-
-    inline void waitForFence(const FenceRef& fence) const { _renderer.waitForFence(fence); }
-    inline void resetFence(const FenceRef& fence) const { _renderer.resetFence(fence); }
-    inline uint32_t acquireNextImage(const SemaphoreRef& semaphore) { return _renderer.acquireNextImage(semaphore); }
-    inline void submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore, const SemaphoreRef& signalSemaphore,
+    void waitForFence(const FenceRef& fence) const { static_cast<const T*>(this)->waitForFence(fence); }
+    void resetFence(const FenceRef& fence) const { static_cast<const T*>(this)->resetFence(fence); }
+    uint32_t acquireNextImage(const SemaphoreRef& semaphore)
+    {
+        return static_cast<T*>(this)->acquireNextImage(semaphore);
+    }
+    void submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore, const SemaphoreRef& signalSemaphore,
         const CommandBufferRef& commandBuffer) const
     {
-        _renderer.submit(fence, waitSemaphore, signalSemaphore, commandBuffer);
+        static_cast<const T*>(this)->submit(fence, waitSemaphore, signalSemaphore, commandBuffer);
     }
-    inline bool present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
+    bool present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
     {
-        return _renderer.present(waitSemaphore, imageIndex);
+        return static_cast<T*>(this)->present(waitSemaphore, imageIndex);
     }
 
-    inline void invalidateSwapChain() { _renderer.invalidateSwapChain(); }
+    void invalidateSwapChain() { static_cast<T*>(this)->invalidateSwapChain(); }
 
-    [[nodiscard]] inline Format swapChainFormat() const { return _renderer.swapChainFormat(); }
-    [[nodiscard]] inline const std::vector<ImageRef>& swapChainImages() const { return _renderer.swapChainImages(); }
-    [[nodiscard]] inline ExtentInt2D swapChainExtent() const { return _renderer.swapChainExtent(); }
+    [[nodiscard]] Format swapChainFormat() const { return static_cast<const T*>(this)->swapChainFormat(); }
+    [[nodiscard]] const std::vector<ImageRef>& swapChainImages() const
+    {
+        return static_cast<const T*>(this)->swapChainImages();
+    }
+    [[nodiscard]] ExtentInt2D swapChainExtent() const { return static_cast<const T*>(this)->swapChainExtent(); }
 
-    [[nodiscard]] inline RenderPassRef createRenderPass(const RenderPassInfo& renderPassInfo) const
+    [[nodiscard]] RenderPassRef createRenderPass(const RenderPassInfo& renderPassInfo) const
     {
         return RenderPass::create(this, renderPassInfo);
     }
-    [[nodiscard]] inline DescriptorSetRef createDescriptorSet() const { return DescriptorSet::create(this); }
-    [[nodiscard]] inline PipelineRef createPipeline(const PipelineInfo& pipelineInfo) const
+    [[nodiscard]] DescriptorSetRef createDescriptorSet() const { return DescriptorSet::create(this); }
+    [[nodiscard]] PipelineRef createPipeline(const PipelineInfo& pipelineInfo) const
     {
         return Pipeline::create(this, pipelineInfo);
     }
-    [[nodiscard]] inline VertexBufferRef createVertexBuffer() const { return VertexBuffer::create(this); }
-    [[nodiscard]] inline IndexBufferRef createIndexBuffer() const { return IndexBuffer::create(this); }
-    [[nodiscard]] inline CommandBufferRef createCommandBuffer() const { return CommandBuffer::create(this); }
-    [[nodiscard]] inline SemaphoreRef createSemaphore() const { return Semaphore::create(this); }
-    [[nodiscard]] inline FenceRef createFence() const { return Fence::create(this); }
-    [[nodiscard]] inline ImageRef createImage(const ImageInfo& imageInfo) const { return Image::create(this, imageInfo); }
+    [[nodiscard]] VertexBufferRef createVertexBuffer() const { return VertexBuffer::create(this); }
+    [[nodiscard]] IndexBufferRef createIndexBuffer() const { return IndexBuffer::create(this); }
+    [[nodiscard]] CommandBufferRef createCommandBuffer() const { return CommandBuffer::create(this); }
+    [[nodiscard]] SemaphoreRef createSemaphore() const { return Semaphore::create(this); }
+    [[nodiscard]] FenceRef createFence() const { return Fence::create(this); }
+    [[nodiscard]] ImageRef createImage(const ImageInfo& imageInfo) const { return Image::create(this, imageInfo); }
 
-#ifdef VULKAN_RENDERER
-    [[nodiscard]] inline const VulkanRenderer& native() const { return _renderer; };
-#endif
+    static RendererRef create(App* app) { return T::create(app); }
 
 private:
-#ifdef VULKAN_RENDERER
-    VulkanRenderer _renderer;
-#endif
+    RendererI() = default;
+    friend T;
 };
 
 } // namespace chronicle

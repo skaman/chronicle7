@@ -1,7 +1,6 @@
 #include "VulkanIndexBuffer.h"
 
-#include "Renderer/Renderer.h"
-#include "VulkanBuffer.h"
+#include "Vulkan.h"
 
 namespace chronicle {
 
@@ -52,8 +51,10 @@ void VulkanIndexBuffer::set(void* src, size_t size)
 
 IndexBufferRef VulkanIndexBuffer::create(const Renderer* renderer)
 {
-    return std::make_shared<ConcreteVulkanIndexBuffer>(renderer->native().device(),
-        renderer->native().physicalDevice(), renderer->native().commandPool(), renderer->native().graphicsQueue());
+    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
+
+    return std::make_shared<ConcreteVulkanIndexBuffer>(vulkanRenderer->device(), vulkanRenderer->physicalDevice(),
+        vulkanRenderer->commandPool(), vulkanRenderer->graphicsQueue());
 }
 
 void VulkanIndexBuffer::cleanup() const
