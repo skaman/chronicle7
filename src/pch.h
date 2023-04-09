@@ -98,7 +98,8 @@
 
 // concrete for private constructors
 #define CHR_CONCRETE(x)                                                                                                \
-    struct Concrete##x : public x {                                                                                    \
+    class Concrete##x : public x {                                                                                     \
+    public:                                                                                                            \
         template <typename... Args>                                                                                    \
         explicit Concrete##x(Args&&... args)                                                                           \
             : x(std::forward<Args>(args)...)                                                                           \

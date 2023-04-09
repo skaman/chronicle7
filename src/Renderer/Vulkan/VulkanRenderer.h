@@ -4,8 +4,10 @@
 
 #include "VulkanCommon.h"
 
-#include "VulkanFence.h"
 #include "VulkanCommandBuffer.h"
+#include "VulkanDescriptorSet.h"
+#include "VulkanFence.h"
+#include "VulkanVertexBuffer.h"
 
 namespace chronicle {
 

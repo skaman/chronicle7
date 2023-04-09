@@ -2,6 +2,8 @@
 
 #include "pch.h"
 
+namespace chronicle {
+
 template <class T> struct Offset2D {
     Offset2D(T x = {}, T y = {})
         : x(x)
@@ -57,4 +59,34 @@ enum class Format {
     D24UnormS8Uint
 };
 enum class VertexInputRate { Vertex, Instance };
-// enum class DescriptorType { UniformBuffer };
+
+template <class T> class CommandBufferI;
+template <class T> class DescriptorSetI;
+template <class T> class FenceI;
+template <class T> class VertexBufferI;
+
+#ifdef VULKAN_RENDERER
+class VulkanCommandBuffer;
+class VulkanDescriptorSet;
+class VulkanFence;
+class VulkanVertexBuffer;
+
+using CommandBuffer = CommandBufferI<VulkanCommandBuffer>;
+using DescriptorSet = DescriptorSetI<VulkanDescriptorSet>;
+using Fence = FenceI<VulkanFence>;
+using VertexBuffer = VertexBufferI<VulkanVertexBuffer>;
+#endif
+
+using CommandBufferRef = std::shared_ptr<CommandBuffer>;
+using DescriptorSetRef = std::shared_ptr<DescriptorSet>;
+using FenceRef = std::shared_ptr<Fence>;
+using VertexBufferRef = std::shared_ptr<VertexBuffer>;
+
+class IndexBuffer;
+class Pipeline;
+class RenderPass;
+class Semaphore;
+class Renderer;
+class Image;
+
+} // namespace chronicle

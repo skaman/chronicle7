@@ -2,6 +2,8 @@
 
 #include "pch.h"
 
+#include "RenderPassInfo.h"
+
 #ifdef VULKAN_RENDERER
 #include "Vulkan/VulkanRenderPass.h"
 #endif

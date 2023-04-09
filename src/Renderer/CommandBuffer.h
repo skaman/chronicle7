@@ -6,68 +6,53 @@
 
 namespace chronicle {
 
-class Renderer;
-class DescriptorSet;
-class IndexBuffer;
-class Pipeline;
-class RenderPass;
-class VertexBuffer;
-
-template <class T> class CommandBufferI;
-
-#ifdef VULKAN_RENDERER
-class VulkanCommandBuffer;
-using CommandBuffer = CommandBufferI<VulkanCommandBuffer>;
-#endif
-
-using CommandBufferRef = std::shared_ptr<CommandBuffer>;
-
 template <class T> class CommandBufferI {
 public:
-    void reset() const { static_cast<const T*>(this)->resetImpl(); }
+    void reset() const { static_cast<const T*>(this)->reset(); }
 
-    void begin() const { static_cast<const T*>(this)->beginImpl(); }
+    void begin() const { static_cast<const T*>(this)->begin(); }
 
-    void end() const { static_cast<const T*>(this)->endImpl(); }
+    void end() const { static_cast<const T*>(this)->end(); }
 
     void beginRenderPass(
         const std::shared_ptr<RenderPass>& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
     {
-        static_cast<const T*>(this)->beginRenderPassImpl(renderPass, renderArea, imageIndex);
+        static_cast<const T*>(this)->beginRenderPass(renderPass, renderArea, imageIndex);
     }
 
-    void endRenderPass() const { static_cast<const T*>(this)->endRenderPassImpl(); }
+    void endRenderPass() const { static_cast<const T*>(this)->endRenderPass(); }
 
     void setViewport(RectFloat2D viewport, float minDepth, float maxDepth) const
     {
-        static_cast<const T*>(this)->setViewportImpl(viewport, minDepth, maxDepth);
+        static_cast<const T*>(this)->setViewport(viewport, minDepth, maxDepth);
     }
 
-    void setScissor(RectInt2D scissor) const { static_cast<const T*>(this)->setScissorImpl(scissor); }
+    void setScissor(RectInt2D scissor) const { static_cast<const T*>(this)->setScissor(scissor); }
 
     void drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
     {
-        static_cast<const T*>(this)->drawIndexedImpl(indexCount, instanceCount);
+        static_cast<const T*>(this)->drawIndexed(indexCount, instanceCount);
     }
 
-    void bindPipeline(const std::shared_ptr<Pipeline>& pipeline)
-    {
-        static_cast<T*>(this)->bindPipelineImpl(pipeline);
-    }
+    void bindPipeline(const std::shared_ptr<Pipeline>& pipeline) { static_cast<T*>(this)->bindPipeline(pipeline); }
     void bindVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) const
     {
-        static_cast<const T*>(this)->bindVertexBufferImpl(vertexBuffer);
+        static_cast<const T*>(this)->bindVertexBuffer(vertexBuffer);
     }
     void bindIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) const
     {
-        static_cast<const T*>(this)->bindIndexBufferImpl(indexBuffer);
+        static_cast<const T*>(this)->bindIndexBuffer(indexBuffer);
     }
     void bindDescriptorSet(const std::shared_ptr<DescriptorSet>& descriptorSet, uint32_t index) const
     {
-        static_cast<const T*>(this)->bindDescriptorSetImpl(descriptorSet, index);
+        static_cast<const T*>(this)->bindDescriptorSet(descriptorSet, index);
     }
 
-    static std::shared_ptr<CommandBufferI<T>> create(const Renderer* renderer) { return T::createImpl(renderer); }
+    static CommandBufferRef create(const Renderer* renderer) { return T::create(renderer); }
+
+private:
+    CommandBufferI() = default;
+    friend T;
 };
 
 } // namespace chronicle

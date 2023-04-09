@@ -1,11 +1,12 @@
 #include "VulkanCommandBuffer.h"
 
-#include "Renderer/DescriptorSet.h"
 #include "Renderer/IndexBuffer.h"
 #include "Renderer/Pipeline.h"
 #include "Renderer/RenderPass.h"
 #include "Renderer/Renderer.h"
-#include "Renderer/VertexBuffer.h"
+
+#include "VulkanDescriptorSet.h"
+#include "VulkanVertexBuffer.h"
 
 namespace chronicle {
 
@@ -25,14 +26,14 @@ VulkanCommandBuffer::VulkanCommandBuffer(const vk::Device& device, const vk::Com
     _commandBuffer = _device.allocateCommandBuffers(allocInfo)[0];
 }
 
-void VulkanCommandBuffer::resetImpl() const
+void VulkanCommandBuffer::reset() const
 {
     CHRZONE_VULKAN
 
     _commandBuffer.reset();
 }
 
-void VulkanCommandBuffer::beginImpl() const
+void VulkanCommandBuffer::begin() const
 {
     CHRZONE_VULKAN
 
@@ -40,9 +41,9 @@ void VulkanCommandBuffer::beginImpl() const
     (void)_commandBuffer.begin(beginInfo);
 }
 
-void VulkanCommandBuffer::endImpl() const { _commandBuffer.end(); }
+void VulkanCommandBuffer::end() const { _commandBuffer.end(); }
 
-void VulkanCommandBuffer::beginRenderPassImpl(
+void VulkanCommandBuffer::beginRenderPass(
     const std::shared_ptr<RenderPass>& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
 {
     CHRZONE_VULKAN
@@ -58,14 +59,14 @@ void VulkanCommandBuffer::beginRenderPassImpl(
     _commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void VulkanCommandBuffer::endRenderPassImpl() const
+void VulkanCommandBuffer::endRenderPass() const
 {
     CHRZONE_VULKAN
 
     _commandBuffer.endRenderPass();
 }
 
-void VulkanCommandBuffer::setViewportImpl(RectFloat2D viewport, float minDepth, float maxDepth) const
+void VulkanCommandBuffer::setViewport(RectFloat2D viewport, float minDepth, float maxDepth) const
 {
     CHRZONE_VULKAN
 
@@ -80,7 +81,7 @@ void VulkanCommandBuffer::setViewportImpl(RectFloat2D viewport, float minDepth, 
     _commandBuffer.setViewport(0, viewportInfo);
 }
 
-void VulkanCommandBuffer::setScissorImpl(RectInt2D scissor) const
+void VulkanCommandBuffer::setScissor(RectInt2D scissor) const
 {
     CHRZONE_VULKAN
 
@@ -88,14 +89,14 @@ void VulkanCommandBuffer::setScissorImpl(RectInt2D scissor) const
         vk::Rect2D({ scissor.offset.x, scissor.offset.y }, vk::Extent2D(scissor.extent.width, scissor.extent.height)));
 }
 
-void VulkanCommandBuffer::drawIndexedImpl(uint32_t indexCount, uint32_t instanceCount) const
+void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
 {
     CHRZONE_VULKAN
 
     _commandBuffer.drawIndexed(indexCount, instanceCount, 0, 0, 0);
 }
 
-void VulkanCommandBuffer::bindPipelineImpl(const std::shared_ptr<Pipeline>& pipeline)
+void VulkanCommandBuffer::bindPipeline(const std::shared_ptr<Pipeline>& pipeline)
 {
     CHRZONE_VULKAN
 
@@ -103,30 +104,33 @@ void VulkanCommandBuffer::bindPipelineImpl(const std::shared_ptr<Pipeline>& pipe
     _currentPipelineLayout = pipeline->native().pipelineLayout();
 }
 
-void VulkanCommandBuffer::bindVertexBufferImpl(const std::shared_ptr<VertexBuffer>& vertexBuffer) const
+void VulkanCommandBuffer::bindVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) const
 {
     CHRZONE_VULKAN
 
-    _commandBuffer.bindVertexBuffers(0, vertexBuffer->native().buffer(), vk::DeviceSize(0));
+    const auto vulkanVertexBuffer = static_cast<VulkanVertexBuffer*>(vertexBuffer.get());
+
+    _commandBuffer.bindVertexBuffers(0, vulkanVertexBuffer->buffer(), vk::DeviceSize(0));
 }
 
-void VulkanCommandBuffer::bindIndexBufferImpl(const std::shared_ptr<IndexBuffer>& indexBuffer) const
+void VulkanCommandBuffer::bindIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) const
 {
     CHRZONE_VULKAN
 
     _commandBuffer.bindIndexBuffer(indexBuffer->native().buffer(), vk::DeviceSize(0), vk::IndexType::eUint16);
 }
 
-void VulkanCommandBuffer::bindDescriptorSetImpl(
-    const std::shared_ptr<DescriptorSet>& descriptorSet, uint32_t index) const
+void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const
 {
     CHRZONE_VULKAN
 
-    _commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _currentPipelineLayout, index,
-        descriptorSet->native().descriptorSet(), nullptr);
+    const auto vulkanDescriptorSet = static_cast<VulkanDescriptorSet*>(descriptorSet.get());
+
+    _commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics, _currentPipelineLayout, index, vulkanDescriptorSet->descriptorSet(), nullptr);
 }
 
-CommandBufferRef VulkanCommandBuffer::createImpl(const Renderer* renderer)
+CommandBufferRef VulkanCommandBuffer::create(const Renderer* renderer)
 {
     return std::make_shared<ConcreteVulkanCommandBuffer>(renderer->native().device(), renderer->native().commandPool());
 }

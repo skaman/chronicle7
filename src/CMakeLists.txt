@@ -48,7 +48,6 @@ add_executable(chronicle
     "Renderer/Semaphore.h"
     "Renderer/Semaphore.cc"
     "Renderer/VertexBuffer.h"
-    "Renderer/VertexBuffer.cc"
     "Renderer/VertexBufferInfo.h"
     "Renderer/Vulkan/VulkanBuffer.h"
     "Renderer/Vulkan/VulkanBuffer.cc"

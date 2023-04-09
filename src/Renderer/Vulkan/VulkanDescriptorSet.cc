@@ -4,6 +4,26 @@
 
 namespace chronicle {
 
+CHR_CONCRETE(VulkanDescriptorSet)
+
+VulkanDescriptorSet::VulkanDescriptorSet(const vk::Device& device, const vk::PhysicalDevice& physicalDevice)
+    : _device(device)
+    , _physicalDevice(physicalDevice)
+{
+    CHRZONE_VULKAN
+
+    // TODO: allocate on build with the right size
+    // create a descriptor pool that will hold 10 uniform buffers
+    std::vector<vk::DescriptorPoolSize> sizes
+        = { { vk::DescriptorType::eUniformBuffer, 10 }, { vk::DescriptorType::eCombinedImageSampler, 10 } };
+
+    vk::DescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.setMaxSets(1);
+    poolInfo.setPoolSizes(sizes);
+
+    _descriptorPool = _device.createDescriptorPool(poolInfo, nullptr);
+}
+
 VulkanDescriptorSet::~VulkanDescriptorSet()
 {
     CHRZONE_VULKAN
@@ -55,27 +75,10 @@ void VulkanDescriptorSet::build()
     _device.updateDescriptorSets(descriptorWrites, nullptr);
 }
 
-VulkanDescriptorSet VulkanDescriptorSet::create(const Renderer* renderer)
+DescriptorSetRef VulkanDescriptorSet::create(const Renderer* renderer)
 {
-    return VulkanDescriptorSet(renderer->native().device(), renderer->native().physicalDevice());
-}
-
-VulkanDescriptorSet::VulkanDescriptorSet(const vk::Device& device, const vk::PhysicalDevice& physicalDevice)
-    : _device(device)
-    , _physicalDevice(physicalDevice)
-{
-    CHRZONE_VULKAN
-
-    // TODO: allocate on build with the right size
-    // create a descriptor pool that will hold 10 uniform buffers
-    std::vector<vk::DescriptorPoolSize> sizes
-        = { { vk::DescriptorType::eUniformBuffer, 10 }, { vk::DescriptorType::eCombinedImageSampler, 10 } };
-
-    vk::DescriptorPoolCreateInfo poolInfo = {};
-    poolInfo.setMaxSets(1);
-    poolInfo.setPoolSizes(sizes);
-
-    _descriptorPool = _device.createDescriptorPool(poolInfo, nullptr);
+    return std::make_shared<ConcreteVulkanDescriptorSet>(
+        renderer->native().device(), renderer->native().physicalDevice());
 }
 
 vk::WriteDescriptorSet VulkanDescriptorSet::createUniformWriteDescriptorSet(

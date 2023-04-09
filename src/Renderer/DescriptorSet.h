@@ -2,51 +2,34 @@
 
 #include "pch.h"
 
-#ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanDescriptorSet.h"
-#endif
+#include "Common.h"
 
 namespace chronicle {
 
-class Renderer;
-
-class DescriptorSet {
+template <class T> class DescriptorSetI {
 public:
-    template <class T> inline void addUniform(entt::hashed_string::hash_type id, ShaderStage stage)
+    template <class Tx> void addUniform(entt::hashed_string::hash_type id, ShaderStage stage)
     {
-        _descriptorSet.addUniform<T>(id, stage);
+        static_cast<T*>(this)->addUniform<Tx>(id, stage);
     }
 
-    inline void addSampler(ShaderStage stage, const std::shared_ptr<Image> image)
+    void addSampler(ShaderStage stage, const std::shared_ptr<Image> image)
     {
-        _descriptorSet.addSampler(stage, image);
+        static_cast<T*>(this)->addSampler(stage, image);
     }
 
-    template <class T> inline void setUniform(entt::hashed_string::hash_type id, const T& data)
+    template <class Tx> void setUniform(entt::hashed_string::hash_type id, const Tx& data)
     {
-        _descriptorSet.setUniform<T>(id, data);
+        static_cast<T*>(this)->setUniform<Tx>(id, data);
     }
 
-    inline void build() { _descriptorSet.build(); }
+    void build() { static_cast<T*>(this)->build(); }
 
-    static DescriptorSet create(const Renderer* renderer)
-    {
-        return DescriptorSet(VulkanDescriptorSet::create(renderer));
-    }
+    static DescriptorSetRef create(const Renderer* renderer) { return T::create(renderer); }
 
 private:
-#ifdef VULKAN_RENDERER
-    VulkanDescriptorSet _descriptorSet;
-
-    explicit DescriptorSet(VulkanDescriptorSet descriptorSet)
-        : _descriptorSet(std::move(descriptorSet))
-    {
-    }
-
-    [[nodiscard]] inline const VulkanDescriptorSet& native() const { return _descriptorSet; };
-
-    friend class VulkanCommandBuffer;
-#endif
+    DescriptorSetI() = default;
+    friend T;
 };
 
 } // namespace chronicle

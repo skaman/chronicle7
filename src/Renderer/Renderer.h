@@ -57,17 +57,17 @@ public:
     {
         return std::make_shared<RenderPass>(this, renderPassInfo);
     }
-    [[nodiscard]] inline std::shared_ptr<DescriptorSet> createDescriptorSet() const
+    [[nodiscard]] inline DescriptorSetRef createDescriptorSet() const
     {
-        return std::make_shared<DescriptorSet>(DescriptorSet::create(this));
+        return DescriptorSet::create(this);
     }
     [[nodiscard]] inline std::shared_ptr<Pipeline> createPipeline(const PipelineInfo& pipelineInfo) const
     {
         return std::make_shared<Pipeline>(this, pipelineInfo);
     }
-    [[nodiscard]] inline std::shared_ptr<VertexBuffer> createVertexBuffer() const
+    [[nodiscard]] inline VertexBufferRef createVertexBuffer() const
     {
-        return std::make_shared<VertexBuffer>(this);
+        return VertexBuffer::create(this);
     }
     [[nodiscard]] inline std::shared_ptr<IndexBuffer> createIndexBuffer() const
     {

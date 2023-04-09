@@ -1,8 +1,11 @@
 #include "VulkanVertexBuffer.h"
 
+#include "Renderer/Renderer.h"
 #include "VulkanBuffer.h"
 
 namespace chronicle {
+
+CHR_CONCRETE(VulkanVertexBuffer)
 
 VulkanVertexBuffer::VulkanVertexBuffer(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
     const vk::CommandPool& commandPool, const vk::Queue& queue)
@@ -48,6 +51,12 @@ void VulkanVertexBuffer::set(void* src, size_t size)
 
     _device.destroyBuffer(stagingBuffer);
     _device.freeMemory(stagingBufferMemory);
+}
+
+VertexBufferRef VulkanVertexBuffer::create(const Renderer* renderer)
+{
+    return std::make_shared<ConcreteVulkanVertexBuffer>(renderer->native().device(),
+        renderer->native().physicalDevice(), renderer->native().commandPool(), renderer->native().graphicsQueue());
 }
 
 void VulkanVertexBuffer::cleanup() const

@@ -2,9 +2,9 @@
 
 #include "pch.h"
 
-#include "Renderer/Common.h"
-#include "Renderer/Image.h"
+#include "Renderer/DescriptorSet.h"
 #include "Renderer/RendererError.h"
+#include "Renderer/Image.h"
 
 #include "VulkanBuffer.h"
 #include "VulkanCommon.h"
@@ -29,46 +29,12 @@ struct VulkanDescriptorSetState {
     };
 };
 
-class VulkanDescriptorSet : private NonCopyable<VulkanDescriptorSet> {
+class VulkanDescriptorSet : public DescriptorSetI<VulkanDescriptorSet>, private NonCopyable<VulkanDescriptorSet> {
+protected:
+    explicit VulkanDescriptorSet(const vk::Device& device, const vk::PhysicalDevice& physicalDevice);
+
 public:
-    explicit VulkanDescriptorSet(VulkanDescriptorSet&& other) noexcept
-        : _device(std::move(other._device))
-        , _physicalDevice(std::move(other._physicalDevice))
-        , _descriptorPool(std::move(other._descriptorPool))
-        , _descriptorSet(std::move(other._descriptorSet))
-        , _descriptorSetLayout(std::move(other._descriptorSetLayout))
-        , _layoutBindings(std::move(other._layoutBindings))
-        , _descriptorSetsState(std::move(other._descriptorSetsState))
-        , _buffersMapped(std::move(other._buffersMapped))
-    {
-        other._device = nullptr;
-        other._physicalDevice = nullptr;
-        other._descriptorPool = nullptr;
-        other._descriptorSet = nullptr;
-        other._descriptorSetLayout = nullptr;
-    }
-
     ~VulkanDescriptorSet();
-
-    VulkanDescriptorSet& operator=(VulkanDescriptorSet&& other) noexcept
-    {
-        _device = std::move(other._device);
-        _physicalDevice = std::move(other._physicalDevice);
-        _descriptorPool = std::move(other._descriptorPool);
-        _descriptorSet = std::move(other._descriptorSet);
-        _descriptorSetLayout = std::move(other._descriptorSetLayout);
-        _layoutBindings = std::move(other._layoutBindings);
-        _descriptorSetsState = std::move(other._descriptorSetsState);
-        _buffersMapped = std::move(other._buffersMapped);
-
-        other._device = nullptr;
-        other._physicalDevice = nullptr;
-        other._descriptorPool = nullptr;
-        other._descriptorSet = nullptr;
-        other._descriptorSetLayout = nullptr;
-
-        return *this;
-    }
 
     template <class T> void addUniform(entt::hashed_string::hash_type id, ShaderStage stage)
     {
@@ -129,14 +95,11 @@ public:
 
     void build();
 
-    static VulkanDescriptorSet create(const Renderer* renderer);
+    [[nodiscard]] const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings() const { return _layoutBindings; }
 
-    // internal
-    [[nodiscard]] inline const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings() const
-    {
-        return _layoutBindings;
-    }
-    [[nodiscard]] inline const vk::DescriptorSet& descriptorSet() const { return _descriptorSet; }
+    [[nodiscard]] const vk::DescriptorSet& descriptorSet() const { return _descriptorSet; }
+
+    static DescriptorSetRef create(const Renderer* renderer);
 
 private:
     vk::Device _device;
@@ -150,8 +113,6 @@ private:
     std::vector<VulkanDescriptorSetState> _descriptorSetsState = {};
 
     std::unordered_map<entt::hashed_string::hash_type, void*> _buffersMapped = {};
-
-    explicit VulkanDescriptorSet(const vk::Device& device, const vk::PhysicalDevice& physicalDevice);
 
     [[nodiscard]] vk::WriteDescriptorSet createUniformWriteDescriptorSet(
         uint32_t index, const VulkanDescriptorSetState& state) const;

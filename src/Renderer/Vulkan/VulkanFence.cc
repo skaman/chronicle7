@@ -21,7 +21,7 @@ VulkanFence::~VulkanFence()
     _device.destroyFence(_fence);
 }
 
-FenceRef VulkanFence::createImpl(const Renderer* renderer)
+FenceRef VulkanFence::create(const Renderer* renderer)
 {
     return std::make_shared<ConcreteVulkanFence>(renderer->native().device());
 }
