@@ -4,9 +4,9 @@
 
 #include "Renderer/DescriptorSetI.h"
 
-#include "VulkanBuffer.h"
 #include "VulkanCommon.h"
 #include "VulkanImage.h"
+#include "VulkanUtils.h"
 
 namespace chronicle {
 
@@ -50,7 +50,7 @@ public:
         vk::DeviceMemory bufferMemory;
         void* bufferMapped;
 
-        VulkanBuffer::create(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+        VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, buffer, bufferMemory);
 
         bufferMapped = VulkanContext::device.mapMemory(bufferMemory, 0, bufferSize);

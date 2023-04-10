@@ -1,8 +1,7 @@
 #include "VulkanImage.h"
 
-#include "VulkanBuffer.h"
-#include "VulkanImageUtils.h"
 #include "VulkanInstance.h"
+#include "VulkanUtils.h"
 
 namespace chronicle {
 
@@ -22,7 +21,7 @@ void VulkanImage::set(void* src, size_t size, uint32_t width, uint32_t height)
     vk::Buffer stagingBuffer;
     vk::DeviceMemory stagingBufferMemory;
 
-    VulkanBuffer::create(size, vk::BufferUsageFlagBits::eTransferSrc,
+    VulkanUtils::createBuffer(size, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
         stagingBufferMemory);
 
@@ -34,31 +33,33 @@ void VulkanImage::set(void* src, size_t size, uint32_t width, uint32_t height)
     _mipLevels = _generateMipmaps ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1 : 1;
 
     // create vulkan image
-    auto [imageMemory, image] = VulkanImageUtils::createImage(width, height, _mipLevels, vk::Format::eR8G8B8A8Srgb,
+    auto [imageMemory, image] = VulkanUtils::createImage(width, height, _mipLevels, vk::Format::eR8G8B8A8Srgb,
         vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     // copy image buffer
-    VulkanBuffer::transitionImageLayout(VulkanContext::graphicsQueue, image, vk::Format::eR8G8B8A8Srgb,
-        vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1);
-    VulkanBuffer::copyToImage(VulkanContext::graphicsQueue, stagingBuffer, image, width, height);
-    VulkanBuffer::transitionImageLayout(VulkanContext::graphicsQueue, image, vk::Format::eR8G8B8A8Srgb,
-        vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, _mipLevels);
+    VulkanUtils::transitionImageLayout(
+        image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, _mipLevels);
+    VulkanUtils::copyBufferToImage(stagingBuffer, image, width, height);
 
     VulkanContext::device.destroyBuffer(stagingBuffer);
     VulkanContext::device.freeMemory(stagingBufferMemory);
 
-    _width = width;
-    _height = height;
+    if (_generateMipmaps) {
+        VulkanUtils::generateMipmaps(image, vk::Format::eR8G8B8A8Srgb, width, height, _mipLevels);
+    } else {
+        VulkanUtils::transitionImageLayout(
+            image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, _mipLevels);
+    }
+
     _imageMemory = imageMemory;
     _image = image;
-
-    // image view
-    _imageView = VulkanImageUtils::createImageView(image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
-
-    // texture sampler
-    _sampler = VulkanImageUtils::createTextureSampler();
+    _imageView
+        = VulkanUtils::createImageView(image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor, _mipLevels);
+    _width = width;
+    _height = height;
+    _sampler = VulkanUtils::createTextureSampler(_mipLevels);
 }
 
 void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
@@ -73,10 +74,9 @@ void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, uin
     cleanup();
 
     _image = image;
+    _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor, 1);
     _width = width;
     _height = height;
-
-    _imageView = VulkanImageUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor);
 
     updated();
 }
@@ -92,13 +92,12 @@ void VulkanImage::updateDepthBuffer(uint32_t width, uint32_t height, vk::Format 
 
     cleanup();
 
-    auto [imageMemory, image] = VulkanImageUtils::createImage(width, height, 1, format, vk::ImageTiling::eOptimal,
+    auto [imageMemory, image] = VulkanUtils::createImage(width, height, 1, format, vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
     _imageMemory = imageMemory;
     _image = image;
-
-    _imageView = VulkanImageUtils::createImageView(image, format, vk::ImageAspectFlagBits::eDepth);
-
+    _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eDepth, 1);
     _width = width;
     _height = height;
 }
@@ -125,10 +124,9 @@ ImageRef VulkanImage::createSwapchain(const vk::Image& image, vk::Format format,
     auto result = std::make_shared<ConcreteVulkanImage>();
     result->_type = ImageType::Swapchain;
     result->_image = image;
+    result->_imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor, 1);
     result->_width = width;
     result->_height = height;
-    result->_imageView = VulkanImageUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor);
-
     return result;
 }
 
@@ -140,18 +138,16 @@ ImageRef VulkanImage::createDepthBuffer(uint32_t width, uint32_t height, vk::For
     assert(height > 0);
     assert(format != vk::Format::eUndefined);
 
+    auto [imageMemory, image] = VulkanUtils::createImage(width, height, 1, format, vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
     auto result = std::make_shared<ConcreteVulkanImage>();
     result->_type = ImageType::Depth;
-
-    auto [imageMemory, image] = VulkanImageUtils::createImage(width, height, 1, format, vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
     result->_imageMemory = imageMemory;
     result->_image = image;
-    result->_imageView = VulkanImageUtils::createImageView(image, format, vk::ImageAspectFlagBits::eDepth);
-
+    result->_imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eDepth, 1);
     result->_width = width;
     result->_height = height;
-
     return result;
 }
 

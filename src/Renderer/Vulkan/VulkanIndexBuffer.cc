@@ -1,7 +1,7 @@
 #include "VulkanIndexBuffer.h"
 
-#include "VulkanBuffer.h"
 #include "VulkanInstance.h"
+#include "VulkanUtils.h"
 
 namespace chronicle {
 
@@ -23,7 +23,7 @@ void VulkanIndexBuffer::set(void* src, size_t size)
 
     vk::Buffer stagingBuffer;
     vk::DeviceMemory stagingBufferMemory;
-    VulkanBuffer::create(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+    VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
         stagingBufferMemory);
 
@@ -31,10 +31,10 @@ void VulkanIndexBuffer::set(void* src, size_t size)
     memcpy(data, src, bufferSize);
     VulkanContext::device.unmapMemory(stagingBufferMemory);
 
-    VulkanBuffer::create(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
+    VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
         vk::MemoryPropertyFlagBits::eDeviceLocal, _buffer, _bufferMemory);
 
-    VulkanBuffer::copy(VulkanContext::graphicsQueue, stagingBuffer, _buffer, bufferSize);
+    VulkanUtils::copyBuffer(stagingBuffer, _buffer, bufferSize);
 
     VulkanContext::device.destroyBuffer(stagingBuffer);
     VulkanContext::device.freeMemory(stagingBufferMemory);
