@@ -28,6 +28,9 @@
 // tiny gltf
 #include <tiny_gltf.h>
 
+// tiny obj loader
+#include <tinyobjloader/tiny_obj_loader.h>
+
 // tracy
 #include <tracy/Tracy.hpp>
 

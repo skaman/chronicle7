@@ -4,7 +4,7 @@
 
 // #include "Renderer/Renderer.h"
 #include "Renderer/Renderer.h"
-#include "Systems/MeshRendererSystem.h"
+#include "Systems/MeshRenderSystem.h"
 #include "Systems/Systems.h"
 
 namespace chronicle {
@@ -51,7 +51,7 @@ void App::Init()
     _renderer = Locator::renderer.get();
 
     _systems = Locator::systems.get();
-    _systems->Register<MeshRendererSystem>();
+    _systems->add<MeshRenderSystem>();
 }
 
 void App::MainLoop()
@@ -62,7 +62,7 @@ void App::MainLoop()
 
     while (!glfwWindowShouldClose(_window)) {
         glfwPollEvents();
-        _systems->Run(registry);
+        _systems->run(registry);
     }
 
     _renderer->waitIdle();

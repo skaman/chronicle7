@@ -1,9 +1,4 @@
-#include "MeshRendererSystem.h"
-
-// #include "Renderer/CommandBuffer.h"
-// #include "Renderer/Vulkan/VulkanCommandBuffer.h"
-// #include "Renderer/Vulkan/VulkanFence.h"
-// #include "Renderer/Vulkan/VulkanImage.h"
+#include "MeshRenderSystem.h"
 
 #include "Locator.h"
 #include "Renderer/Renderer.h"
@@ -20,38 +15,25 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 proj;
 };
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-};
+//const std::vector<Vertex> Vertices = { { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+//    { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
+//    { { 0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+//    { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
+//
+//    { { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+//    { { 0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
+//    { { 0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+//    { { -0.5f, 0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } } };
+//
+//const std::vector<uint32_t> Indices = { 0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4 };
 
-const std::vector<Vertex> Vertices = { { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
-    { { 0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
-    { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
-
-    { { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
-    { { 0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
-    { { -0.5f, 0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } } };
-
-const std::vector<uint16_t> Indices = { 0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4 };
-
-MeshRendererSystem::MeshRendererSystem()
+MeshRenderSystem::MeshRenderSystem()
 {
-    CHRZONE_RENDERER_SYSTEM;
-
-    std::string filename = "D:\\Progetti\\glTF-Sample-Models\\2.0\\Triangle\\glTF-Embedded\\Triangle.gltf";
-    // std::string filename = "D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf";
-    tinygltf::TinyGLTF loader;
-    tinygltf::Model model;
-    std::string err;
-    std::string warn;
-    auto test = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
-    // https://github.com/SaschaWillems/Vulkan-glTF-PBR/blob/master/base/VulkanglTFModel.cpp
+    CHRZONE_RENDERER_SYSTEM
 
     const auto renderer = Locator::renderer.get();
+
+    _mesh = MeshAsset::load("D:\\viking_room.obj");
 
     // render pass
     RenderPassInfo renderPassInfo = {};
@@ -61,9 +43,27 @@ MeshRendererSystem::MeshRendererSystem()
     renderPassInfo.depthImage = renderer->depthImage();
     _renderPass = renderer->createRenderPass(renderPassInfo);
 
+    // command buffer
+    _commandBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
+    for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        auto commandBuffer = renderer->createCommandBuffer();
+        _commandBuffers.push_back(commandBuffer);
+    }
+
+    // sync objects
+    _imageAvailableSemaphores.reserve(MAX_FRAMES_IN_FLIGHT);
+    _renderFinishedSemaphores.reserve(MAX_FRAMES_IN_FLIGHT);
+    _inFlightFences.reserve(MAX_FRAMES_IN_FLIGHT);
+
+    for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        _imageAvailableSemaphores.push_back(renderer->createSemaphore());
+        _renderFinishedSemaphores.push_back(renderer->createSemaphore());
+        _inFlightFences.push_back(renderer->createFence());
+    }
+
     // texture
     ImageInfo imageInfo = {};
-    imageInfo.filename = "D:\\texture.jpg";
+    imageInfo.filename = "D:\\viking_room.png";
     _texture = renderer->createTextureImage(imageInfo);
 
     // descriptor sets
@@ -105,32 +105,14 @@ MeshRendererSystem::MeshRendererSystem()
     _pipeline = renderer->createPipeline(pipelineInfo);
 
     // vertex and index buffer
-    _vertexBuffer = renderer->createVertexBuffer();
-    _indexBuffer = renderer->createIndexBuffer();
-
-    _vertexBuffer->set((void*)Vertices.data(), sizeof(Vertices[0]) * Vertices.size());
-    _indexBuffer->set((void*)Indices.data(), sizeof(Indices[0]) * Indices.size());
-
-    // command buffer
-    _commandBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
-    for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto commandBuffer = renderer->createCommandBuffer();
-        _commandBuffers.push_back(commandBuffer);
-    }
-
-    // sync objects
-    _imageAvailableSemaphores.reserve(MAX_FRAMES_IN_FLIGHT);
-    _renderFinishedSemaphores.reserve(MAX_FRAMES_IN_FLIGHT);
-    _inFlightFences.reserve(MAX_FRAMES_IN_FLIGHT);
-
-    for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        _imageAvailableSemaphores.push_back(renderer->createSemaphore());
-        _renderFinishedSemaphores.push_back(renderer->createSemaphore());
-        _inFlightFences.push_back(renderer->createFence());
-    }
+    //_vertexBuffer = renderer->createVertexBuffer();
+    //_indexBuffer = renderer->createIndexBuffer();
+    //
+    //_vertexBuffer->set((void*)Vertices.data(), sizeof(Vertices[0]) * Vertices.size());
+    //_indexBuffer->set((void*)Indices.data(), sizeof(Indices[0]) * Indices.size());
 }
 
-MeshRendererSystem::~MeshRendererSystem()
+MeshRenderSystem::~MeshRenderSystem()
 {
     CHRZONE_RENDERER_SYSTEM
 
@@ -139,14 +121,19 @@ MeshRendererSystem::~MeshRendererSystem()
     _renderFinishedSemaphores.clear();
     _imageAvailableSemaphores.clear();
     _commandBuffers.clear();
-    _indexBuffer.reset();
-    _vertexBuffer.reset();
+    _mesh.reset();
+    //_indexBuffer.reset();
+    //_vertexBuffer.reset();
     _pipeline.reset();
     _descriptorSets.clear();
     _renderPass.reset();
 }
 
-void MeshRendererSystem::run(entt::registry& registry)
+void MeshRenderSystem::activate() { }
+
+void MeshRenderSystem::deactivate() { }
+
+void MeshRenderSystem::run(entt::registry& registry)
 {
     CHRZONE_RENDERER_SYSTEM
 
@@ -172,7 +159,7 @@ void MeshRendererSystem::run(entt::registry& registry)
     FrameMark;
 }
 
-void MeshRendererSystem::recordCommandBuffer(const CommandBufferRef& commandBuffer, uint32_t imageIndex)
+void MeshRenderSystem::recordCommandBuffer(const CommandBufferRef& commandBuffer, uint32_t imageIndex)
 {
     CHRZONE_RENDERER_SYSTEM
 
@@ -189,17 +176,17 @@ void MeshRendererSystem::recordCommandBuffer(const CommandBufferRef& commandBuff
     commandBuffer->setScissor(RectInt2D({ 0, 0 }, extent));
 
     commandBuffer->bindPipeline(_pipeline);
-    commandBuffer->bindVertexBuffer(_vertexBuffer);
-    commandBuffer->bindIndexBuffer(_indexBuffer);
+    commandBuffer->bindVertexBuffer(_mesh->vertexBuffer(0));
+    commandBuffer->bindIndexBuffer(_mesh->indexBuffer(0));
     commandBuffer->bindDescriptorSet(_descriptorSets[_currentFrame], 0);
 
-    commandBuffer->drawIndexed(static_cast<uint32_t>(Indices.size()), 1);
+    commandBuffer->drawIndexed(_mesh->indicesCount(0), 1);
 
     commandBuffer->endRenderPass();
     commandBuffer->end();
 }
 
-void MeshRendererSystem::updateUniformBuffer(uint32_t currentFrame)
+void MeshRenderSystem::updateUniformBuffer(uint32_t currentFrame)
 {
     CHRZONE_RENDERER_SYSTEM
 

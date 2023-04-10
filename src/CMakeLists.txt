@@ -26,6 +26,12 @@ add_executable(chronicle
     "Locator.h"
     "main.cc"
     "pch.cc"
+    "Assets/MeshAsset.h"
+    "Assets/MeshAsset.cc"
+    "Assets/ShaderAsset.h"
+    "Assets/ShaderAsset.cc"
+    "Assets/TextureAsset.h"
+    "Assets/TextureAsset.cc"
     "Platform/App.h"
     "Platform/App.cc"
     "Renderer/CommandBufferI.h"
@@ -70,8 +76,12 @@ add_executable(chronicle
     "Renderer/Vulkan/VulkanVertexBuffer.cc"
     "Storage/File.h"
     "Storage/File.cc"
-    "Systems/MeshRendererSystem.h"
-    "Systems/MeshRendererSystem.cc"
+    "Systems/BeginRenderSystem.h"
+    "Systems/BeginRenderSystem.cc"
+    "Systems/EndRenderSystem.h"
+    "Systems/EndRenderSystem.cc"
+    "Systems/MeshRenderSystem.h"
+    "Systems/MeshRenderSystem.cc"
     "Systems/Systems.h"
     "Systems/System.h")
 
@@ -107,6 +117,7 @@ target_link_libraries(chronicle
         spdlog::spdlog
         glm::glm
         tinygltf
+        tinyobjloader
         Tracy::TracyClient
         spirv-reflect-static
 )

@@ -22,6 +22,9 @@ set(TINYGLTF_BUILD_EXAMPLES OFF CACHE INTERNAL "" FORCE)
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
 add_subdirectory(tinygltf EXCLUDE_FROM_ALL)
 
+# Add Tiny OBJ loader
+add_subdirectory(tinyobjloader EXCLUDE_FROM_ALL)
+
 # Add Tracy Profiler
 # available options: TRACY_ENABLE , TRACY_ON_DEMAND , TRACY_NO_BROADCAST , TRACY_NO_CODE_TRANSFER , ...
 option(TRACY_ENABLE "" ON)

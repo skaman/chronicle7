@@ -46,6 +46,12 @@ template <class T> struct Rect2D {
 using RectInt2D = Rect2D<int32_t>;
 using RectFloat2D = Rect2D<float>;
 
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec3 color;
+    glm::vec2 texCoord;
+};
+
 enum class ShaderStage { Fragment, Vertex };
 enum class Format {
     Undefined,
