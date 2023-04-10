@@ -23,12 +23,12 @@ struct VulkanSwapChainSupportDetails {
     std::vector<vk::PresentModeKHR> presentModes;
 };
 
-class VulkanRenderer : public RendererI<VulkanRenderer>, private NonCopyable<VulkanRenderer> {
+class VulkanInstance : public RendererI<VulkanInstance>, private NonCopyable<VulkanInstance> {
 protected:
-    explicit VulkanRenderer(chronicle::App* app);
+    explicit VulkanInstance(chronicle::App* app);
 
 public:
-    ~VulkanRenderer();
+    ~VulkanInstance();
 
     void waitIdle() const;
     void waitForFence(const FenceRef& fence) const;

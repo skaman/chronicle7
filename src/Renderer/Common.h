@@ -82,7 +82,7 @@ class VulkanRenderPass;
 class VulkanPipeline;
 class VulkanIndexBuffer;
 class VulkanImage;
-class VulkanRenderer;
+class VulkanInstance;
 
 using CommandBuffer = CommandBufferI<VulkanCommandBuffer>;
 using DescriptorSet = DescriptorSetI<VulkanDescriptorSet>;
@@ -93,7 +93,7 @@ using RenderPass = RenderPassI<VulkanRenderPass>;
 using Pipeline = PipelineI<VulkanPipeline>;
 using IndexBuffer = IndexBufferI<VulkanIndexBuffer>;
 using Image = ImageI<VulkanImage>;
-using Renderer = RendererI<VulkanRenderer>;
+using Renderer = RendererI<VulkanInstance>;
 #endif
 
 using CommandBufferRef = std::shared_ptr<CommandBuffer>;

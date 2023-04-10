@@ -2,7 +2,7 @@
 
 #include "VulkanBuffer.h"
 #include "VulkanImageUtils.h"
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 
 namespace chronicle {
 
@@ -111,14 +111,14 @@ ImageRef VulkanImage::createTexture(const Renderer* renderer, const ImageInfo& i
 
     assert(renderer != nullptr);
 
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
+    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
 
     auto result = std::make_shared<ConcreteVulkanImage>();
     result->_type = ImageType::Texture;
-    result->_device = vulkanRenderer->device();
-    result->_physicalDevice = vulkanRenderer->physicalDevice();
-    result->_commandPool = vulkanRenderer->commandPool();
-    result->_queue = vulkanRenderer->graphicsQueue();
+    result->_device = vulkanInstance->device();
+    result->_physicalDevice = vulkanInstance->physicalDevice();
+    result->_commandPool = vulkanInstance->commandPool();
+    result->_queue = vulkanInstance->graphicsQueue();
     result->_generateMipmaps = imageInfo.generateMipmaps;
     return result;
 }

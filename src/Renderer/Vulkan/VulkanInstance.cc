@@ -1,11 +1,11 @@
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 
 #include "Platform/App.h"
 
 #include "VulkanCommandBuffer.h"
 #include "VulkanFence.h"
 #include "VulkanImage.h"
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 #include "VulkanSemaphore.h"
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
@@ -20,7 +20,7 @@ const bool ENABLED_VALIDATION_LAYERS = true;
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanRenderer)
+CHR_CONCRETE(VulkanInstance)
 
 VkResult createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback)
@@ -53,7 +53,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBits
     return 0;
 }
 
-VulkanRenderer::VulkanRenderer(chronicle::App* app)
+VulkanInstance::VulkanInstance(chronicle::App* app)
     : _app(app)
 {
     CHRZONE_VULKAN
@@ -67,7 +67,7 @@ VulkanRenderer::VulkanRenderer(chronicle::App* app)
     createCommandPool();
 }
 
-VulkanRenderer::~VulkanRenderer()
+VulkanInstance::~VulkanInstance()
 {
     CHRZONE_VULKAN
 
@@ -86,32 +86,30 @@ VulkanRenderer::~VulkanRenderer()
     _instance.destroy();
 }
 
-void VulkanRenderer::waitIdle() const
+void VulkanInstance::waitIdle() const
 {
     CHRZONE_VULKAN
 
     _device.waitIdle();
 }
 
-void VulkanRenderer::waitForFence(const FenceRef& fence) const
+void VulkanInstance::waitForFence(const FenceRef& fence) const
 {
     CHRZONE_VULKAN
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-
     (void)_device.waitForFences(vulkanFence->fence(), true, std::numeric_limits<uint64_t>::max());
 }
 
-void VulkanRenderer::resetFence(const FenceRef& fence) const
+void VulkanInstance::resetFence(const FenceRef& fence) const
 {
     CHRZONE_VULKAN
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-
     (void)_device.resetFences(vulkanFence->fence());
 }
 
-uint32_t VulkanRenderer::acquireNextImage(const SemaphoreRef& semaphore)
+uint32_t VulkanInstance::acquireNextImage(const SemaphoreRef& semaphore)
 {
     CHRZONE_VULKAN
 
@@ -127,7 +125,7 @@ uint32_t VulkanRenderer::acquireNextImage(const SemaphoreRef& semaphore)
     }
 }
 
-void VulkanRenderer::submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore,
+void VulkanInstance::submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore,
     const SemaphoreRef& signalSemaphore, const CommandBufferRef& commandBuffer) const
 {
     CHRZONE_VULKAN
@@ -149,7 +147,7 @@ void VulkanRenderer::submit(const FenceRef& fence, const SemaphoreRef& waitSemap
     _graphicsQueue.submit(submitInfo, vulkanFence->fence());
 }
 
-bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
+bool VulkanInstance::present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
 {
     CHRZONE_VULKAN
 
@@ -177,9 +175,9 @@ bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIn
     return true;
 }
 
-RendererUnique VulkanRenderer::create(App* app) { return std::make_unique<ConcreteVulkanRenderer>(app); }
+RendererUnique VulkanInstance::create(App* app) { return std::make_unique<ConcreteVulkanInstance>(app); }
 
-void VulkanRenderer::recreateSwapChain()
+void VulkanInstance::recreateSwapChain()
 {
     CHRZONE_VULKAN
 
@@ -196,7 +194,7 @@ void VulkanRenderer::recreateSwapChain()
     createSwapChain();
 }
 
-void VulkanRenderer::createInstance()
+void VulkanInstance::createInstance()
 {
     CHRZONE_VULKAN
 
@@ -231,7 +229,7 @@ void VulkanRenderer::createInstance()
     _instance = vk::createInstance(createInfo, nullptr);
 }
 
-void VulkanRenderer::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo) const
+void VulkanInstance::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo) const
 {
     CHRZONE_VULKAN
 
@@ -243,7 +241,7 @@ void VulkanRenderer::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCre
     createInfo.setPfnUserCallback(debugCallback);
 }
 
-void VulkanRenderer::setupDebugCallback()
+void VulkanInstance::setupDebugCallback()
 {
     CHRZONE_VULKAN
 
@@ -259,7 +257,7 @@ void VulkanRenderer::setupDebugCallback()
         throw RendererError("Failed to set up debug callback");
 }
 
-void VulkanRenderer::createSurface()
+void VulkanInstance::createSurface()
 {
     CHRZONE_VULKAN
 
@@ -270,7 +268,7 @@ void VulkanRenderer::createSurface()
     _surface = rawSurface;
 }
 
-void VulkanRenderer::pickPhysicalDevice()
+void VulkanInstance::pickPhysicalDevice()
 {
     CHRZONE_VULKAN
 
@@ -289,7 +287,7 @@ void VulkanRenderer::pickPhysicalDevice()
         throw RendererError("Failed to find a suitable GPU");
 }
 
-void VulkanRenderer::createLogicalDevice()
+void VulkanInstance::createLogicalDevice()
 {
     CHRZONE_VULKAN
 
@@ -325,7 +323,7 @@ void VulkanRenderer::createLogicalDevice()
     _presentQueue = _device.getQueue(indices.presentFamily.value(), 0);
 }
 
-void VulkanRenderer::createSwapChain()
+void VulkanInstance::createSwapChain()
 {
     CHRZONE_VULKAN
 
@@ -397,7 +395,7 @@ void VulkanRenderer::createSwapChain()
     _swapChainExtent = extent;
 }
 
-void VulkanRenderer::createCommandPool()
+void VulkanInstance::createCommandPool()
 {
     CHRZONE_VULKAN
 
@@ -409,7 +407,7 @@ void VulkanRenderer::createCommandPool()
     _commandPool = _device.createCommandPool(poolInfo);
 }
 
-bool VulkanRenderer::checkValidationLayerSupport() const
+bool VulkanInstance::checkValidationLayerSupport() const
 {
     CHRZONE_VULKAN
 
@@ -431,7 +429,7 @@ bool VulkanRenderer::checkValidationLayerSupport() const
     return true;
 }
 
-std::vector<const char*> VulkanRenderer::getRequiredExtensions() const
+std::vector<const char*> VulkanInstance::getRequiredExtensions() const
 {
     CHRZONE_VULKAN
 
@@ -447,7 +445,7 @@ std::vector<const char*> VulkanRenderer::getRequiredExtensions() const
     return extensions;
 }
 
-bool VulkanRenderer::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) const
+bool VulkanInstance::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) const
 {
     CHRZONE_VULKAN
 
@@ -465,7 +463,7 @@ bool VulkanRenderer::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) 
     return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-bool VulkanRenderer::checkDeviceExtensionSupport(const vk::PhysicalDevice& device) const
+bool VulkanInstance::checkDeviceExtensionSupport(const vk::PhysicalDevice& device) const
 {
     CHRZONE_VULKAN
 
@@ -477,7 +475,7 @@ bool VulkanRenderer::checkDeviceExtensionSupport(const vk::PhysicalDevice& devic
     return requiredExtensions.empty();
 }
 
-VulkanQueueFamilyIndices VulkanRenderer::findQueueFamilies(vk::PhysicalDevice device) const
+VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice device) const
 {
     CHRZONE_VULKAN
 
@@ -502,7 +500,7 @@ VulkanQueueFamilyIndices VulkanRenderer::findQueueFamilies(vk::PhysicalDevice de
     return indices;
 }
 
-VulkanSwapChainSupportDetails VulkanRenderer::querySwapChainSupport(const vk::PhysicalDevice& device) const
+VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::PhysicalDevice& device) const
 {
     CHRZONE_VULKAN
 
@@ -513,7 +511,7 @@ VulkanSwapChainSupportDetails VulkanRenderer::querySwapChainSupport(const vk::Ph
     return details;
 }
 
-vk::SurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(
+vk::SurfaceFormatKHR VulkanInstance::chooseSwapSurfaceFormat(
     const std::vector<vk::SurfaceFormatKHR>& availableFormats) const
 {
     CHRZONE_VULKAN
@@ -531,7 +529,7 @@ vk::SurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(
     return availableFormats[0];
 }
 
-vk::PresentModeKHR VulkanRenderer::chooseSwapPresentMode(
+vk::PresentModeKHR VulkanInstance::chooseSwapPresentMode(
     const std::vector<vk::PresentModeKHR>& availablePresentModes) const
 {
     CHRZONE_VULKAN
@@ -550,7 +548,7 @@ vk::PresentModeKHR VulkanRenderer::chooseSwapPresentMode(
     return bestMode;
 }
 
-vk::Extent2D VulkanRenderer::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const
+vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const
 {
     CHRZONE_VULKAN
 
@@ -572,7 +570,7 @@ vk::Extent2D VulkanRenderer::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& 
     }
 }
 
-vk::Format VulkanRenderer::findSupportedFormat(
+vk::Format VulkanInstance::findSupportedFormat(
     const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const
 {
     for (const auto& format : candidates) {
@@ -588,13 +586,13 @@ vk::Format VulkanRenderer::findSupportedFormat(
     throw RendererError("Failed to find supported format");
 }
 
-vk::Format VulkanRenderer::findDepthFormat() const
+vk::Format VulkanInstance::findDepthFormat() const
 {
     return findSupportedFormat({ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
         vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
-bool VulkanRenderer::hasStencilComponent(vk::Format format) const
+bool VulkanInstance::hasStencilComponent(vk::Format format) const
 {
     return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 }

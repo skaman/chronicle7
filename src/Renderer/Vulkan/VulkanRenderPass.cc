@@ -1,7 +1,7 @@
 #include "VulkanRenderPass.h"
 
 #include "VulkanImage.h"
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 
 namespace chronicle {
 
@@ -108,9 +108,8 @@ VulkanRenderPass::~VulkanRenderPass()
 
 RenderPassRef VulkanRenderPass::create(const Renderer* renderer, const RenderPassInfo& renderPassInfo)
 {
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
-
-    return std::make_shared<ConcreteVulkanRenderPass>(vulkanRenderer->device(), renderPassInfo);
+    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
+    return std::make_shared<ConcreteVulkanRenderPass>(vulkanInstance->device(), renderPassInfo);
 }
 
 vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image, const ImageRef& depthImage) const

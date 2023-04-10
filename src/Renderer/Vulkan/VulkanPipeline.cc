@@ -3,7 +3,7 @@
 #include "Storage/File.h"
 
 #include "VulkanRenderPass.h"
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 
 #include <spirv-reflect/spirv_reflect.h>
 
@@ -175,9 +175,8 @@ VulkanPipeline::~VulkanPipeline()
 
 PipelineRef VulkanPipeline::create(const Renderer* renderer, const PipelineInfo& pipelineInfo)
 {
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
-
-    return std::make_shared<ConcreteVulkanPipeline>(vulkanRenderer->device(), pipelineInfo);
+    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
+    return std::make_shared<ConcreteVulkanPipeline>(vulkanInstance->device(), pipelineInfo);
 }
 
 vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const

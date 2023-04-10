@@ -1,6 +1,6 @@
 #include "VulkanDescriptorSet.h"
 
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 
 namespace chronicle {
 
@@ -77,9 +77,8 @@ void VulkanDescriptorSet::build()
 
 DescriptorSetRef VulkanDescriptorSet::create(const Renderer* renderer)
 {
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
-
-    return std::make_shared<ConcreteVulkanDescriptorSet>(vulkanRenderer->device(), vulkanRenderer->physicalDevice());
+    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
+    return std::make_shared<ConcreteVulkanDescriptorSet>(vulkanInstance->device(), vulkanInstance->physicalDevice());
 }
 
 vk::WriteDescriptorSet VulkanDescriptorSet::createUniformWriteDescriptorSet(

@@ -1,7 +1,7 @@
 #include "VulkanVertexBuffer.h"
 
 #include "VulkanBuffer.h"
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 
 namespace chronicle {
 
@@ -55,10 +55,9 @@ void VulkanVertexBuffer::set(void* src, size_t size)
 
 VertexBufferRef VulkanVertexBuffer::create(const Renderer* renderer)
 {
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
-
-    return std::make_shared<ConcreteVulkanVertexBuffer>(vulkanRenderer->device(), vulkanRenderer->physicalDevice(),
-        vulkanRenderer->commandPool(), vulkanRenderer->graphicsQueue());
+    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
+    return std::make_shared<ConcreteVulkanVertexBuffer>(vulkanInstance->device(), vulkanInstance->physicalDevice(),
+        vulkanInstance->commandPool(), vulkanInstance->graphicsQueue());
 }
 
 void VulkanVertexBuffer::cleanup() const

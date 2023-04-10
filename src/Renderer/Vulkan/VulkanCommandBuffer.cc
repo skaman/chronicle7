@@ -4,7 +4,7 @@
 #include "VulkanIndexBuffer.h"
 #include "VulkanPipeline.h"
 #include "VulkanRenderPass.h"
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 #include "VulkanVertexBuffer.h"
 
 namespace chronicle {
@@ -140,9 +140,8 @@ void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSe
 
 CommandBufferRef VulkanCommandBuffer::create(const Renderer* renderer)
 {
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
-
-    return std::make_shared<ConcreteVulkanCommandBuffer>(vulkanRenderer->device(), vulkanRenderer->commandPool());
+    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
+    return std::make_shared<ConcreteVulkanCommandBuffer>(vulkanInstance->device(), vulkanInstance->commandPool());
 }
 
 } // namespace chronicle

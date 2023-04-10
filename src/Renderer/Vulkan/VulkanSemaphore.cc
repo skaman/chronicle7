@@ -1,6 +1,6 @@
 #include "VulkanSemaphore.h"
 
-#include "VulkanRenderer.h"
+#include "VulkanInstance.h"
 
 namespace chronicle {
 
@@ -23,9 +23,8 @@ VulkanSemaphore::~VulkanSemaphore()
 
 SemaphoreRef VulkanSemaphore::create(const Renderer* renderer)
 {
-    const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
-
-    return std::make_shared<ConcreteVulkanSemaphore>(vulkanRenderer->device());
+    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
+    return std::make_shared<ConcreteVulkanSemaphore>(vulkanInstance->device());
 }
 
 } // namespace chronicle
