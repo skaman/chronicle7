@@ -22,7 +22,6 @@ private:
     std::string _appName;
     int _width;
     int _height;
-    Renderer* _renderer = nullptr;
     Systems* _systems = nullptr;
 
     static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);

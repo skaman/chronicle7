@@ -75,6 +75,8 @@ inline vk::VertexInputRate vertextInputRateToVulkan(VertexInputRate vertexInputR
     }
 }
 
+class App;
+
 struct VulkanContext {
     static inline vk::Instance instance;
     static inline VkDebugUtilsMessengerEXT debugCallback;
@@ -94,6 +96,9 @@ struct VulkanContext {
     static inline vk::Format depthImageFormat;
 
     static inline vk::CommandPool commandPool;
+
+    static inline bool swapChainInvalidated;
+    static inline App* app;
 };
 
 } // namespace chronicle

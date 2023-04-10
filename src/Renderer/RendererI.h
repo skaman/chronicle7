@@ -14,36 +14,33 @@ class App;
 
 template <class T> class RendererI {
 public:
-    void waitIdle() const { static_cast<const T*>(this)->waitIdle(); }
+    static void init(App* app) { T::init(app); }
+    static void deinit() { T::deinit(); }
 
-    void waitForFence(const FenceRef& fence) const { static_cast<const T*>(this)->waitForFence(fence); }
-    void resetFence(const FenceRef& fence) const { static_cast<const T*>(this)->resetFence(fence); }
-    uint32_t acquireNextImage(const SemaphoreRef& semaphore)
+    static void waitIdle() { T::waitIdle(); }
+    static void waitForFence(const FenceRef& fence) { T::waitForFence(fence); }
+    static void resetFence(const FenceRef& fence) { T::resetFence(fence); }
+    static std::optional<uint32_t> acquireNextImage(const SemaphoreRef& semaphore)
     {
-        return static_cast<T*>(this)->acquireNextImage(semaphore);
+        return T::acquireNextImage(semaphore);
     }
-    void submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore, const SemaphoreRef& signalSemaphore,
-        const CommandBufferRef& commandBuffer) const
+    static void submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore, const SemaphoreRef& signalSemaphore,
+        const CommandBufferRef& commandBuffer)
     {
-        static_cast<const T*>(this)->submit(fence, waitSemaphore, signalSemaphore, commandBuffer);
+        T::submit(fence, waitSemaphore, signalSemaphore, commandBuffer);
     }
-    bool present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
+    static bool present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
     {
-        return static_cast<T*>(this)->present(waitSemaphore, imageIndex);
+        return T::present(waitSemaphore, imageIndex);
     }
 
-    void invalidateSwapChain() { static_cast<T*>(this)->invalidateSwapChain(); }
+    static void invalidateSwapChain() { T::invalidateSwapChain(); }
 
-    [[nodiscard]] Format swapChainFormat() const { return static_cast<const T*>(this)->swapChainFormat(); }
-    [[nodiscard]] Format depthFormat() const { return static_cast<const T*>(this)->depthFormat(); }
-    [[nodiscard]] const std::vector<ImageRef>& swapChainImages() const
-    {
-        return static_cast<const T*>(this)->swapChainImages();
-    }
-    [[nodiscard]] const ImageRef& depthImage() const { return static_cast<const T*>(this)->depthImage(); }
-    [[nodiscard]] ExtentInt2D swapChainExtent() const { return static_cast<const T*>(this)->swapChainExtent(); }
-
-    static RendererUnique create(App* app) { return T::create(app); }
+    [[nodiscard]] static Format swapChainFormat() { return T::swapChainFormat(); }
+    [[nodiscard]] static Format depthFormat() { return T::depthFormat(); }
+    [[nodiscard]] static const std::vector<ImageRef>& swapChainImages() { return T::swapChainImages(); }
+    [[nodiscard]] static const ImageRef& depthImage() { return T::depthImage(); }
+    [[nodiscard]] static ExtentInt2D swapChainExtent() { return T::swapChainExtent(); }
 
 private:
     RendererI() = default;

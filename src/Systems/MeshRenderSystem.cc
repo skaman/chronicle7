@@ -19,17 +19,15 @@ MeshRenderSystem::MeshRenderSystem()
 {
     CHRZONE_RENDERER_SYSTEM
 
-    const auto renderer = Locator::renderer.get();
-
     _mesh = MeshAsset::load("D:\\viking_room.obj");
     _texture = TextureAsset::load("D:\\viking_room.png");
 
     // render pass
     RenderPassInfo renderPassInfo = {};
-    renderPassInfo.colorAttachmentFormat = renderer->swapChainFormat();
-    renderPassInfo.depthAttachmentFormat = renderer->depthFormat();
-    renderPassInfo.images = renderer->swapChainImages();
-    renderPassInfo.depthImage = renderer->depthImage();
+    renderPassInfo.colorAttachmentFormat = Renderer::swapChainFormat();
+    renderPassInfo.depthAttachmentFormat = Renderer::depthFormat();
+    renderPassInfo.images = Renderer::swapChainImages();
+    renderPassInfo.depthImage = Renderer::depthImage();
     _renderPass = RenderPass::create(renderPassInfo);
 
     // command buffer
@@ -93,22 +91,23 @@ void MeshRenderSystem::run(entt::registry& registry)
 {
     CHRZONE_RENDERER_SYSTEM
 
-    const auto renderer = Locator::renderer.get();
+    Renderer::waitForFence(_inFlightFences[_currentFrame]);
 
-    renderer->waitForFence(_inFlightFences[_currentFrame]);
+    auto imageIndex = Renderer::acquireNextImage(_imageAvailableSemaphores[_currentFrame]);
+    if (!imageIndex) {
+        return;
+    }
 
-    auto imageIndex = renderer->acquireNextImage(_imageAvailableSemaphores[_currentFrame]);
-
-    renderer->resetFence(_inFlightFences[_currentFrame]);
+    Renderer::resetFence(_inFlightFences[_currentFrame]);
     _commandBuffers[_currentFrame]->reset();
 
-    recordCommandBuffer(_commandBuffers[_currentFrame], imageIndex);
+    recordCommandBuffer(_commandBuffers[_currentFrame], imageIndex.value());
     updateUniformBuffer(_currentFrame);
 
-    renderer->submit(_inFlightFences[_currentFrame], _imageAvailableSemaphores[_currentFrame],
+    Renderer::submit(_inFlightFences[_currentFrame], _imageAvailableSemaphores[_currentFrame],
         _renderFinishedSemaphores[_currentFrame], _commandBuffers[_currentFrame]);
 
-    renderer->present(_renderFinishedSemaphores[_currentFrame], imageIndex);
+    Renderer::present(_renderFinishedSemaphores[_currentFrame], imageIndex.value());
 
     _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
@@ -119,9 +118,7 @@ void MeshRenderSystem::recordCommandBuffer(const CommandBufferRef& commandBuffer
 {
     CHRZONE_RENDERER_SYSTEM
 
-    const auto renderer = Locator::renderer.get();
-
-    auto extent = renderer->swapChainExtent();
+    auto extent = Renderer::swapChainExtent();
 
     commandBuffer->begin();
     commandBuffer->beginRenderPass(_renderPass, RectInt2D({ 0, 0 }, extent), imageIndex);
@@ -146,9 +143,7 @@ void MeshRenderSystem::updateUniformBuffer(uint32_t currentFrame)
 {
     CHRZONE_RENDERER_SYSTEM
 
-    const auto renderer = Locator::renderer.get();
-
-    auto extent = renderer->swapChainExtent();
+    auto extent = Renderer::swapChainExtent();
 
     static auto startTime = std::chrono::high_resolution_clock::now();
 

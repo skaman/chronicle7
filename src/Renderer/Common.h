@@ -82,7 +82,7 @@ class VulkanRenderPass;
 class VulkanPipeline;
 class VulkanIndexBuffer;
 class VulkanImage;
-class VulkanInstance;
+class VulkanRenderer;
 
 using CommandBuffer = CommandBufferI<VulkanCommandBuffer>;
 using DescriptorSet = DescriptorSetI<VulkanDescriptorSet>;
@@ -93,7 +93,7 @@ using RenderPass = RenderPassI<VulkanRenderPass>;
 using Pipeline = PipelineI<VulkanPipeline>;
 using IndexBuffer = IndexBufferI<VulkanIndexBuffer>;
 using Image = ImageI<VulkanImage>;
-using Renderer = RendererI<VulkanInstance>;
+using Renderer = RendererI<VulkanRenderer>;
 #endif
 
 using CommandBufferRef = std::shared_ptr<CommandBuffer>;
@@ -105,6 +105,5 @@ using RenderPassRef = std::shared_ptr<RenderPass>;
 using PipelineRef = std::shared_ptr<Pipeline>;
 using IndexBufferRef = std::shared_ptr<IndexBuffer>;
 using ImageRef = std::shared_ptr<Image>;
-using RendererUnique = std::unique_ptr<Renderer>;
 
 } // namespace chronicle

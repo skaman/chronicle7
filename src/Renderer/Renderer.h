@@ -13,6 +13,6 @@
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanSemaphore.h"
 #include "Vulkan/VulkanVertexBuffer.h"
-#include "Vulkan/VulkanInstance.h"
+#include "Vulkan/VulkanRenderer.h"
 
 #endif

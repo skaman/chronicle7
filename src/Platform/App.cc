@@ -45,10 +45,8 @@ void App::Init()
     glfwSetWindowUserPointer(_window, this);
     glfwSetFramebufferSizeCallback(_window, FramebufferSizeCallback);
 
-    Locator::renderer = Renderer::create(this);
+    Renderer::init(this);
     Locator::systems = std::make_unique<Systems>();
-
-    _renderer = Locator::renderer.get();
 
     _systems = Locator::systems.get();
     _systems->add<MeshRenderSystem>();
@@ -65,7 +63,7 @@ void App::MainLoop()
         _systems->run(registry);
     }
 
-    _renderer->waitIdle();
+    Renderer::waitIdle();
 }
 
 void App::Destroy()
@@ -73,7 +71,7 @@ void App::Destroy()
     CHRZONE_PLATFORM
 
     Locator::systems.reset();
-    Locator::renderer.reset();
+    Renderer::deinit();
 
     glfwDestroyWindow(_window);
     glfwTerminate();

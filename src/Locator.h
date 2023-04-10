@@ -6,7 +6,6 @@
 namespace chronicle {
 
 struct Locator {
-    static inline RendererUnique renderer = {};
     static inline SystemsUnique systems = {};
 };
 } // namespace chronicle

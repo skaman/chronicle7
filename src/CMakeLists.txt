@@ -66,6 +66,8 @@ add_executable(chronicle
     "Renderer/Vulkan/VulkanInstance.cc"
     "Renderer/Vulkan/VulkanPipeline.h"
     "Renderer/Vulkan/VulkanPipeline.cc"
+    "Renderer/Vulkan/VulkanRenderer.h"
+    "Renderer/Vulkan/VulkanRenderer.cc"
     "Renderer/Vulkan/VulkanRenderPass.h"
     "Renderer/Vulkan/VulkanRenderPass.cc"
     "Renderer/Vulkan/VulkanSemaphore.h"

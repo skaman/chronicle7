@@ -53,10 +53,11 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBits
     return 0;
 }
 
-VulkanInstance::VulkanInstance(chronicle::App* app)
-    : _app(app)
+void VulkanInstance::init(App* app)
 {
     CHRZONE_VULKAN
+
+    VulkanContext::app = app;
 
     createInstance();
     setupDebugCallback();
@@ -67,7 +68,7 @@ VulkanInstance::VulkanInstance(chronicle::App* app)
     createCommandPool();
 }
 
-VulkanInstance::~VulkanInstance()
+void VulkanInstance::deinit()
 {
     CHRZONE_VULKAN
 
@@ -86,97 +87,6 @@ VulkanInstance::~VulkanInstance()
     VulkanContext::instance.destroy();
 }
 
-void VulkanInstance::waitIdle() const
-{
-    CHRZONE_VULKAN
-
-    VulkanContext::device.waitIdle();
-}
-
-void VulkanInstance::waitForFence(const FenceRef& fence) const
-{
-    CHRZONE_VULKAN
-
-    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-    (void)VulkanContext::device.waitForFences(vulkanFence->fence(), true, std::numeric_limits<uint64_t>::max());
-}
-
-void VulkanInstance::resetFence(const FenceRef& fence) const
-{
-    CHRZONE_VULKAN
-
-    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-    (void)VulkanContext::device.resetFences(vulkanFence->fence());
-}
-
-uint32_t VulkanInstance::acquireNextImage(const SemaphoreRef& semaphore)
-{
-    CHRZONE_VULKAN
-
-    const auto vulkanSemaphore = static_cast<const VulkanSemaphore*>(semaphore.get());
-
-    try {
-        auto result = VulkanContext::device.acquireNextImageKHR(
-            VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(), vulkanSemaphore->semaphore(), nullptr);
-        return result.value;
-    } catch (vk::OutOfDateKHRError err) {
-        recreateSwapChain();
-        return -1;
-    }
-}
-
-void VulkanInstance::submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore,
-    const SemaphoreRef& signalSemaphore, const CommandBufferRef& commandBuffer) const
-{
-    CHRZONE_VULKAN
-
-    const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
-    const auto vulkanSignalSemaphore = static_cast<const VulkanSemaphore*>(signalSemaphore.get());
-
-    const auto vulkanCommandBuffer = static_cast<const VulkanCommandBuffer*>(commandBuffer.get());
-
-    vk::SubmitInfo submitInfo = {};
-    std::array<vk::PipelineStageFlags, 1> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-    submitInfo.setWaitSemaphores(vulkanWaitSemaphore->semaphore());
-    submitInfo.setWaitDstStageMask(waitStages);
-    submitInfo.setCommandBuffers(vulkanCommandBuffer->commandBuffer());
-    submitInfo.setSignalSemaphores(vulkanSignalSemaphore->semaphore());
-
-    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-
-    VulkanContext::graphicsQueue.submit(submitInfo, vulkanFence->fence());
-}
-
-bool VulkanInstance::present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
-{
-    CHRZONE_VULKAN
-
-    const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
-
-    vk::PresentInfoKHR presentInfo = {};
-    presentInfo.setWaitSemaphores(vulkanWaitSemaphore->semaphore());
-    presentInfo.setSwapchains(VulkanContext::swapChain);
-    presentInfo.setImageIndices(imageIndex);
-
-    vk::Result resultPresent;
-    try {
-        resultPresent = VulkanContext::presentQueue.presentKHR(presentInfo);
-    } catch (vk::OutOfDateKHRError err) {
-        resultPresent = vk::Result::eErrorOutOfDateKHR;
-    }
-
-    if (resultPresent == vk::Result::eErrorOutOfDateKHR || resultPresent == vk::Result::eSuboptimalKHR
-        || _swapChainInvalidated) {
-        _swapChainInvalidated = false;
-        recreateSwapChain();
-        return false;
-    }
-
-    return true;
-}
-
-RendererUnique VulkanInstance::create(App* app) { return std::make_unique<ConcreteVulkanInstance>(app); }
-
 void VulkanInstance::recreateSwapChain()
 {
     CHRZONE_VULKAN
@@ -184,7 +94,7 @@ void VulkanInstance::recreateSwapChain()
     int width = 0;
     int height = 0;
     while (width == 0 || height == 0) {
-        glfwGetFramebufferSize(_app->Window(), &width, &height);
+        glfwGetFramebufferSize(VulkanContext::app->Window(), &width, &height);
         glfwWaitEvents();
     }
 
@@ -202,7 +112,7 @@ void VulkanInstance::createInstance()
         throw RendererError("Validation layers requested, but not available");
 
     // application info
-    auto appName = _app->AppName();
+    auto appName = VulkanContext::app->AppName();
 
     vk::ApplicationInfo appInfo = {};
     appInfo.setPApplicationName(appName.c_str());
@@ -229,7 +139,7 @@ void VulkanInstance::createInstance()
     VulkanContext::instance = vk::createInstance(createInfo, nullptr);
 }
 
-void VulkanInstance::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo) const
+void VulkanInstance::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo)
 {
     CHRZONE_VULKAN
 
@@ -263,7 +173,8 @@ void VulkanInstance::createSurface()
     CHRZONE_VULKAN
 
     VkSurfaceKHR rawSurface;
-    if (glfwCreateWindowSurface(VulkanContext::instance, _app->Window(), nullptr, &rawSurface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(VulkanContext::instance, VulkanContext::app->Window(), nullptr, &rawSurface)
+        != VK_SUCCESS)
         throw RendererError("Failed to create window surface");
 
     VulkanContext::surface = rawSurface;
@@ -408,7 +319,7 @@ void VulkanInstance::createCommandPool()
     VulkanContext::commandPool = VulkanContext::device.createCommandPool(poolInfo);
 }
 
-bool VulkanInstance::checkValidationLayerSupport() const
+bool VulkanInstance::checkValidationLayerSupport()
 {
     CHRZONE_VULKAN
 
@@ -430,7 +341,7 @@ bool VulkanInstance::checkValidationLayerSupport() const
     return true;
 }
 
-std::vector<const char*> VulkanInstance::getRequiredExtensions() const
+std::vector<const char*> VulkanInstance::getRequiredExtensions()
 {
     CHRZONE_VULKAN
 
@@ -446,7 +357,7 @@ std::vector<const char*> VulkanInstance::getRequiredExtensions() const
     return extensions;
 }
 
-bool VulkanInstance::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) const
+bool VulkanInstance::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice)
 {
     CHRZONE_VULKAN
 
@@ -464,7 +375,7 @@ bool VulkanInstance::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) 
     return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-bool VulkanInstance::checkDeviceExtensionSupport(const vk::PhysicalDevice& device) const
+bool VulkanInstance::checkDeviceExtensionSupport(const vk::PhysicalDevice& device)
 {
     CHRZONE_VULKAN
 
@@ -476,7 +387,7 @@ bool VulkanInstance::checkDeviceExtensionSupport(const vk::PhysicalDevice& devic
     return requiredExtensions.empty();
 }
 
-VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice device) const
+VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice device)
 {
     CHRZONE_VULKAN
 
@@ -501,7 +412,7 @@ VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice de
     return indices;
 }
 
-VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::PhysicalDevice& device) const
+VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::PhysicalDevice& device)
 {
     CHRZONE_VULKAN
 
@@ -512,8 +423,7 @@ VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::Ph
     return details;
 }
 
-vk::SurfaceFormatKHR VulkanInstance::chooseSwapSurfaceFormat(
-    const std::vector<vk::SurfaceFormatKHR>& availableFormats) const
+vk::SurfaceFormatKHR VulkanInstance::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
 {
     CHRZONE_VULKAN
 
@@ -530,8 +440,7 @@ vk::SurfaceFormatKHR VulkanInstance::chooseSwapSurfaceFormat(
     return availableFormats[0];
 }
 
-vk::PresentModeKHR VulkanInstance::chooseSwapPresentMode(
-    const std::vector<vk::PresentModeKHR>& availablePresentModes) const
+vk::PresentModeKHR VulkanInstance::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes)
 {
     CHRZONE_VULKAN
 
@@ -549,7 +458,7 @@ vk::PresentModeKHR VulkanInstance::chooseSwapPresentMode(
     return bestMode;
 }
 
-vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const
+vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities)
 {
     CHRZONE_VULKAN
 
@@ -558,7 +467,7 @@ vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& 
     } else {
         int width;
         int height;
-        glfwGetFramebufferSize(_app->Window(), &width, &height);
+        glfwGetFramebufferSize(VulkanContext::app->Window(), &width, &height);
 
         vk::Extent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 
@@ -572,7 +481,7 @@ vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& 
 }
 
 vk::Format VulkanInstance::findSupportedFormat(
-    const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const
+    const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features)
 {
     for (const auto& format : candidates) {
         auto props = VulkanContext::physicalDevice.getFormatProperties(format);
@@ -587,13 +496,13 @@ vk::Format VulkanInstance::findSupportedFormat(
     throw RendererError("Failed to find supported format");
 }
 
-vk::Format VulkanInstance::findDepthFormat() const
+vk::Format VulkanInstance::findDepthFormat()
 {
     return findSupportedFormat({ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
         vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
-bool VulkanInstance::hasStencilComponent(vk::Format format) const
+bool VulkanInstance::hasStencilComponent(vk::Format format)
 {
     return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 }
