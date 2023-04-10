@@ -25,21 +25,14 @@ public:
     void updateSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
     void updateDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
 
-    static ImageRef createTexture(const Renderer* renderer, const ImageInfo& imageInfo);
-    static ImageRef createSwapchain(
-        const vk::Device& device, const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
-    static ImageRef createDepthBuffer(
-        const vk::Device device, vk::PhysicalDevice physicalDevice, uint32_t width, uint32_t height, vk::Format format);
+    static ImageRef createTexture(const ImageInfo& imageInfo);
+    static ImageRef createSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
+    static ImageRef createDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
 
     entt::delegate<void(void)> updated {};
 
 private:
     ImageType _type;
-
-    vk::Device _device;
-    vk::PhysicalDevice _physicalDevice;
-    vk::CommandPool _commandPool;
-    vk::Queue _queue;
 
     vk::DeviceMemory _imageMemory;
     vk::Image _image;

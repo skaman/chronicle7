@@ -8,17 +8,16 @@ namespace chronicle {
 
 class VulkanFence : public FenceI<VulkanFence>, private NonCopyable<VulkanFence> {
 protected:
-    explicit VulkanFence(const vk::Device& device);
+    explicit VulkanFence();
 
 public:
     ~VulkanFence();
 
     [[nodiscard]] const vk::Fence& fence() const { return _fence; }
 
-    static FenceRef create(const Renderer* renderer);
+    static FenceRef create();
 
 private:
-    vk::Device _device;
     vk::Fence _fence;
 };
 

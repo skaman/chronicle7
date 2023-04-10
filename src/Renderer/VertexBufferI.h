@@ -10,7 +10,7 @@ template <class T> class VertexBufferI {
 public:
     void set(void* src, size_t size) { static_cast<T*>(this)->set(src, size); }
 
-    static VertexBufferRef create(const Renderer* renderer) { return T::create(renderer); }
+    static VertexBufferRef create() { return T::create(); }
 
 private:
     VertexBufferI() = default;

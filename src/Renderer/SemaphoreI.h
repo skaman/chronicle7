@@ -8,7 +8,7 @@ namespace chronicle {
 
 template <class T> class SemaphoreI {
 public:
-    static SemaphoreRef create(const Renderer* renderer) { return T::create(renderer); }
+    static SemaphoreRef create() { return T::create(); }
 
 private:
     SemaphoreI() = default;

@@ -8,7 +8,7 @@ namespace chronicle {
 
 class VulkanCommandBuffer : public CommandBufferI<VulkanCommandBuffer>, private NonCopyable<VulkanCommandBuffer> {
 protected:
-    explicit VulkanCommandBuffer(const vk::Device& device, const vk::CommandPool& commandPool);
+    explicit VulkanCommandBuffer();
 
 public:
     ~VulkanCommandBuffer() = default;
@@ -28,11 +28,9 @@ public:
     void bindIndexBuffer(const IndexBufferRef& indexBuffer) const;
     void bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const;
 
-    static CommandBufferRef create(const Renderer* renderer);
+    static CommandBufferRef create();
 
 private:
-    vk::Device _device;
-    vk::CommandPool _commandPool;
     vk::CommandBuffer _commandBuffer;
     vk::PipelineLayout _currentPipelineLayout;
 };

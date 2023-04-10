@@ -22,7 +22,7 @@ public:
 
     void build() { static_cast<T*>(this)->build(); }
 
-    static DescriptorSetRef create(const Renderer* renderer) { return T::create(renderer); }
+    static DescriptorSetRef create() { return T::create(); }
 
 private:
     DescriptorSetI() = default;

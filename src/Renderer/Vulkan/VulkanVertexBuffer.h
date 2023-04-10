@@ -8,8 +8,7 @@ namespace chronicle {
 
 class VulkanVertexBuffer : public VertexBufferI<VulkanVertexBuffer>, private NonCopyable<VulkanVertexBuffer> {
 protected:
-    explicit VulkanVertexBuffer(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
-        const vk::CommandPool& commandPool, const vk::Queue& queue);
+    explicit VulkanVertexBuffer() = default;
 
 public:
     ~VulkanVertexBuffer();
@@ -18,14 +17,9 @@ public:
 
     [[nodiscard]] const vk::Buffer& buffer() const { return _buffer; }
 
-    static VertexBufferRef create(const Renderer* renderer);
+    static VertexBufferRef create();
 
 private:
-    vk::Device _device;
-    vk::PhysicalDevice _physicalDevice;
-    vk::CommandPool _commandPool;
-    vk::Queue _queue;
-
     vk::Buffer _buffer;
     vk::DeviceMemory _bufferMemory;
 

@@ -30,7 +30,7 @@ struct VulkanDescriptorSetState {
 
 class VulkanDescriptorSet : public DescriptorSetI<VulkanDescriptorSet>, private NonCopyable<VulkanDescriptorSet> {
 protected:
-    explicit VulkanDescriptorSet(const vk::Device& device, const vk::PhysicalDevice& physicalDevice);
+    explicit VulkanDescriptorSet();
 
 public:
     ~VulkanDescriptorSet();
@@ -50,10 +50,10 @@ public:
         vk::DeviceMemory bufferMemory;
         void* bufferMapped;
 
-        VulkanBuffer::create(_device, _physicalDevice, bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+        VulkanBuffer::create(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, buffer, bufferMemory);
 
-        bufferMapped = _device.mapMemory(bufferMemory, 0, bufferSize);
+        bufferMapped = VulkanContext::device.mapMemory(bufferMemory, 0, bufferSize);
 
         vk::DescriptorBufferInfo bufferInfo = {};
         bufferInfo.setBuffer(buffer);
@@ -100,12 +100,9 @@ public:
 
     [[nodiscard]] const vk::DescriptorSet& descriptorSet() const { return _descriptorSet; }
 
-    static DescriptorSetRef create(const Renderer* renderer);
+    static DescriptorSetRef create();
 
 private:
-    vk::Device _device;
-    vk::PhysicalDevice _physicalDevice;
-
     vk::DescriptorPool _descriptorPool;
     vk::DescriptorSet _descriptorSet;
     vk::DescriptorSetLayout _descriptorSetLayout;

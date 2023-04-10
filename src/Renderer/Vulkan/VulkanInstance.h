@@ -40,43 +40,43 @@ public:
 
     void invalidateSwapChain() { _swapChainInvalidated = true; }
 
-    [[nodiscard]] Format swapChainFormat() const { return formatFromVulkan(_swapChainImageFormat); }
-    [[nodiscard]] const std::vector<ImageRef>& swapChainImages() const { return _swapChainImages; }
+    [[nodiscard]] Format swapChainFormat() const { return formatFromVulkan(VulkanContext::swapChainImageFormat); }
+    [[nodiscard]] const std::vector<ImageRef>& swapChainImages() const { return VulkanContext::swapChainImages; }
     [[nodiscard]] ExtentInt2D swapChainExtent() const
     {
-        return ExtentInt2D(_swapChainExtent.width, _swapChainExtent.height);
+        return ExtentInt2D(VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height);
     }
-    [[nodiscard]] Format depthFormat() const { return formatFromVulkan(_depthImageFormat); }
-    [[nodiscard]] const ImageRef& depthImage() const { return _depthImage; }
+    [[nodiscard]] Format depthFormat() const { return formatFromVulkan(VulkanContext::depthImageFormat); }
+    [[nodiscard]] const ImageRef& depthImage() const { return VulkanContext::depthImage; }
 
-    [[nodiscard]] const vk::Device& device() const { return _device; }
-    [[nodiscard]] const vk::PhysicalDevice& physicalDevice() const { return _physicalDevice; }
-    [[nodiscard]] const vk::Queue& graphicsQueue() const { return _graphicsQueue; }
-    [[nodiscard]] const vk::CommandPool& commandPool() const { return _commandPool; }
+    [[nodiscard]] const vk::Device& device() const { return VulkanContext::device; }
+    [[nodiscard]] const vk::PhysicalDevice& physicalDevice() const { return VulkanContext::physicalDevice; }
+    [[nodiscard]] const vk::Queue& graphicsQueue() const { return VulkanContext::graphicsQueue; }
+    [[nodiscard]] const vk::CommandPool& commandPool() const { return VulkanContext::commandPool; }
 
     static RendererUnique create(App* app);
 
 private:
     App* _app;
 
-    vk::Instance _instance;
-    VkDebugUtilsMessengerEXT _debugCallback;
-    vk::SurfaceKHR _surface;
-
-    vk::PhysicalDevice _physicalDevice;
-    vk::Device _device;
-
-    vk::Queue _graphicsQueue;
-    vk::Queue _presentQueue;
-
-    vk::SwapchainKHR _swapChain;
-    std::vector<ImageRef> _swapChainImages;
-    vk::Format _swapChainImageFormat;
-    vk::Extent2D _swapChainExtent;
-    ImageRef _depthImage;
-    vk::Format _depthImageFormat;
-
-    vk::CommandPool _commandPool;
+    // vk::Instance _instance;
+    // VkDebugUtilsMessengerEXT _debugCallback;
+    // vk::SurfaceKHR _surface;
+    //
+    // vk::PhysicalDevice _physicalDevice;
+    // vk::Device _device;
+    //
+    // vk::Queue _graphicsQueue;
+    // vk::Queue _presentQueue;
+    //
+    // vk::SwapchainKHR _swapChain;
+    // std::vector<ImageRef> _swapChainImages;
+    // vk::Format _swapChainImageFormat;
+    // vk::Extent2D _swapChainExtent;
+    // ImageRef _depthImage;
+    // vk::Format _depthImageFormat;
+    //
+    // vk::CommandPool _commandPool;
 
     bool _swapChainInvalidated = false;
 

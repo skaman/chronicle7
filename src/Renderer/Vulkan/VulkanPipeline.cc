@@ -2,8 +2,8 @@
 
 #include "Storage/File.h"
 
-#include "VulkanRenderPass.h"
 #include "VulkanInstance.h"
+#include "VulkanRenderPass.h"
 
 #include <spirv-reflect/spirv_reflect.h>
 
@@ -13,8 +13,7 @@ const int MAX_DESCRIPTOR_SETS = 4;
 
 CHR_CONCRETE(VulkanPipeline)
 
-VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pipelineInfo)
-    : _device(device)
+VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
 {
     CHRZONE_VULKAN
 
@@ -134,7 +133,7 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.setSetLayouts(_descriptorSetsLayout);
 
-    _pipelineLayout = _device.createPipelineLayout(pipelineLayoutInfo);
+    _pipelineLayout = VulkanContext::device.createPipelineLayout(pipelineLayoutInfo);
 
     // graphics pipeline
     const auto vulkanRenderPass = static_cast<VulkanRenderPass*>(pipelineInfo.renderPass.get());
@@ -154,36 +153,35 @@ VulkanPipeline::VulkanPipeline(const vk::Device& device, const PipelineInfo& pip
     graphicsPipelineInfo.setSubpass(0);
 
     vk::Result result;
-    std::tie(result, _graphicsPipeline) = _device.createGraphicsPipeline(nullptr, graphicsPipelineInfo);
+    std::tie(result, _graphicsPipeline) = VulkanContext::device.createGraphicsPipeline(nullptr, graphicsPipelineInfo);
     if (result != vk::Result::eSuccess)
         throw RendererError("Failed to create graphics pipeline");
 
     for (auto const& shaderModule : shaderModules)
-        _device.destroyShaderModule(shaderModule);
+        VulkanContext::device.destroyShaderModule(shaderModule);
 }
 
 VulkanPipeline::~VulkanPipeline()
 {
     CHRZONE_VULKAN
 
-    _device.destroyPipeline(_graphicsPipeline);
-    _device.destroyPipelineLayout(_pipelineLayout);
+    VulkanContext::device.destroyPipeline(_graphicsPipeline);
+    VulkanContext::device.destroyPipelineLayout(_pipelineLayout);
 
     for (const auto& descriptorSetLayout : _descriptorSetsLayout)
-        _device.destroyDescriptorSetLayout(descriptorSetLayout);
+        VulkanContext::device.destroyDescriptorSetLayout(descriptorSetLayout);
 }
 
-PipelineRef VulkanPipeline::create(const Renderer* renderer, const PipelineInfo& pipelineInfo)
+PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo)
 {
-    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
-    return std::make_shared<ConcreteVulkanPipeline>(vulkanInstance->device(), pipelineInfo);
+    return std::make_shared<ConcreteVulkanPipeline>(pipelineInfo);
 }
 
 vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const
 {
     CHRZONE_VULKAN
 
-    return _device.createShaderModule(
+    return VulkanContext::device.createShaderModule(
         { vk::ShaderModuleCreateFlags(), code.size(), std::bit_cast<const uint32_t*>(code.data()) });
 }
 
@@ -230,7 +228,7 @@ std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout(
 
         vk::DescriptorSetLayoutCreateInfo createInfo = {};
         createInfo.setBindings(bindings);
-        descriptorSetsLayout[i] = _device.createDescriptorSetLayout(createInfo);
+        descriptorSetsLayout[i] = VulkanContext::device.createDescriptorSetLayout(createInfo);
     }
 
     return descriptorSetsLayout;

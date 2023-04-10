@@ -75,14 +75,25 @@ inline vk::VertexInputRate vertextInputRateToVulkan(VertexInputRate vertexInputR
     }
 }
 
-//inline vk::DescriptorType descriptorTypeToVulkan(DescriptorType descriptorType)
-//{
-//    switch (descriptorType) {
-//    case DescriptorType::UniformBuffer:
-//        return vk::DescriptorType::eUniformBuffer;
-//    default:
-//        throw RendererError("Unsupported descriptor type");
-//    }
-//}
+struct VulkanContext {
+    static inline vk::Instance instance;
+    static inline VkDebugUtilsMessengerEXT debugCallback;
+    static inline vk::SurfaceKHR surface;
+
+    static inline vk::PhysicalDevice physicalDevice;
+    static inline vk::Device device;
+
+    static inline vk::Queue graphicsQueue;
+    static inline vk::Queue presentQueue;
+
+    static inline vk::SwapchainKHR swapChain;
+    static inline std::vector<ImageRef> swapChainImages;
+    static inline vk::Format swapChainImageFormat;
+    static inline vk::Extent2D swapChainExtent;
+    static inline ImageRef depthImage;
+    static inline vk::Format depthImageFormat;
+
+    static inline vk::CommandPool commandPool;
+};
 
 } // namespace chronicle

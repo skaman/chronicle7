@@ -9,10 +9,7 @@ namespace chronicle {
 
 template <class T> class PipelineI {
 public:
-    static PipelineRef create(const Renderer* renderer, const PipelineInfo& pipelineInfo)
-    {
-        return T::create(renderer, pipelineInfo);
-    }
+    static PipelineRef create(const PipelineInfo& pipelineInfo) { return T::create(pipelineInfo); }
 
 private:
     PipelineI() = default;

@@ -71,26 +71,26 @@ VulkanInstance::~VulkanInstance()
 {
     CHRZONE_VULKAN
 
-    _depthImage.reset();
-    _swapChainImages.clear();
+    VulkanContext::depthImage.reset();
+    VulkanContext::swapChainImages.clear();
 
-    _device.destroySwapchainKHR(_swapChain);
-    _device.destroyCommandPool(_commandPool);
-    _device.destroy();
+    VulkanContext::device.destroySwapchainKHR(VulkanContext::swapChain);
+    VulkanContext::device.destroyCommandPool(VulkanContext::commandPool);
+    VulkanContext::device.destroy();
 
     if (ENABLED_VALIDATION_LAYERS) {
-        destroyDebugUtilsMessengerEXT(_instance, _debugCallback, nullptr);
+        destroyDebugUtilsMessengerEXT(VulkanContext::instance, VulkanContext::debugCallback, nullptr);
     }
 
-    _instance.destroySurfaceKHR(_surface);
-    _instance.destroy();
+    VulkanContext::instance.destroySurfaceKHR(VulkanContext::surface);
+    VulkanContext::instance.destroy();
 }
 
 void VulkanInstance::waitIdle() const
 {
     CHRZONE_VULKAN
 
-    _device.waitIdle();
+    VulkanContext::device.waitIdle();
 }
 
 void VulkanInstance::waitForFence(const FenceRef& fence) const
@@ -98,7 +98,7 @@ void VulkanInstance::waitForFence(const FenceRef& fence) const
     CHRZONE_VULKAN
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-    (void)_device.waitForFences(vulkanFence->fence(), true, std::numeric_limits<uint64_t>::max());
+    (void)VulkanContext::device.waitForFences(vulkanFence->fence(), true, std::numeric_limits<uint64_t>::max());
 }
 
 void VulkanInstance::resetFence(const FenceRef& fence) const
@@ -106,7 +106,7 @@ void VulkanInstance::resetFence(const FenceRef& fence) const
     CHRZONE_VULKAN
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-    (void)_device.resetFences(vulkanFence->fence());
+    (void)VulkanContext::device.resetFences(vulkanFence->fence());
 }
 
 uint32_t VulkanInstance::acquireNextImage(const SemaphoreRef& semaphore)
@@ -116,8 +116,8 @@ uint32_t VulkanInstance::acquireNextImage(const SemaphoreRef& semaphore)
     const auto vulkanSemaphore = static_cast<const VulkanSemaphore*>(semaphore.get());
 
     try {
-        auto result = _device.acquireNextImageKHR(
-            _swapChain, std::numeric_limits<uint64_t>::max(), vulkanSemaphore->semaphore(), nullptr);
+        auto result = VulkanContext::device.acquireNextImageKHR(
+            VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(), vulkanSemaphore->semaphore(), nullptr);
         return result.value;
     } catch (vk::OutOfDateKHRError err) {
         recreateSwapChain();
@@ -144,7 +144,7 @@ void VulkanInstance::submit(const FenceRef& fence, const SemaphoreRef& waitSemap
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
 
-    _graphicsQueue.submit(submitInfo, vulkanFence->fence());
+    VulkanContext::graphicsQueue.submit(submitInfo, vulkanFence->fence());
 }
 
 bool VulkanInstance::present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
@@ -155,12 +155,12 @@ bool VulkanInstance::present(const SemaphoreRef& waitSemaphore, uint32_t imageIn
 
     vk::PresentInfoKHR presentInfo = {};
     presentInfo.setWaitSemaphores(vulkanWaitSemaphore->semaphore());
-    presentInfo.setSwapchains(_swapChain);
+    presentInfo.setSwapchains(VulkanContext::swapChain);
     presentInfo.setImageIndices(imageIndex);
 
     vk::Result resultPresent;
     try {
-        resultPresent = _presentQueue.presentKHR(presentInfo);
+        resultPresent = VulkanContext::presentQueue.presentKHR(presentInfo);
     } catch (vk::OutOfDateKHRError err) {
         resultPresent = vk::Result::eErrorOutOfDateKHR;
     }
@@ -188,8 +188,8 @@ void VulkanInstance::recreateSwapChain()
         glfwWaitEvents();
     }
 
-    _device.waitIdle();
-    _device.destroySwapchainKHR(_swapChain);
+    VulkanContext::device.waitIdle();
+    VulkanContext::device.destroySwapchainKHR(VulkanContext::swapChain);
 
     createSwapChain();
 }
@@ -226,7 +226,7 @@ void VulkanInstance::createInstance()
         createInfo.setPNext(&debugCreateInfo);
     }
 
-    _instance = vk::createInstance(createInfo, nullptr);
+    VulkanContext::instance = vk::createInstance(createInfo, nullptr);
 }
 
 void VulkanInstance::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo) const
@@ -251,8 +251,9 @@ void VulkanInstance::setupDebugCallback()
     vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
     populateDebugMessengerCreateInfo(debugCreateInfo);
 
-    if (createDebugUtilsMessengerEXT(_instance,
-            std::bit_cast<const VkDebugUtilsMessengerCreateInfoEXT*>(&debugCreateInfo), nullptr, &_debugCallback)
+    if (createDebugUtilsMessengerEXT(VulkanContext::instance,
+            std::bit_cast<const VkDebugUtilsMessengerCreateInfoEXT*>(&debugCreateInfo), nullptr,
+            &VulkanContext::debugCallback)
         != VK_SUCCESS)
         throw RendererError("Failed to set up debug callback");
 }
@@ -262,28 +263,28 @@ void VulkanInstance::createSurface()
     CHRZONE_VULKAN
 
     VkSurfaceKHR rawSurface;
-    if (glfwCreateWindowSurface(_instance, _app->Window(), nullptr, &rawSurface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(VulkanContext::instance, _app->Window(), nullptr, &rawSurface) != VK_SUCCESS)
         throw RendererError("Failed to create window surface");
 
-    _surface = rawSurface;
+    VulkanContext::surface = rawSurface;
 }
 
 void VulkanInstance::pickPhysicalDevice()
 {
     CHRZONE_VULKAN
 
-    auto devices = _instance.enumeratePhysicalDevices();
+    auto devices = VulkanContext::instance.enumeratePhysicalDevices();
     if (devices.size() == 0)
         throw RendererError("Failed to find GPUs with Vulkan support");
 
     for (const auto& device : devices) {
         if (isDeviceSuitable(device)) {
-            _physicalDevice = device;
+            VulkanContext::physicalDevice = device;
             break;
         }
     }
 
-    if (!_physicalDevice)
+    if (!VulkanContext::physicalDevice)
         throw RendererError("Failed to find a suitable GPU");
 }
 
@@ -291,7 +292,7 @@ void VulkanInstance::createLogicalDevice()
 {
     CHRZONE_VULKAN
 
-    VulkanQueueFamilyIndices indices = findQueueFamilies(_physicalDevice);
+    VulkanQueueFamilyIndices indices = findQueueFamilies(VulkanContext::physicalDevice);
 
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -317,17 +318,17 @@ void VulkanInstance::createLogicalDevice()
     if (ENABLED_VALIDATION_LAYERS)
         createInfo.setPEnabledLayerNames(VALIDATION_LAYERS);
 
-    _device = _physicalDevice.createDevice(createInfo);
+    VulkanContext::device = VulkanContext::physicalDevice.createDevice(createInfo);
 
-    _graphicsQueue = _device.getQueue(indices.graphicsFamily.value(), 0);
-    _presentQueue = _device.getQueue(indices.presentFamily.value(), 0);
+    VulkanContext::graphicsQueue = VulkanContext::device.getQueue(indices.graphicsFamily.value(), 0);
+    VulkanContext::presentQueue = VulkanContext::device.getQueue(indices.presentFamily.value(), 0);
 }
 
 void VulkanInstance::createSwapChain()
 {
     CHRZONE_VULKAN
 
-    auto swapChainSupport = querySwapChainSupport(_physicalDevice);
+    auto swapChainSupport = querySwapChainSupport(VulkanContext::physicalDevice);
 
     vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -337,11 +338,11 @@ void VulkanInstance::createSwapChain()
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
         imageCount = swapChainSupport.capabilities.maxImageCount;
 
-    auto indices = findQueueFamilies(_physicalDevice);
+    auto indices = findQueueFamilies(VulkanContext::physicalDevice);
     std::array<uint32_t, 2> queueFamilyIndices = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
     vk::SwapchainCreateInfoKHR createInfo = {};
-    createInfo.setSurface(_surface);
+    createInfo.setSurface(VulkanContext::surface);
     createInfo.setMinImageCount(imageCount);
     createInfo.setImageFormat(surfaceFormat.format);
     createInfo.setImageColorSpace(surfaceFormat.colorSpace);
@@ -360,51 +361,51 @@ void VulkanInstance::createSwapChain()
         createInfo.setImageSharingMode(vk::SharingMode::eExclusive);
     }
 
-    _swapChain = _device.createSwapchainKHR(createInfo);
+    VulkanContext::swapChain = VulkanContext::device.createSwapchainKHR(createInfo);
 
     // create depth buffer
     // NOTE: the depth buffer MUST be updated before the swap chain images!
     // the render pass is updated the the swapchain image trigger it, during
     // the framebuffer recreate the depth image must be already updated.
-    if (_depthImage) {
-        const auto vulkanDepthImage = static_cast<VulkanImage*>(_depthImage.get());
-        vulkanDepthImage->updateDepthBuffer(extent.width, extent.height, _depthImageFormat);
+    if (VulkanContext::depthImage) {
+        const auto vulkanDepthImage = static_cast<VulkanImage*>(VulkanContext::depthImage.get());
+        vulkanDepthImage->updateDepthBuffer(extent.width, extent.height, VulkanContext::depthImageFormat);
     } else {
-        _depthImageFormat = findDepthFormat();
-        _depthImage
-            = VulkanImage::createDepthBuffer(_device, _physicalDevice, extent.width, extent.height, _depthImageFormat);
+        VulkanContext::depthImageFormat = findDepthFormat();
+        VulkanContext::depthImage
+            = VulkanImage::createDepthBuffer(extent.width, extent.height, VulkanContext::depthImageFormat);
     }
 
     // create swap chain images
-    auto swapChainImages = _device.getSwapchainImagesKHR(_swapChain);
+    auto swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
 
-    _swapChainImages.reserve(swapChainImages.size());
+    VulkanContext::swapChainImages.reserve(swapChainImages.size());
 
     for (size_t i = 0; i < swapChainImages.size(); i++) {
-        if (_swapChainImages.size() > i) {
-            const auto vulkanImage = static_cast<VulkanImage*>(_swapChainImages[i].get());
+        if (VulkanContext::swapChainImages.size() > i) {
+            const auto vulkanImage = static_cast<VulkanImage*>(VulkanContext::swapChainImages[i].get());
             vulkanImage->updateSwapchain(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
         } else {
-            auto image = VulkanImage::createSwapchain(
-                _device, swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
-            _swapChainImages.push_back(image);
+            auto image
+                = VulkanImage::createSwapchain(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
+            VulkanContext::swapChainImages.push_back(image);
         }
     }
 
-    _swapChainImageFormat = surfaceFormat.format;
-    _swapChainExtent = extent;
+    VulkanContext::swapChainImageFormat = surfaceFormat.format;
+    VulkanContext::swapChainExtent = extent;
 }
 
 void VulkanInstance::createCommandPool()
 {
     CHRZONE_VULKAN
 
-    auto queueFamilyIndices = findQueueFamilies(_physicalDevice);
+    auto queueFamilyIndices = findQueueFamilies(VulkanContext::physicalDevice);
     vk::CommandPoolCreateInfo poolInfo = {};
     poolInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
     poolInfo.setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
 
-    _commandPool = _device.createCommandPool(poolInfo);
+    VulkanContext::commandPool = VulkanContext::device.createCommandPool(poolInfo);
 }
 
 bool VulkanInstance::checkValidationLayerSupport() const
@@ -488,7 +489,7 @@ VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice de
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
             indices.graphicsFamily = i;
 
-        if (queueFamily.queueCount > 0 && device.getSurfaceSupportKHR(i, _surface))
+        if (queueFamily.queueCount > 0 && device.getSurfaceSupportKHR(i, VulkanContext::surface))
             indices.presentFamily = i;
 
         if (indices.IsComplete())
@@ -505,9 +506,9 @@ VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::Ph
     CHRZONE_VULKAN
 
     VulkanSwapChainSupportDetails details;
-    details.capabilities = device.getSurfaceCapabilitiesKHR(_surface);
-    details.formats = device.getSurfaceFormatsKHR(_surface);
-    details.presentModes = device.getSurfacePresentModesKHR(_surface);
+    details.capabilities = device.getSurfaceCapabilitiesKHR(VulkanContext::surface);
+    details.formats = device.getSurfaceFormatsKHR(VulkanContext::surface);
+    details.presentModes = device.getSurfacePresentModesKHR(VulkanContext::surface);
     return details;
 }
 
@@ -574,7 +575,7 @@ vk::Format VulkanInstance::findSupportedFormat(
     const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const
 {
     for (const auto& format : candidates) {
-        auto props = _physicalDevice.getFormatProperties(format);
+        auto props = VulkanContext::physicalDevice.getFormatProperties(format);
 
         if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
             return format;

@@ -4,8 +4,8 @@
 
 namespace chronicle {
 
-void VulkanBuffer::create(const vk::Device& device, const vk::PhysicalDevice& physicalDevice, vk::DeviceSize size,
-    vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer, vk::DeviceMemory& bufferMemory)
+void VulkanBuffer::create(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+    vk::Buffer& buffer, vk::DeviceMemory& bufferMemory)
 {
     CHRZONE_VULKAN
 
@@ -14,38 +14,37 @@ void VulkanBuffer::create(const vk::Device& device, const vk::PhysicalDevice& ph
     bufferInfo.setUsage(usage);
     bufferInfo.setSharingMode(vk::SharingMode::eExclusive);
 
-    buffer = device.createBuffer(bufferInfo);
+    buffer = VulkanContext::device.createBuffer(bufferInfo);
 
-    auto memRequirements = device.getBufferMemoryRequirements(buffer);
+    auto memRequirements = VulkanContext::device.getBufferMemoryRequirements(buffer);
 
     vk::MemoryAllocateInfo allocInfo = {};
     allocInfo.setAllocationSize(memRequirements.size);
-    allocInfo.setMemoryTypeIndex(findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties));
+    allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits, properties));
 
-    bufferMemory = device.allocateMemory(allocInfo);
+    bufferMemory = VulkanContext::device.allocateMemory(allocInfo);
 
-    device.bindBufferMemory(buffer, bufferMemory, 0);
+    VulkanContext::device.bindBufferMemory(buffer, bufferMemory, 0);
 }
 
-void VulkanBuffer::copy(const vk::Device& device, const vk::CommandPool& commandPool, const vk::Queue& graphicsQueue,
-    vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
+void VulkanBuffer::copy(const vk::Queue& queue, vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
 {
     CHRZONE_VULKAN
 
-    auto commandBuffer = beginSingleTimeCommands(device, commandPool);
+    auto commandBuffer = beginSingleTimeCommands();
 
     const auto& copyRegion = vk::BufferCopy().setSize(size);
     commandBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
 
-    endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+    endSingleTimeCommands(queue, commandBuffer);
 }
 
-void VulkanBuffer::copyToImage(const vk::Device& device, const vk::CommandPool& commandPool,
-    const vk::Queue& graphicsQueue, vk::Buffer srcBuffer, vk::Image dstImage, uint32_t width, uint32_t height)
+void VulkanBuffer::copyToImage(
+    const vk::Queue& queue, vk::Buffer srcBuffer, vk::Image dstImage, uint32_t width, uint32_t height)
 {
     CHRZONE_VULKAN
 
-    auto commandBuffer = beginSingleTimeCommands(device, commandPool);
+    auto commandBuffer = beginSingleTimeCommands();
 
     vk::ImageSubresourceLayers subresourceLayers = {};
     subresourceLayers.setAspectMask(vk::ImageAspectFlagBits::eColor);
@@ -63,16 +62,15 @@ void VulkanBuffer::copyToImage(const vk::Device& device, const vk::CommandPool& 
 
     commandBuffer.copyBufferToImage(srcBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal, region);
 
-    endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+    endSingleTimeCommands(queue, commandBuffer);
 }
 
-void VulkanBuffer::transitionImageLayout(const vk::Device& device, const vk::CommandPool& commandPool,
-    const vk::Queue& graphicsQueue, vk::Image image, vk::Format format, vk::ImageLayout oldLayout,
-    vk::ImageLayout newLayout, uint32_t mipLevels)
+void VulkanBuffer::transitionImageLayout(const vk::Queue& queue, vk::Image image, vk::Format format,
+    vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels)
 {
     CHRZONE_VULKAN
 
-    vk::CommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+    vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
     vk::ImageSubresourceRange subresourceRange = {};
     subresourceRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
@@ -111,15 +109,14 @@ void VulkanBuffer::transitionImageLayout(const vk::Device& device, const vk::Com
 
     commandBuffer.pipelineBarrier(sourceStage, destinationStage, vk::DependencyFlags(), nullptr, nullptr, barrier);
 
-    endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+    endSingleTimeCommands(queue, commandBuffer);
 }
 
-uint32_t VulkanBuffer::findMemoryType(
-    const vk::PhysicalDevice& physicalDevice, uint32_t typeFilter, vk::MemoryPropertyFlags properties)
+uint32_t VulkanBuffer::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
 {
     CHRZONE_VULKAN
 
-    auto memProperties = physicalDevice.getMemoryProperties();
+    auto memProperties = VulkanContext::physicalDevice.getMemoryProperties();
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -130,24 +127,23 @@ uint32_t VulkanBuffer::findMemoryType(
     throw RendererError("Failed to find suitable memory type");
 }
 
-vk::CommandBuffer VulkanBuffer::beginSingleTimeCommands(const vk::Device& device, const vk::CommandPool& commandPool)
+vk::CommandBuffer VulkanBuffer::beginSingleTimeCommands()
 {
     CHRZONE_VULKAN
 
     vk::CommandBufferAllocateInfo allocInfo = {};
     allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-    allocInfo.setCommandPool(commandPool);
+    allocInfo.setCommandPool(VulkanContext::commandPool);
     allocInfo.setCommandBufferCount(1);
 
-    auto commandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+    auto commandBuffer = VulkanContext::device.allocateCommandBuffers(allocInfo)[0];
     const auto& beginInfo = vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     commandBuffer.begin(beginInfo);
 
     return commandBuffer;
 }
 
-void VulkanBuffer::endSingleTimeCommands(const vk::Device& device, const vk::CommandPool& commandPool,
-    const vk::Queue& graphicsQueue, vk::CommandBuffer commandBuffer)
+void VulkanBuffer::endSingleTimeCommands(const vk::Queue& queue, vk::CommandBuffer commandBuffer)
 {
     CHRZONE_VULKAN
 
@@ -155,10 +151,10 @@ void VulkanBuffer::endSingleTimeCommands(const vk::Device& device, const vk::Com
 
     const auto& submitInfo = vk::SubmitInfo().setCommandBuffers(commandBuffer);
 
-    graphicsQueue.submit(submitInfo, nullptr);
-    graphicsQueue.waitIdle();
+    queue.submit(submitInfo, nullptr);
+    queue.waitIdle();
 
-    device.freeCommandBuffers(commandPool, commandBuffer);
+    VulkanContext::device.freeCommandBuffers(VulkanContext::commandPool, commandBuffer);
 }
 
 } // namespace chronicle

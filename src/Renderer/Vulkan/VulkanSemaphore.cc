@@ -6,25 +6,20 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanSemaphore)
 
-VulkanSemaphore::VulkanSemaphore(const vk::Device& device)
-    : _device(device)
+VulkanSemaphore::VulkanSemaphore()
 {
     CHRZONE_VULKAN
 
-    _semaphore = _device.createSemaphore({});
+    _semaphore = VulkanContext::device.createSemaphore({});
 }
 
 VulkanSemaphore::~VulkanSemaphore()
 {
     CHRZONE_VULKAN
 
-    _device.destroySemaphore(_semaphore);
+    VulkanContext::device.destroySemaphore(_semaphore);
 }
 
-SemaphoreRef VulkanSemaphore::create(const Renderer* renderer)
-{
-    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
-    return std::make_shared<ConcreteVulkanSemaphore>(vulkanInstance->device());
-}
+SemaphoreRef VulkanSemaphore::create() { return std::make_shared<ConcreteVulkanSemaphore>(); }
 
 } // namespace chronicle

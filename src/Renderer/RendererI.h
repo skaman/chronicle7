@@ -43,25 +43,6 @@ public:
     [[nodiscard]] const ImageRef& depthImage() const { return static_cast<const T*>(this)->depthImage(); }
     [[nodiscard]] ExtentInt2D swapChainExtent() const { return static_cast<const T*>(this)->swapChainExtent(); }
 
-    [[nodiscard]] RenderPassRef createRenderPass(const RenderPassInfo& renderPassInfo) const
-    {
-        return RenderPass::create(this, renderPassInfo);
-    }
-    [[nodiscard]] DescriptorSetRef createDescriptorSet() const { return DescriptorSet::create(this); }
-    [[nodiscard]] PipelineRef createPipeline(const PipelineInfo& pipelineInfo) const
-    {
-        return Pipeline::create(this, pipelineInfo);
-    }
-    [[nodiscard]] VertexBufferRef createVertexBuffer() const { return VertexBuffer::create(this); }
-    [[nodiscard]] IndexBufferRef createIndexBuffer() const { return IndexBuffer::create(this); }
-    [[nodiscard]] CommandBufferRef createCommandBuffer() const { return CommandBuffer::create(this); }
-    [[nodiscard]] SemaphoreRef createSemaphore() const { return Semaphore::create(this); }
-    [[nodiscard]] FenceRef createFence() const { return Fence::create(this); }
-    [[nodiscard]] ImageRef createTextureImage(const ImageInfo& imageInfo) const
-    {
-        return Image::createTexture(this, imageInfo);
-    }
-
     static RendererUnique create(App* app) { return T::create(app); }
 
 private:

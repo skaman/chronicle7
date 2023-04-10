@@ -27,8 +27,8 @@ MeshAsset::MeshAsset(const std::string& filename)
     _indicesCount.reserve(shapes.size());
 
     for (uint32_t shapeIndex = 0; shapeIndex < shapes.size(); shapeIndex++) {
-        _vertexBuffers.push_back(Locator::renderer->createVertexBuffer());
-        _indexBuffers.push_back(Locator::renderer->createIndexBuffer());
+        _vertexBuffers.push_back(VertexBuffer::create());
+        _indexBuffers.push_back(IndexBuffer::create());
 
         const auto vertexBuffer = _vertexBuffers[shapeIndex].get();
         const auto indexBuffer = _indexBuffers[shapeIndex].get();
@@ -52,8 +52,6 @@ MeshAsset::MeshAsset(const std::string& filename)
             }
 
             indices.push_back(uniqueVertices[vertex]);
-            //vertices.push_back(vertex);
-            //indices.push_back(static_cast<uint32_t>(indices.size()));
         }
 
         _verticesCount.push_back(static_cast<uint32_t>(vertices.size()));

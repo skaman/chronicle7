@@ -1,12 +1,13 @@
 #include "VulkanImageUtils.h"
 
 #include "VulkanBuffer.h"
+#include "VulkanCommon.h"
 
 namespace chronicle {
 
-std::pair<vk::DeviceMemory, vk::Image> VulkanImageUtils::createImage(vk::Device device,
-    vk::PhysicalDevice physicalDevice, uint32_t width, uint32_t height, uint32_t mipLevels, vk::Format format,
-    vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties)
+std::pair<vk::DeviceMemory, vk::Image> VulkanImageUtils::createImage(uint32_t width, uint32_t height,
+    uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage,
+    vk::MemoryPropertyFlags properties)
 {
     CHRZONE_VULKAN
 
@@ -27,26 +28,24 @@ std::pair<vk::DeviceMemory, vk::Image> VulkanImageUtils::createImage(vk::Device 
     imageCreateInfo.setSharingMode(vk::SharingMode::eExclusive);
     imageCreateInfo.setSamples(vk::SampleCountFlagBits::e1);
 
-    auto image = device.createImage(imageCreateInfo);
+    auto image = VulkanContext::device.createImage(imageCreateInfo);
 
     // allocate memory
-    const auto memRequirements = device.getImageMemoryRequirements(image);
+    const auto memRequirements = VulkanContext::device.getImageMemoryRequirements(image);
 
     vk::MemoryAllocateInfo allocInfo = {};
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.setAllocationSize(memRequirements.size);
-    allocInfo.setMemoryTypeIndex(
-        VulkanBuffer::findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties));
+    allocInfo.setMemoryTypeIndex(VulkanBuffer::findMemoryType(memRequirements.memoryTypeBits, properties));
 
-    auto imageMemory = device.allocateMemory(allocInfo, nullptr);
+    auto imageMemory = VulkanContext::device.allocateMemory(allocInfo, nullptr);
 
-    vkBindImageMemory(device, image, imageMemory, 0);
+    vkBindImageMemory(VulkanContext::device, image, imageMemory, 0);
 
     return { imageMemory, image };
 }
 
-vk::ImageView VulkanImageUtils::createImageView(
-    vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags)
+vk::ImageView VulkanImageUtils::createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags)
 {
     CHRZONE_VULKAN
 
@@ -63,14 +62,14 @@ vk::ImageView VulkanImageUtils::createImageView(
     viewInfo.format = format;
     viewInfo.setSubresourceRange(subresourceRange);
 
-    return device.createImageView(viewInfo);
+    return VulkanContext::device.createImageView(viewInfo);
 }
 
-vk::Sampler VulkanImageUtils::createTextureSampler(vk::Device device, vk::PhysicalDevice physicalDevice)
+vk::Sampler VulkanImageUtils::createTextureSampler()
 {
     CHRZONE_VULKAN
 
-    const auto properties = physicalDevice.getProperties();
+    const auto properties = VulkanContext::physicalDevice.getProperties();
 
     vk::SamplerCreateInfo samplerInfo = {};
     samplerInfo.setMagFilter(vk::Filter::eLinear);
@@ -89,7 +88,7 @@ vk::Sampler VulkanImageUtils::createTextureSampler(vk::Device device, vk::Physic
     samplerInfo.setMinLod(0.0f);
     samplerInfo.setMaxLod(0.0f);
 
-    return device.createSampler(samplerInfo);
+    return VulkanContext::device.createSampler(samplerInfo);
 }
 
 } // namespace chronicle

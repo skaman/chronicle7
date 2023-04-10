@@ -13,7 +13,7 @@ struct DescriptorSetLayoutData {
 
 class VulkanPipeline : public PipelineI<VulkanPipeline>, private NonCopyable<VulkanPipeline> {
 protected:
-    explicit VulkanPipeline(const vk::Device& device, const PipelineInfo& pipelineInfo);
+    explicit VulkanPipeline(const PipelineInfo& pipelineInfo);
 
 public:
     ~VulkanPipeline();
@@ -21,11 +21,9 @@ public:
     [[nodiscard]] const vk::Pipeline& pipeline() const { return _graphicsPipeline; }
     [[nodiscard]] const vk::PipelineLayout& pipelineLayout() const { return _pipelineLayout; }
 
-    static PipelineRef create(const Renderer* renderer, const PipelineInfo& pipelineInfo);
+    static PipelineRef create(const PipelineInfo& pipelineInfo);
 
 private:
-    vk::Device _device;
-
     std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout;
     vk::PipelineLayout _pipelineLayout;
     vk::Pipeline _graphicsPipeline;

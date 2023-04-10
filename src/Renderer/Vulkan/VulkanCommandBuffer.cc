@@ -2,27 +2,25 @@
 
 #include "VulkanDescriptorSet.h"
 #include "VulkanIndexBuffer.h"
+#include "VulkanInstance.h"
 #include "VulkanPipeline.h"
 #include "VulkanRenderPass.h"
-#include "VulkanInstance.h"
 #include "VulkanVertexBuffer.h"
 
 namespace chronicle {
 
 CHR_CONCRETE(VulkanCommandBuffer)
 
-VulkanCommandBuffer::VulkanCommandBuffer(const vk::Device& device, const vk::CommandPool& commandPool)
-    : _device(device)
-    , _commandPool(commandPool)
+VulkanCommandBuffer::VulkanCommandBuffer()
 {
     CHRZONE_VULKAN
 
     vk::CommandBufferAllocateInfo allocInfo = {};
-    allocInfo.setCommandPool(_commandPool);
+    allocInfo.setCommandPool(VulkanContext::commandPool);
     allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     allocInfo.setCommandBufferCount(1);
 
-    _commandBuffer = _device.allocateCommandBuffers(allocInfo)[0];
+    _commandBuffer = VulkanContext::device.allocateCommandBuffers(allocInfo)[0];
 }
 
 void VulkanCommandBuffer::reset() const
@@ -138,10 +136,6 @@ void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSe
         vk::PipelineBindPoint::eGraphics, _currentPipelineLayout, index, vulkanDescriptorSet->descriptorSet(), nullptr);
 }
 
-CommandBufferRef VulkanCommandBuffer::create(const Renderer* renderer)
-{
-    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
-    return std::make_shared<ConcreteVulkanCommandBuffer>(vulkanInstance->device(), vulkanInstance->commandPool());
-}
+CommandBufferRef VulkanCommandBuffer::create() { return std::make_shared<ConcreteVulkanCommandBuffer>(); }
 
 } // namespace chronicle

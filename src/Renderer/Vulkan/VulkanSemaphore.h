@@ -8,17 +8,16 @@ namespace chronicle {
 
 class VulkanSemaphore : public SemaphoreI<VulkanSemaphore>, private NonCopyable<VulkanSemaphore> {
 protected:
-    explicit VulkanSemaphore(const vk::Device& device);
+    explicit VulkanSemaphore();
 
 public:
     ~VulkanSemaphore();
 
     [[nodiscard]] const vk::Semaphore& semaphore() const { return _semaphore; }
 
-    static SemaphoreRef create(const Renderer* renderer);
+    static SemaphoreRef create();
 
 private:
-    vk::Device _device;
     vk::Semaphore _semaphore;
 };
 

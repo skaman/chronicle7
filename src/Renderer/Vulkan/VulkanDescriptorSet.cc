@@ -6,9 +6,7 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanDescriptorSet)
 
-VulkanDescriptorSet::VulkanDescriptorSet(const vk::Device& device, const vk::PhysicalDevice& physicalDevice)
-    : _device(device)
-    , _physicalDevice(physicalDevice)
+VulkanDescriptorSet::VulkanDescriptorSet()
 {
     CHRZONE_VULKAN
 
@@ -21,7 +19,7 @@ VulkanDescriptorSet::VulkanDescriptorSet(const vk::Device& device, const vk::Phy
     poolInfo.setMaxSets(1);
     poolInfo.setPoolSizes(sizes);
 
-    _descriptorPool = _device.createDescriptorPool(poolInfo, nullptr);
+    _descriptorPool = VulkanContext::device.createDescriptorPool(poolInfo, nullptr);
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet()
@@ -30,16 +28,16 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 
     for (const auto& state : _descriptorSetsState) {
         if (state.type == vk::DescriptorType::eUniformBuffer) {
-            _device.destroyBuffer(state.uniform.bufferInfo.buffer);
-            _device.freeMemory(state.uniform.bufferMemory);
+            VulkanContext::device.destroyBuffer(state.uniform.bufferInfo.buffer);
+            VulkanContext::device.freeMemory(state.uniform.bufferMemory);
         }
     }
 
     if (_descriptorSetLayout)
-        _device.destroyDescriptorSetLayout(_descriptorSetLayout);
+        VulkanContext::device.destroyDescriptorSetLayout(_descriptorSetLayout);
 
     if (_descriptorPool)
-        _device.destroyDescriptorPool(_descriptorPool);
+        VulkanContext::device.destroyDescriptorPool(_descriptorPool);
 }
 
 void VulkanDescriptorSet::build()
@@ -48,13 +46,13 @@ void VulkanDescriptorSet::build()
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.setBindings(_layoutBindings);
-    _descriptorSetLayout = _device.createDescriptorSetLayout(layoutInfo);
+    _descriptorSetLayout = VulkanContext::device.createDescriptorSetLayout(layoutInfo);
 
     vk::DescriptorSetAllocateInfo allocInfo = {};
     allocInfo.setDescriptorPool(_descriptorPool);
     allocInfo.setSetLayouts(_descriptorSetLayout);
 
-    _descriptorSet = _device.allocateDescriptorSets(allocInfo)[0];
+    _descriptorSet = VulkanContext::device.allocateDescriptorSets(allocInfo)[0];
 
     std::vector<vk::WriteDescriptorSet> descriptorWrites = {};
     descriptorWrites.reserve(_descriptorSetsState.size());
@@ -72,13 +70,12 @@ void VulkanDescriptorSet::build()
         }
     }
 
-    _device.updateDescriptorSets(descriptorWrites, nullptr);
+    VulkanContext::device.updateDescriptorSets(descriptorWrites, nullptr);
 }
 
-DescriptorSetRef VulkanDescriptorSet::create(const Renderer* renderer)
+DescriptorSetRef VulkanDescriptorSet::create()
 {
-    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
-    return std::make_shared<ConcreteVulkanDescriptorSet>(vulkanInstance->device(), vulkanInstance->physicalDevice());
+    return std::make_shared<ConcreteVulkanDescriptorSet>();
 }
 
 vk::WriteDescriptorSet VulkanDescriptorSet::createUniformWriteDescriptorSet(

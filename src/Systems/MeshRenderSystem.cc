@@ -30,12 +30,12 @@ MeshRenderSystem::MeshRenderSystem()
     renderPassInfo.depthAttachmentFormat = renderer->depthFormat();
     renderPassInfo.images = renderer->swapChainImages();
     renderPassInfo.depthImage = renderer->depthImage();
-    _renderPass = renderer->createRenderPass(renderPassInfo);
+    _renderPass = RenderPass::create(renderPassInfo);
 
     // command buffer
     _commandBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto commandBuffer = renderer->createCommandBuffer();
+        auto commandBuffer = CommandBuffer::create();
         _commandBuffers.push_back(commandBuffer);
     }
 
@@ -45,15 +45,15 @@ MeshRenderSystem::MeshRenderSystem()
     _inFlightFences.reserve(MAX_FRAMES_IN_FLIGHT);
 
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        _imageAvailableSemaphores.push_back(renderer->createSemaphore());
-        _renderFinishedSemaphores.push_back(renderer->createSemaphore());
-        _inFlightFences.push_back(renderer->createFence());
+        _imageAvailableSemaphores.push_back(Semaphore::create());
+        _renderFinishedSemaphores.push_back(Semaphore::create());
+        _inFlightFences.push_back(Fence::create());
     }
 
     // descriptor sets
     _descriptorSets.reserve(MAX_FRAMES_IN_FLIGHT);
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto descriptorSet = renderer->createDescriptorSet();
+        auto descriptorSet = DescriptorSet::create();
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, ShaderStage::Vertex);
         descriptorSet->addSampler(ShaderStage::Fragment, _texture->image());
         descriptorSet->build();
@@ -67,7 +67,7 @@ MeshRenderSystem::MeshRenderSystem()
     pipelineInfo.shaders[ShaderStage::Fragment] = "Shaders/triangle.frag.bin";
     pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
 
-    _pipeline = renderer->createPipeline(pipelineInfo);
+    _pipeline = Pipeline::create(pipelineInfo);
 }
 
 MeshRenderSystem::~MeshRenderSystem()
@@ -153,7 +153,7 @@ void MeshRenderSystem::updateUniformBuffer(uint32_t currentFrame)
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
-    //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    // float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
     float time = 0;
 
     UniformBufferObject ubo {};

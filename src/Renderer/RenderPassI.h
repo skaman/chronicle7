@@ -10,10 +10,7 @@ namespace chronicle {
 
 template <class T> class RenderPassI {
 public:
-    static RenderPassRef create(const Renderer* renderer, const RenderPassInfo& renderPassInfo)
-    {
-        return T::create(renderer, renderPassInfo);
-    }
+    static RenderPassRef create(const RenderPassInfo& renderPassInfo) { return T::create(renderPassInfo); }
 
 private:
     RenderPassI() = default;

@@ -8,7 +8,7 @@ namespace chronicle {
 
 template <class T> class FenceI {
 public:
-    static FenceRef create(const Renderer* renderer) { return T::create(renderer); }
+    static FenceRef create() { return T::create(); }
 
 private:
     FenceI() = default;

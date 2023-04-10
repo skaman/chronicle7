@@ -7,9 +7,8 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanRenderPass)
 
-VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInfo& renderPassInfo)
-    : _device(device)
-    , _depthImage(renderPassInfo.depthImage)
+VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
+    : _depthImage(renderPassInfo.depthImage)
 {
     CHRZONE_VULKAN
 
@@ -68,7 +67,7 @@ VulkanRenderPass::VulkanRenderPass(const vk::Device& device, const RenderPassInf
     createRenderPassInfo.setSubpasses(subpass);
     createRenderPassInfo.setDependencies(dependency);
 
-    _renderPass = _device.createRenderPass(createRenderPassInfo);
+    _renderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
 
     // framebuffers
     _framebuffers.reserve(renderPassInfo.images.size());
@@ -101,15 +100,14 @@ VulkanRenderPass::~VulkanRenderPass()
     _images.clear();
 
     for (const auto& framebuffer : _framebuffers)
-        _device.destroyFramebuffer(framebuffer);
+        VulkanContext::device.destroyFramebuffer(framebuffer);
 
-    _device.destroyRenderPass(_renderPass);
+    VulkanContext::device.destroyRenderPass(_renderPass);
 }
 
-RenderPassRef VulkanRenderPass::create(const Renderer* renderer, const RenderPassInfo& renderPassInfo)
+RenderPassRef VulkanRenderPass::create(const RenderPassInfo& renderPassInfo)
 {
-    const auto vulkanInstance = static_cast<const VulkanInstance*>(renderer);
-    return std::make_shared<ConcreteVulkanRenderPass>(vulkanInstance->device(), renderPassInfo);
+    return std::make_shared<ConcreteVulkanRenderPass>(renderPassInfo);
 }
 
 vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image, const ImageRef& depthImage) const
@@ -128,14 +126,14 @@ vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image, const
     framebufferInfo.setHeight(vulkanImage->height());
     framebufferInfo.setLayers(1);
 
-    return _device.createFramebuffer(framebufferInfo);
+    return VulkanContext::device.createFramebuffer(framebufferInfo);
 }
 
 void VulkanRenderPass::recreateFrameBuffer(uint32_t imageIndex)
 {
     CHRZONE_VULKAN
 
-    _device.destroyFramebuffer(_framebuffers[imageIndex]);
+    VulkanContext::device.destroyFramebuffer(_framebuffers[imageIndex]);
 
     _framebuffers[imageIndex] = createFrameBuffer(_images[imageIndex], _depthImage);
 }

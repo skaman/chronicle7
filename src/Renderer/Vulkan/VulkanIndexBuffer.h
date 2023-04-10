@@ -8,8 +8,7 @@ namespace chronicle {
 
 class VulkanIndexBuffer : public IndexBufferI<VulkanIndexBuffer>, private NonCopyable<VulkanIndexBuffer> {
 protected:
-    explicit VulkanIndexBuffer(const vk::Device& device, const vk::PhysicalDevice& physicalDevice,
-        const vk::CommandPool& commandPool, const vk::Queue& queue);
+    explicit VulkanIndexBuffer() = default;
 
 public:
     ~VulkanIndexBuffer();
@@ -18,14 +17,9 @@ public:
 
     [[nodiscard]] const vk::Buffer& buffer() const { return _buffer; }
 
-    static IndexBufferRef create(const Renderer* renderer);
+    static IndexBufferRef create();
 
 private:
-    vk::Device _device;
-    vk::PhysicalDevice _physicalDevice;
-    vk::CommandPool _commandPool;
-    vk::Queue _queue;
-
     vk::Buffer _buffer;
     vk::DeviceMemory _bufferMemory;
 
