@@ -9,9 +9,6 @@ CHR_CONCRETE(MeshAsset);
 
 MeshAsset::MeshAsset(const std::string& filename)
 {
-    //_vertexBuffer = Locator::renderer->createVertexBuffer();
-    //_indexBuffer = Locator::renderer->createIndexBuffer();
-
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -36,6 +33,8 @@ MeshAsset::MeshAsset(const std::string& filename)
         const auto vertexBuffer = _vertexBuffers[shapeIndex].get();
         const auto indexBuffer = _indexBuffers[shapeIndex].get();
 
+        std::unordered_map<Vertex, uint32_t> uniqueVertices {};
+
         for (const auto& index : shapes[shapeIndex].mesh.indices) {
             Vertex vertex {};
 
@@ -47,8 +46,14 @@ MeshAsset::MeshAsset(const std::string& filename)
 
             vertex.color = { 1.0f, 1.0f, 1.0f };
 
-            vertices.push_back(vertex);
-            indices.push_back(static_cast<uint32_t>(indices.size()));
+            if (uniqueVertices.count(vertex) == 0) {
+                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+                vertices.push_back(vertex);
+            }
+
+            indices.push_back(uniqueVertices[vertex]);
+            //vertices.push_back(vertex);
+            //indices.push_back(static_cast<uint32_t>(indices.size()));
         }
 
         _verticesCount.push_back(static_cast<uint32_t>(vertices.size()));

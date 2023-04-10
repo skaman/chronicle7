@@ -68,7 +68,7 @@ void VulkanBuffer::copyToImage(const vk::Device& device, const vk::CommandPool& 
 
 void VulkanBuffer::transitionImageLayout(const vk::Device& device, const vk::CommandPool& commandPool,
     const vk::Queue& graphicsQueue, vk::Image image, vk::Format format, vk::ImageLayout oldLayout,
-    vk::ImageLayout newLayout)
+    vk::ImageLayout newLayout, uint32_t mipLevels)
 {
     CHRZONE_VULKAN
 
@@ -77,7 +77,7 @@ void VulkanBuffer::transitionImageLayout(const vk::Device& device, const vk::Com
     vk::ImageSubresourceRange subresourceRange = {};
     subresourceRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
     subresourceRange.setBaseMipLevel(0);
-    subresourceRange.setLevelCount(1);
+    subresourceRange.setLevelCount(mipLevels);
     subresourceRange.setBaseArrayLayer(0);
     subresourceRange.setLayerCount(1);
 

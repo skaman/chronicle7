@@ -5,7 +5,7 @@
 namespace chronicle {
 
 struct ImageInfo {
-    std::string filename;
+    bool generateMipmaps = true;
 };
 
 } // namespace chronicle

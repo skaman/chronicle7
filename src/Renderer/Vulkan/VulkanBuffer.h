@@ -18,7 +18,7 @@ public:
 
     static void transitionImageLayout(const vk::Device& device, const vk::CommandPool& commandPool,
         const vk::Queue& graphicsQueue, vk::Image image, vk::Format format, vk::ImageLayout oldLayout,
-        vk::ImageLayout newLayout);
+        vk::ImageLayout newLayout, uint32_t mipLevels);
 
     [[nodiscard]] static uint32_t findMemoryType(
         const vk::PhysicalDevice& physicalDevice, uint32_t typeFilter, vk::MemoryPropertyFlags properties);

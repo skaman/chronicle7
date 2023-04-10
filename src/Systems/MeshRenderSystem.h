@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include "Assets/MeshAsset.h"
+#include "Assets/TextureAsset.h"
 #include "Renderer/Renderer.h"
 #include "System.h"
 
@@ -23,8 +24,6 @@ private:
     RenderPassRef _renderPass;
     std::vector<DescriptorSetRef> _descriptorSets = {};
     PipelineRef _pipeline;
-    //VertexBufferRef _vertexBuffer;
-    //IndexBufferRef _indexBuffer;
     std::vector<CommandBufferRef> _commandBuffers;
     std::vector<SemaphoreRef> _imageAvailableSemaphores;
     std::vector<SemaphoreRef> _renderFinishedSemaphores;
@@ -32,8 +31,7 @@ private:
     uint32_t _currentFrame = 0;
 
     MeshAssetRef _mesh;
-
-    ImageRef _texture;
+    TextureAssetRef _texture;
 };
 
 } // namespace chronicle

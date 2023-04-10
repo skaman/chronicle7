@@ -15,18 +15,6 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 proj;
 };
 
-//const std::vector<Vertex> Vertices = { { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-//    { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
-//    { { 0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
-//    { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
-//
-//    { { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-//    { { 0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
-//    { { 0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
-//    { { -0.5f, 0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } } };
-//
-//const std::vector<uint32_t> Indices = { 0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4 };
-
 MeshRenderSystem::MeshRenderSystem()
 {
     CHRZONE_RENDERER_SYSTEM
@@ -34,6 +22,7 @@ MeshRenderSystem::MeshRenderSystem()
     const auto renderer = Locator::renderer.get();
 
     _mesh = MeshAsset::load("D:\\viking_room.obj");
+    _texture = TextureAsset::load("D:\\viking_room.png");
 
     // render pass
     RenderPassInfo renderPassInfo = {};
@@ -61,17 +50,12 @@ MeshRenderSystem::MeshRenderSystem()
         _inFlightFences.push_back(renderer->createFence());
     }
 
-    // texture
-    ImageInfo imageInfo = {};
-    imageInfo.filename = "D:\\viking_room.png";
-    _texture = renderer->createTextureImage(imageInfo);
-
     // descriptor sets
     _descriptorSets.reserve(MAX_FRAMES_IN_FLIGHT);
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         auto descriptorSet = renderer->createDescriptorSet();
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, ShaderStage::Vertex);
-        descriptorSet->addSampler(ShaderStage::Fragment, _texture);
+        descriptorSet->addSampler(ShaderStage::Fragment, _texture->image());
         descriptorSet->build();
         _descriptorSets.push_back(descriptorSet);
     }
@@ -81,49 +65,21 @@ MeshRenderSystem::MeshRenderSystem()
     pipelineInfo.renderPass = _renderPass;
     pipelineInfo.shaders[ShaderStage::Vertex] = "Shaders/triangle.vert.bin";
     pipelineInfo.shaders[ShaderStage::Fragment] = "Shaders/triangle.frag.bin";
-
-    VertexBufferInfo vertexBufferInfo = {};
-    vertexBufferInfo.stride = sizeof(Vertex);
-
-    AttributeDescriptionInfo descriptorInfo0 = {};
-    descriptorInfo0.format = Format::R32G32B32Sfloat;
-    descriptorInfo0.offset = offsetof(Vertex, pos);
-    vertexBufferInfo.attributeDescriptions.push_back(descriptorInfo0);
-
-    AttributeDescriptionInfo descriptorInfo1 = {};
-    descriptorInfo1.format = Format::R32G32B32Sfloat;
-    descriptorInfo1.offset = offsetof(Vertex, color);
-    vertexBufferInfo.attributeDescriptions.push_back(descriptorInfo1);
-
-    AttributeDescriptionInfo descriptorInfo2 = {};
-    descriptorInfo2.format = Format::R32G32Sfloat;
-    descriptorInfo2.offset = offsetof(Vertex, texCoord);
-    vertexBufferInfo.attributeDescriptions.push_back(descriptorInfo2);
-
-    pipelineInfo.vertexBuffers.push_back(vertexBufferInfo);
+    pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
 
     _pipeline = renderer->createPipeline(pipelineInfo);
-
-    // vertex and index buffer
-    //_vertexBuffer = renderer->createVertexBuffer();
-    //_indexBuffer = renderer->createIndexBuffer();
-    //
-    //_vertexBuffer->set((void*)Vertices.data(), sizeof(Vertices[0]) * Vertices.size());
-    //_indexBuffer->set((void*)Indices.data(), sizeof(Indices[0]) * Indices.size());
 }
 
 MeshRenderSystem::~MeshRenderSystem()
 {
     CHRZONE_RENDERER_SYSTEM
 
-    _texture.reset();
     _inFlightFences.clear();
     _renderFinishedSemaphores.clear();
     _imageAvailableSemaphores.clear();
     _commandBuffers.clear();
     _mesh.reset();
-    //_indexBuffer.reset();
-    //_vertexBuffer.reset();
+    _texture.reset();
     _pipeline.reset();
     _descriptorSets.clear();
     _renderPass.reset();
@@ -197,7 +153,8 @@ void MeshRenderSystem::updateUniformBuffer(uint32_t currentFrame)
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    float time = 0;
 
     UniformBufferObject ubo {};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));

@@ -1,6 +1,7 @@
 #include "VulkanImage.h"
 
 #include "VulkanBuffer.h"
+#include "VulkanImageUtils.h"
 #include "VulkanRenderer.h"
 
 namespace chronicle {
@@ -9,9 +10,66 @@ CHR_CONCRETE(VulkanImage)
 
 VulkanImage::~VulkanImage() { cleanup(); }
 
-void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, int width, int height)
+void VulkanImage::set(void* src, size_t size, uint32_t width, uint32_t height)
 {
     CHRZONE_VULKAN
+
+    assert(src != nullptr);
+    assert(size > 0);
+    assert(width > 0);
+    assert(height > 0);
+
+    vk::Buffer stagingBuffer;
+    vk::DeviceMemory stagingBufferMemory;
+
+    VulkanBuffer::create(_device, _physicalDevice, size, vk::BufferUsageFlagBits::eTransferSrc,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
+        stagingBufferMemory);
+
+    const auto data = _device.mapMemory(stagingBufferMemory, 0, size, vk::MemoryMapFlags());
+    memcpy(data, src, size);
+    _device.unmapMemory(stagingBufferMemory);
+
+    // calculate mip levels
+    _mipLevels = _generateMipmaps ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1 : 1;
+
+    // create vulkan image
+    auto [imageMemory, image] = VulkanImageUtils::createImage(_device, _physicalDevice, width, height, _mipLevels,
+        vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+    // copy image buffer
+    VulkanBuffer::transitionImageLayout(_device, _commandPool, _queue, image, vk::Format::eR8G8B8A8Srgb,
+        vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1);
+    VulkanBuffer::copyToImage(_device, _commandPool, _queue, stagingBuffer, image, width, height);
+    VulkanBuffer::transitionImageLayout(_device, _commandPool, _queue, image, vk::Format::eR8G8B8A8Srgb,
+        vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, _mipLevels);
+
+    _device.destroyBuffer(stagingBuffer);
+    _device.freeMemory(stagingBufferMemory);
+
+    _width = width;
+    _height = height;
+    _imageMemory = imageMemory;
+    _image = image;
+
+    // image view
+    _imageView
+        = VulkanImageUtils::createImageView(_device, image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
+
+    // texture sampler
+    _sampler = VulkanImageUtils::createTextureSampler(_device, _physicalDevice);
+}
+
+void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
+{
+    CHRZONE_VULKAN
+
+    assert(_type == ImageType::Swapchain);
+    assert(image);
+    assert(width > 0);
+    assert(height > 0);
 
     cleanup();
 
@@ -19,18 +77,29 @@ void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, int
     _width = width;
     _height = height;
 
-    createImageView(format, vk::ImageAspectFlagBits::eColor);
+    _imageView = VulkanImageUtils::createImageView(_device, image, format, vk::ImageAspectFlagBits::eColor);
 
     updated();
 }
 
 void VulkanImage::updateDepthBuffer(uint32_t width, uint32_t height, vk::Format format)
 {
+    CHRZONE_VULKAN
+
+    assert(_type == ImageType::Depth);
+    assert(width > 0);
+    assert(height > 0);
+    assert(format != vk::Format::eUndefined);
+
     cleanup();
 
-    createImage(width, height, format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment,
-        vk::MemoryPropertyFlagBits::eDeviceLocal);
-    createImageView(format, vk::ImageAspectFlagBits::eDepth);
+    auto [imageMemory, image]
+        = VulkanImageUtils::createImage(_device, _physicalDevice, width, height, 1, format, vk::ImageTiling::eOptimal,
+            vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    _imageMemory = imageMemory;
+    _image = image;
+
+    _imageView = VulkanImageUtils::createImageView(_device, image, format, vk::ImageAspectFlagBits::eDepth);
 
     _width = width;
     _height = height;
@@ -40,81 +109,39 @@ ImageRef VulkanImage::createTexture(const Renderer* renderer, const ImageInfo& i
 {
     CHRZONE_VULKAN
 
+    assert(renderer != nullptr);
+
     const auto vulkanRenderer = static_cast<const VulkanRenderer*>(renderer);
 
     auto result = std::make_shared<ConcreteVulkanImage>();
+    result->_type = ImageType::Texture;
     result->_device = vulkanRenderer->device();
     result->_physicalDevice = vulkanRenderer->physicalDevice();
-
-    int texWidth;
-    int texHeight;
-    int texChannels;
-
-    // load image
-    stbi_uc* pixels = stbi_load(imageInfo.filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    vk::DeviceSize imageSize = static_cast<vk::DeviceSize>(texWidth) * static_cast<vk::DeviceSize>(texHeight) * 4;
-
-    if (!pixels) {
-        throw RendererError("Failed to load texture image");
-    }
-
-    vk::Buffer stagingBuffer;
-    vk::DeviceMemory stagingBufferMemory;
-
-    VulkanBuffer::create(vulkanRenderer->device(), vulkanRenderer->physicalDevice(), imageSize,
-        vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-        stagingBufferMemory);
-
-    const auto data = vulkanRenderer->device().mapMemory(stagingBufferMemory, 0, imageSize, vk::MemoryMapFlags());
-    memcpy(data, pixels, imageSize);
-    vulkanRenderer->device().unmapMemory(stagingBufferMemory);
-
-    stbi_image_free(pixels);
-
-    // create vulkan image
-    result->createImage(texWidth, texHeight, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-        vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-    // copy image buffer
-    VulkanBuffer::transitionImageLayout(vulkanRenderer->device(), vulkanRenderer->commandPool(),
-        vulkanRenderer->graphicsQueue(), result->_image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eTransferDstOptimal);
-    VulkanBuffer::copyToImage(vulkanRenderer->device(), vulkanRenderer->commandPool(), vulkanRenderer->graphicsQueue(),
-        stagingBuffer, result->_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-    VulkanBuffer::transitionImageLayout(vulkanRenderer->device(), vulkanRenderer->commandPool(),
-        vulkanRenderer->graphicsQueue(), result->_image, vk::Format::eR8G8B8A8Srgb,
-        vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-
-    vulkanRenderer->device().destroyBuffer(stagingBuffer);
-    vulkanRenderer->device().freeMemory(stagingBufferMemory);
-
-    result->_width = texWidth;
-    result->_height = texHeight;
-
-    // image view
-    result->createImageView(vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
-
-    // texture sampler
-    result->createTextureSampler();
-
+    result->_commandPool = vulkanRenderer->commandPool();
+    result->_queue = vulkanRenderer->graphicsQueue();
+    result->_generateMipmaps = imageInfo.generateMipmaps;
     return result;
 }
 
 ImageRef VulkanImage::createSwapchain(
-    const vk::Device& device, const vk::Image& image, vk::Format format, int width, int height)
+    const vk::Device& device, const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
 {
     CHRZONE_VULKAN
 
+    assert(device);
+    assert(image);
+    assert(format != vk::Format::eUndefined);
+    assert(width > 0);
+    assert(height > 0);
+
     auto result = std::make_shared<ConcreteVulkanImage>();
+    result->_type = ImageType::Swapchain;
     result->_device = device;
     result->_image = image;
-    result->_swapchainImage = true;
     result->_width = width;
     result->_height = height;
 
-    result->createImageView(format, vk::ImageAspectFlagBits::eColor);
+    result->_imageView = VulkanImageUtils::createImageView(device, image, format, vk::ImageAspectFlagBits::eColor);
 
     return result;
 }
@@ -124,13 +151,23 @@ ImageRef VulkanImage::createDepthBuffer(
 {
     CHRZONE_VULKAN
 
+    assert(device);
+    assert(physicalDevice);
+    assert(width > 0);
+    assert(height > 0);
+    assert(format != vk::Format::eUndefined);
+
     auto result = std::make_shared<ConcreteVulkanImage>();
+    result->_type = ImageType::Depth;
     result->_device = device;
     result->_physicalDevice = physicalDevice;
 
-    result->createImage(width, height, format, vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    result->createImageView(format, vk::ImageAspectFlagBits::eDepth);
+    auto [imageMemory, image]
+        = VulkanImageUtils::createImage(device, physicalDevice, width, height, 1, format, vk::ImageTiling::eOptimal,
+            vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    result->_imageMemory = imageMemory;
+    result->_image = image;
+    result->_imageView = VulkanImageUtils::createImageView(device, image, format, vk::ImageAspectFlagBits::eDepth);
 
     result->_width = width;
     result->_height = height;
@@ -138,101 +175,17 @@ ImageRef VulkanImage::createDepthBuffer(
     return result;
 }
 
-void VulkanImage::cleanup()
+void VulkanImage::cleanup() const
 {
     CHRZONE_VULKAN
 
     _device.destroyImageView(_imageView);
 
-    if (!_swapchainImage) {
+    if (_type != ImageType::Swapchain) {
         _device.destroySampler(_sampler);
         _device.destroyImage(_image);
         _device.freeMemory(_imageMemory);
     }
-}
-
-void VulkanImage::createImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
-    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties)
-{
-    CHRZONE_VULKAN
-
-    vk::Extent3D imageExtent = {};
-    imageExtent.setWidth(width);
-    imageExtent.setHeight(height);
-    imageExtent.setDepth(1);
-
-    vk::ImageCreateInfo imageCreateInfo {};
-    imageCreateInfo.setImageType(vk::ImageType::e2D);
-    imageCreateInfo.setExtent(imageExtent);
-    imageCreateInfo.setMipLevels(1);
-    imageCreateInfo.setArrayLayers(1);
-    imageCreateInfo.setFormat(format);
-    imageCreateInfo.setTiling(tiling);
-    imageCreateInfo.setInitialLayout(vk::ImageLayout::eUndefined);
-    imageCreateInfo.setUsage(usage);
-    imageCreateInfo.setSharingMode(vk::SharingMode::eExclusive);
-    imageCreateInfo.setSamples(vk::SampleCountFlagBits::e1);
-
-    _image = _device.createImage(imageCreateInfo);
-
-    // allocate memory
-    const auto memRequirements = _device.getImageMemoryRequirements(_image);
-
-    vk::MemoryAllocateInfo allocInfo = {};
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.setAllocationSize(memRequirements.size);
-    allocInfo.setMemoryTypeIndex(
-        VulkanBuffer::findMemoryType(_physicalDevice, memRequirements.memoryTypeBits, properties));
-
-    _imageMemory = _device.allocateMemory(allocInfo, nullptr);
-
-    vkBindImageMemory(_device, _image, _imageMemory, 0);
-}
-
-void VulkanImage::createImageView(vk::Format format, vk::ImageAspectFlags aspectFlags)
-{
-    CHRZONE_VULKAN
-
-    vk::ImageSubresourceRange subresourceRange = {};
-    subresourceRange.setAspectMask(aspectFlags);
-    subresourceRange.setBaseMipLevel(0);
-    subresourceRange.setLevelCount(1);
-    subresourceRange.setBaseArrayLayer(0);
-    subresourceRange.setLayerCount(1);
-
-    vk::ImageViewCreateInfo viewInfo = {};
-    viewInfo.image = _image;
-    viewInfo.viewType = vk::ImageViewType::e2D;
-    viewInfo.format = format;
-    viewInfo.setSubresourceRange(subresourceRange);
-
-    _imageView = _device.createImageView(viewInfo);
-}
-
-void VulkanImage::createTextureSampler()
-{
-    CHRZONE_VULKAN
-
-    const auto properties = _physicalDevice.getProperties();
-
-    vk::SamplerCreateInfo samplerInfo = {};
-    samplerInfo.setMagFilter(vk::Filter::eLinear);
-    samplerInfo.setMinFilter(vk::Filter::eLinear);
-    samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setAnisotropyEnable(true);
-    samplerInfo.setMaxAnisotropy(properties.limits.maxSamplerAnisotropy);
-    samplerInfo.setBorderColor(vk::BorderColor::eIntOpaqueBlack);
-    samplerInfo.setUnnormalizedCoordinates(false);
-    samplerInfo.setCompareEnable(false);
-    samplerInfo.setCompareOp(vk::CompareOp::eAlways);
-    samplerInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-    samplerInfo.setMipLodBias(0.0f);
-    samplerInfo.setMinLod(0.0f);
-    samplerInfo.setMaxLod(0.0f);
-
-    _sampler = _device.createSampler(samplerInfo);
 }
 
 } // namespace chronicle

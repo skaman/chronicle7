@@ -62,6 +62,8 @@ add_executable(chronicle
     "Renderer/Vulkan/VulkanFence.cc"
     "Renderer/Vulkan/VulkanImage.h"
     "Renderer/Vulkan/VulkanImage.cc"
+    "Renderer/Vulkan/VulkanImageUtils.h"
+    "Renderer/Vulkan/VulkanImageUtils.cc"
     "Renderer/Vulkan/VulkanIndexBuffer.h"
     "Renderer/Vulkan/VulkanIndexBuffer.cc"
     "Renderer/Vulkan/VulkanPipeline.h"

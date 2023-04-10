@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include "Renderer/Common.h"
+#include "Renderer/VertexBufferInfo.h"
 
 namespace chronicle {
 
@@ -17,6 +18,8 @@ public:
     ~MeshAsset() = default;
 
     static MeshAssetRef load(const std::string& filename);
+
+    [[nodiscard]] VertexBufferInfo bufferInfo() const { return Vertex::bufferInfo(); }
 
     [[nodiscard]] uint32_t shapesCount() const { return _shapesCount; }
     [[nodiscard]] const VertexBufferRef& vertexBuffer(uint32_t shapeIndex) const { return _vertexBuffers[shapeIndex]; }
