@@ -80,14 +80,6 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanVertexBuffer.cc"
     "Storage/File.h"
     "Storage/File.cc"
-    "Systems/BeginRenderSystem.h"
-    "Systems/BeginRenderSystem.cc"
-    "Systems/EndRenderSystem.h"
-    "Systems/EndRenderSystem.cc"
-    "Systems/MeshRenderSystem.h"
-    "Systems/MeshRenderSystem.cc"
-    "Systems/Systems.h"
-    "Systems/System.h"
 )
 
 add_library(chronicle::core ALIAS chronicle-core)
