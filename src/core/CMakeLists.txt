@@ -30,6 +30,9 @@ add_library(chronicle-core
     "Assets/ShaderAsset.cc"
     "Assets/TextureAsset.h"
     "Assets/TextureAsset.cc"
+    "Gui/Common.h"
+    "Gui/Gui.h"
+    "Gui/Gui.cpp"
     "Platform/Platform.h"
     "Platform/PlatformI.h"
     "Platform/Common.h"
@@ -80,7 +83,16 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanVertexBuffer.cc"
     "Storage/File.h"
     "Storage/File.cc"
-)
+
+    # IMGUI
+    "../../vendor/imgui/imgui.cpp"
+    "../../vendor/imgui/imgui_demo.cpp"
+    "../../vendor/imgui/imgui_draw.cpp"
+    "../../vendor/imgui/imgui_tables.cpp"
+    "../../vendor/imgui/imgui_widgets.cpp"
+    "../../vendor/imgui/backends/imgui_impl_glfw.cpp"
+    "../../vendor/imgui/backends/imgui_impl_vulkan.cpp"
+ )
 
 add_library(chronicle::core ALIAS chronicle-core)
 
@@ -96,6 +108,7 @@ target_include_directories(chronicle-core
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         "${CMAKE_CURRENT_SOURCE_DIR}/../../vendor"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../vendor/imgui"
 )
 
 target_precompile_headers(chronicle-core

@@ -236,6 +236,8 @@ void VulkanInstance::createLogicalDevice()
 
     VulkanContext::graphicsQueue = VulkanContext::device.getQueue(indices.graphicsFamily.value(), 0);
     VulkanContext::presentQueue = VulkanContext::device.getQueue(indices.presentFamily.value(), 0);
+    VulkanContext::graphicsFamily = indices.graphicsFamily.value();
+    VulkanContext::presentFamily = indices.presentFamily.value();
 }
 
 void VulkanInstance::createSwapChain()

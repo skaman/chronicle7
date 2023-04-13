@@ -44,6 +44,10 @@
 // stb
 #include <stb/stb_image.h>
 
+// imgui
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
+
 // std lib
 #include <bit>
 #include <chrono>
@@ -56,10 +60,10 @@
 
 // logs
 #ifdef NDEBUG
-#define CHRLOG_DEBUG(...) (void)0
-#define CHRLOG_INFO(...) (void)0
-#define CHRLOG_WARN(...) (void)0
-#define CHRLOG_ERROR(...) (void)0
+#define CHRLOG_DEBUG(...) (void)0;
+#define CHRLOG_INFO(...) (void)0;
+#define CHRLOG_WARN(...) (void)0;
+#define CHRLOG_ERROR(...) (void)0;
 #else
 #define CHRLOG_DEBUG(...)                                                                                              \
     {                                                                                                                  \

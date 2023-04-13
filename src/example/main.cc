@@ -2,6 +2,7 @@
 
 #include <Assets/MeshAsset.h>
 #include <Assets/TextureAsset.h>
+#include <Gui/Gui.h>
 #include <Platform/Platform.h>
 #include <Renderer/Renderer.h>
 
@@ -33,6 +34,8 @@ public:
         renderPassInfo.images = chronicle::Renderer::swapChainImages();
         renderPassInfo.depthImage = chronicle::Renderer::depthImage();
         _renderPass = chronicle::RenderPass::create(renderPassInfo);
+
+        chronicle::Gui::init(2, _renderPass);
 
         // command buffer
         _commandBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
@@ -86,6 +89,7 @@ public:
         _descriptorSets.clear();
         _renderPass.reset();
 
+        chronicle::Gui::deinit();
         chronicle::Renderer::deinit();
         chronicle::Platform::deinit();
     }
@@ -94,6 +98,10 @@ public:
     {
         while (chronicle::Platform::poll()) {
             chronicle::Renderer::waitForFence(_inFlightFences[_currentFrame]);
+
+            chronicle::Gui::newFrame();
+
+            ImGui::ShowDemoWindow();
 
             auto imageIndex = chronicle::Renderer::acquireNextImage(_imageAvailableSemaphores[_currentFrame]);
             if (!imageIndex) {
@@ -135,6 +143,8 @@ public:
         commandBuffer->bindDescriptorSet(_descriptorSets[_currentFrame], 0);
 
         commandBuffer->drawIndexed(_mesh->indicesCount(0), 1);
+
+        chronicle::Gui::render(_commandBuffers[_currentFrame]);
 
         commandBuffer->endRenderPass();
         commandBuffer->end();

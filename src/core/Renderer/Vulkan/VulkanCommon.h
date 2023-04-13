@@ -85,6 +85,9 @@ struct VulkanContext {
     static inline vk::Queue graphicsQueue;
     static inline vk::Queue presentQueue;
 
+    static inline uint32_t graphicsFamily;
+    static inline uint32_t presentFamily;
+
     static inline vk::SwapchainKHR swapChain;
     static inline std::vector<ImageRef> swapChainImages;
     static inline vk::Format swapChainImageFormat;
