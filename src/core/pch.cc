@@ -1,5 +1,3 @@
-#ifndef NDEBUG
-
 #define TINYGLTF_IMPLEMENTATION
 #include <tiny_gltf.h>
 
@@ -11,6 +9,8 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
+
+#ifndef NDEBUG
 
 void* operator new(std::size_t count)
 {
