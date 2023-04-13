@@ -1,0 +1,23 @@
+{
+  "ServerUri": "https://sonarcloud.io/",
+  "Organization": {
+    "Key": "skaman",
+    "Name": "Sandro Cavazzoni"
+  },
+  "ProjectKey": "skaman_chronicle7",
+  "ProjectName": "chronicle",
+  "Profiles": {
+    "C++": {
+      "ProfileKey": "AX_sIe9l6v4kJSeGSLuO",
+      "ProfileTimestamp": "2023-02-07T10:21:01Z"
+    },
+    "C": {
+      "ProfileKey": "AX_sIe9l6v4kJSeGSLug",
+      "ProfileTimestamp": "2023-01-10T08:09:48Z"
+    },
+    "Secrets": {
+      "ProfileKey": "AYXoTKt09Ao2yLWbNTc_",
+      "ProfileTimestamp": "2023-01-25T09:40:14Z"
+    }
+  }
+}
