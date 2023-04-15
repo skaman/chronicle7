@@ -5,11 +5,22 @@
 
 #include "pch.h"
 
+#include "Renderer/Common.h"
+
 namespace chronicle {
 
-struct GuiContex {
+struct VulkanImGuiContext {
     static inline vk::DescriptorPool descriptorPool;
     static inline vk::PipelineCache pipelineCache;
+};
+
+class VulkanImGui {
+public:
+    static void init();
+    static void deinit();
+
+    static void newFrame();
+    static void render(const CommandBufferRef& commandBuffer);
 };
 
 } // namespace chronicle

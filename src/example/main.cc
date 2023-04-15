@@ -5,7 +5,6 @@
 
 #include <Assets/MeshAsset.h>
 #include <Assets/TextureAsset.h>
-#include <Gui/Gui.h>
 #include <Platform/Platform.h>
 #include <Renderer/Renderer.h>
 
@@ -29,9 +28,6 @@ public:
             descriptorSet->build();
         }
 
-        // just after the render pass creation
-        // chronicle::Gui::init(2, _renderPass);
-
         // pipeline
         chronicle::PipelineInfo pipelineInfo = {};
         pipelineInfo.shaders[chronicle::ShaderStage::Vertex] = "Shaders/triangle.vert.bin";
@@ -49,7 +45,6 @@ public:
         _texture.reset();
         _pipeline.reset();
 
-        // chronicle::Gui::deinit();
         chronicle::Renderer::deinit();
         chronicle::Platform::deinit();
     }
@@ -59,6 +54,8 @@ public:
         while (chronicle::Platform::poll()) {
             if (!chronicle::Renderer::beginFrame())
                 continue;
+
+            ImGui::ShowDemoWindow();
 
             chronicle::Renderer::commandBuffer()->bindPipeline(_pipeline);
             chronicle::Renderer::commandBuffer()->bindVertexBuffer(_mesh->vertexBuffer(0));

@@ -78,6 +78,19 @@ inline vk::VertexInputRate vertextInputRateToVulkan(VertexInputRate vertexInputR
     }
 }
 
+struct VulkanQueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
+
+    [[nodiscard]] bool IsComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
+};
+
+struct VulkanSwapChainSupportDetails {
+    vk::SurfaceCapabilitiesKHR capabilities;
+    std::vector<vk::SurfaceFormatKHR> formats;
+    std::vector<vk::PresentModeKHR> presentModes;
+};
+
 struct UniformBufferObject {
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
@@ -142,6 +155,7 @@ struct VulkanContext {
 
     // options
     static inline int maxFramesInFlight = 2;
+    static inline bool enabledValidationLayer = true;
 };
 
 } // namespace chronicle

@@ -1,30 +1,34 @@
 // Copyright (c) 2023 Sandro Cavazzoni
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
-#include "Gui.h"
+#include "VulkanImGui.h"
 
-#include "Common.h"
+#include "VulkanCommon.h"
+#include "VulkanUtils.h"
+#include "VulkanCommandBuffer.h"
+
+#ifdef GLFW_PLATFORM
 #include "Platform/GLFW/GLFWCommon.h"
-#include "Renderer/Vulkan/VulkanCommandBuffer.h"
-#include "Renderer/Vulkan/VulkanCommon.h"
-#include "Renderer/Vulkan/VulkanUtils.h"
-
 #include <backends/imgui_impl_glfw.h>
+#endif
+
 #include <backends/imgui_impl_vulkan.h>
 
 namespace chronicle {
 
-static void check_vk_result(VkResult err)
+static void checkVulkanResult(VkResult err)
 {
     if (err == 0)
         return;
-    spdlog::error("[vulkan] Error: VkResult = %d\n", err);
-    if (err < 0)
-        abort();
+    throw RendererError(fmt::format("Error: VkResult = {}", err));
 }
 
-void Gui::init()
+void VulkanImGui::init()
 {
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("ImGui init");
+
     // create descriptor pool
     std::vector<vk::DescriptorPoolSize> sizes = { { vk::DescriptorType::eSampler, 1000 },
         { vk::DescriptorType::eCombinedImageSampler, 1000 }, { vk::DescriptorType::eSampledImage, 1000 },
@@ -37,23 +41,20 @@ void Gui::init()
     poolInfo.setMaxSets(1000 * sizes.size());
     poolInfo.setPoolSizes(sizes);
 
-    GuiContex::descriptorPool = VulkanContext::device.createDescriptorPool(poolInfo, nullptr);
+    VulkanImGuiContext::descriptorPool = VulkanContext::device.createDescriptorPool(poolInfo, nullptr);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
-    //  io.ConfigViewportsNoAutoMerge = true;
-    //  io.ConfigViewportsNoTaskBarIcon = true;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    // ImGui::StyleColorsLight();
 
     ImGuiStyle& style = ImGui::GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -70,14 +71,14 @@ void Gui::init()
     init_info.Device = VulkanContext::device;
     init_info.QueueFamily = VulkanContext::graphicsFamily;
     init_info.Queue = VulkanContext::graphicsQueue;
-    init_info.PipelineCache = GuiContex::pipelineCache;
-    init_info.DescriptorPool = GuiContex::descriptorPool;
+    init_info.PipelineCache = VulkanImGuiContext::pipelineCache;
+    init_info.DescriptorPool = VulkanImGuiContext::descriptorPool;
     init_info.Subpass = 0;
     init_info.MinImageCount = 2;
     init_info.ImageCount = static_cast<uint32_t>(VulkanContext::swapChainImages.size());
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.Allocator = nullptr;
-    init_info.CheckVkResultFn = check_vk_result;
+    init_info.CheckVkResultFn = checkVulkanResult;
     ImGui_ImplVulkan_Init(&init_info, VulkanContext::renderPass);
 
     auto commandBuffer = VulkanUtils::beginSingleTimeCommands();
@@ -86,38 +87,45 @@ void Gui::init()
     ImGui_ImplVulkan_DestroyFontUploadObjects();
 }
 
-void Gui::deinit()
+void VulkanImGui::deinit()
 {
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("ImGui deinit");
+
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
 
-    VulkanContext::device.destroyDescriptorPool(GuiContex::descriptorPool);
+    VulkanContext::device.destroyDescriptorPool(VulkanImGuiContext::descriptorPool);
 }
-
-void Gui::newFrame()
+void VulkanImGui::newFrame()
 {
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("ImGui new frame");
+
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 }
-
-void Gui::render(const CommandBufferRef& commandBuffer)
+void VulkanImGui::render(const CommandBufferRef& commandBuffer)
 {
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("ImGui render");
+
     auto vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer.get());
 
     ImGui::Render();
 
     ImDrawData* main_draw_data = ImGui::GetDrawData();
-    // const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
-    // if (!main_is_minimized)
     ImGui_ImplVulkan_RenderDrawData(main_draw_data, vulkanCommandBuffer->commandBuffer());
 
     // Update and Render additional Platform Windows
-    ImGuiIO& io = ImGui::GetIO();
+    const ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
 }
-
 } // namespace chronicle

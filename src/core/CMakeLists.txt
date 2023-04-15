@@ -30,9 +30,6 @@ add_library(chronicle-core
     "Assets/ShaderAsset.cc"
     "Assets/TextureAsset.h"
     "Assets/TextureAsset.cc"
-    "Gui/Common.h"
-    "Gui/Gui.h"
-    "Gui/Gui.cpp"
     "Platform/Platform.h"
     "Platform/PlatformI.h"
     "Platform/Common.h"
@@ -48,7 +45,6 @@ add_library(chronicle-core
     "Renderer/Renderer.h"
     "Renderer/RendererI.h"
     "Renderer/RendererError.h"
-    
     "Renderer/TextureI.h"
     "Renderer/TextureInfo.h"
     "Renderer/VertexBufferI.h"
@@ -58,6 +54,8 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanCommon.h"
     "Renderer/Vulkan/VulkanDescriptorSet.h"
     "Renderer/Vulkan/VulkanDescriptorSet.cc"
+    "Renderer/Vulkan/VulkanImGui.h"
+    "Renderer/Vulkan/VulkanImGui.cc"
     "Renderer/Vulkan/VulkanIndexBuffer.h"
     "Renderer/Vulkan/VulkanIndexBuffer.cc"
     "Renderer/Vulkan/VulkanInstance.h"
@@ -83,7 +81,7 @@ add_library(chronicle-core
     "../../vendor/imgui/imgui_widgets.cpp"
     "../../vendor/imgui/backends/imgui_impl_glfw.cpp"
     "../../vendor/imgui/backends/imgui_impl_vulkan.cpp"
- )
+)
 
 add_library(chronicle::core ALIAS chronicle-core)
 

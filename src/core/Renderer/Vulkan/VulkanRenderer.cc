@@ -5,6 +5,7 @@
 
 #include "VulkanCommandBuffer.h"
 #include "VulkanInstance.h"
+#include "VulkanImGui.h"
 
 namespace chronicle {
 
@@ -13,6 +14,7 @@ void VulkanRenderer::init()
     CHRLOG_INFO("Renderer init");
 
     VulkanInstance::init();
+    VulkanImGui::init();
 }
 
 void VulkanRenderer::deinit()
@@ -21,6 +23,7 @@ void VulkanRenderer::deinit()
 
     CHRLOG_INFO("Renderer deinit");
 
+    VulkanImGui::deinit();
     VulkanInstance::deinit();
 }
 
@@ -52,7 +55,8 @@ bool VulkanRenderer::beginFrame()
         VulkanInstance::recreateSwapChain();
         return false;
     }
-    // chronicle::Gui::newFrame();
+
+    VulkanImGui::newFrame();
 
     const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
@@ -94,7 +98,8 @@ void VulkanRenderer::endFrame()
 
     CHRLOG_TRACE("End swapchain");
 
-    // chronicle::Gui::render(_commandBuffers[_currentFrame]);
+    VulkanImGui::render(commandBuffer());
+
     const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
     vulkanCommandBuffer->commandBuffer().endRenderPass();

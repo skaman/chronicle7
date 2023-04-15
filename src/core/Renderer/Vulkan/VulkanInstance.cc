@@ -14,17 +14,11 @@
 
 using namespace entt::literals;
 
+namespace chronicle {
+
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
 const std::vector<const char*> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-
-#ifdef NDEBUG
-const bool ENABLED_VALIDATION_LAYERS = false;
-#else
-const bool ENABLED_VALIDATION_LAYERS = true;
-#endif
-
-namespace chronicle {
 
 CHR_CONCRETE(VulkanInstance);
 
@@ -93,9 +87,9 @@ void VulkanInstance::deinit()
         VulkanContext::device.destroySemaphore(VulkanContext::renderFinishedSemaphores[i]);
         VulkanContext::device.destroyFence(VulkanContext::inFlightFences[i]);
     }
-
-    for (const auto& framebuffer : VulkanContext::framebuffers)
-        VulkanContext::device.destroyFramebuffer(framebuffer);
+    VulkanContext::imageAvailableSemaphores.clear();
+    VulkanContext::renderFinishedSemaphores.clear();
+    VulkanContext::inFlightFences.clear();
 
     VulkanContext::device.destroyRenderPass(VulkanContext::renderPass);
 
@@ -104,7 +98,7 @@ void VulkanInstance::deinit()
     VulkanContext::device.destroyCommandPool(VulkanContext::commandPool);
     VulkanContext::device.destroy();
 
-    if (ENABLED_VALIDATION_LAYERS) {
+    if (VulkanContext::enabledValidationLayer) {
         destroyDebugUtilsMessengerEXT(VulkanContext::instance, VulkanContext::debugCallback, nullptr);
     }
 
@@ -131,11 +125,17 @@ void VulkanInstance::recreateSwapChain()
 
     cleanupSwapChain();
     createSwapChain();
+    createFramebuffers();
 }
 
 void VulkanInstance::cleanupSwapChain()
 {
     CHRZONE_RENDERER;
+
+    for (const auto& framebuffer : VulkanContext::framebuffers) {
+        VulkanContext::device.destroyFramebuffer(framebuffer);
+    }
+    VulkanContext::framebuffers.clear();
 
     VulkanContext::device.destroyImageView(VulkanContext::depthImageView);
     VulkanContext::device.destroyImage(VulkanContext::depthImage);
@@ -144,6 +144,7 @@ void VulkanInstance::cleanupSwapChain()
     for (const auto& imageView : VulkanContext::swapChainImageViews) {
         VulkanContext::device.destroyImageView(imageView);
     }
+    VulkanContext::swapChainImageViews.clear();
 
     VulkanContext::device.destroySwapchainKHR(VulkanContext::swapChain);
 }
@@ -154,7 +155,7 @@ void VulkanInstance::createInstance()
 
     CHRLOG_DEBUG("Create instance");
 
-    if (ENABLED_VALIDATION_LAYERS && !checkValidationLayerSupport())
+    if (VulkanContext::enabledValidationLayer && !VulkanUtils::checkValidationLayerSupport(VALIDATION_LAYERS))
         throw RendererError("Validation layers requested, but not available");
 
     // application info
@@ -166,14 +167,14 @@ void VulkanInstance::createInstance()
     appInfo.setApiVersion(VK_API_VERSION_1_0);
 
     // create instance info
-    auto extensions = getRequiredExtensions();
+    auto extensions = VulkanUtils::getRequiredExtensions();
 
     vk::InstanceCreateInfo createInfo = {};
     createInfo.setPApplicationInfo(&appInfo);
     createInfo.setPEnabledExtensionNames(extensions);
 
     vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
-    if (ENABLED_VALIDATION_LAYERS) {
+    if (VulkanContext::enabledValidationLayer) {
         populateDebugMessengerCreateInfo(debugCreateInfo);
 
         createInfo.setPEnabledLayerNames(VALIDATION_LAYERS);
@@ -199,7 +200,7 @@ void VulkanInstance::setupDebugCallback()
 {
     CHRZONE_RENDERER;
 
-    if (!ENABLED_VALIDATION_LAYERS)
+    if (!VulkanContext::enabledValidationLayer)
         return;
 
     vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
@@ -238,7 +239,7 @@ void VulkanInstance::pickPhysicalDevice()
         throw RendererError("Failed to find GPUs with Vulkan support");
 
     for (const auto& device : devices) {
-        if (isDeviceSuitable(device)) {
+        if (VulkanUtils::isDeviceSuitable(device, DEVICE_EXTENSIONS)) {
             VulkanContext::physicalDevice = device;
             break;
         }
@@ -254,7 +255,7 @@ void VulkanInstance::createLogicalDevice()
 
     CHRLOG_DEBUG("Create logical device");
 
-    VulkanQueueFamilyIndices indices = findQueueFamilies(VulkanContext::physicalDevice);
+    VulkanQueueFamilyIndices indices = VulkanUtils::findQueueFamilies(VulkanContext::physicalDevice);
 
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -277,7 +278,7 @@ void VulkanInstance::createLogicalDevice()
     createInfo.setPEnabledFeatures(&deviceFeatures);
     createInfo.setPEnabledExtensionNames(DEVICE_EXTENSIONS);
 
-    if (ENABLED_VALIDATION_LAYERS)
+    if (VulkanContext::enabledValidationLayer)
         createInfo.setPEnabledLayerNames(VALIDATION_LAYERS);
 
     VulkanContext::device = VulkanContext::physicalDevice.createDevice(createInfo);
@@ -294,17 +295,17 @@ void VulkanInstance::createSwapChain()
 
     CHRLOG_DEBUG("Create swapchain");
 
-    auto swapChainSupport = querySwapChainSupport(VulkanContext::physicalDevice);
+    auto swapChainSupport = VulkanUtils::querySwapChainSupport(VulkanContext::physicalDevice);
 
-    vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+    vk::SurfaceFormatKHR surfaceFormat = VulkanUtils::chooseSwapSurfaceFormat(swapChainSupport.formats);
+    vk::PresentModeKHR presentMode = VulkanUtils::chooseSwapPresentMode(swapChainSupport.presentModes);
+    vk::Extent2D extent = VulkanUtils::chooseSwapExtent(swapChainSupport.capabilities);
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
         imageCount = swapChainSupport.capabilities.maxImageCount;
 
-    auto indices = findQueueFamilies(VulkanContext::physicalDevice);
+    auto indices = VulkanUtils::findQueueFamilies(VulkanContext::physicalDevice);
     std::array<uint32_t, 2> queueFamilyIndices = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
     vk::SwapchainCreateInfoKHR createInfo = {};
@@ -330,7 +331,7 @@ void VulkanInstance::createSwapChain()
     VulkanContext::swapChain = VulkanContext::device.createSwapchainKHR(createInfo);
 
     // create depth buffer
-    VulkanContext::depthImageFormat = findDepthFormat();
+    VulkanContext::depthImageFormat = VulkanUtils::findDepthFormat();
     auto [depthImageMemory, depthImage] = VulkanUtils::createImage(extent.width, extent.height, 1,
         VulkanContext::depthImageFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment,
         vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -358,7 +359,7 @@ void VulkanInstance::createCommandPool()
 
     CHRLOG_DEBUG("Create command pool");
 
-    auto queueFamilyIndices = findQueueFamilies(VulkanContext::physicalDevice);
+    auto queueFamilyIndices = VulkanUtils::findQueueFamilies(VulkanContext::physicalDevice);
     vk::CommandPoolCreateInfo poolInfo = {};
     poolInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
     poolInfo.setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
@@ -495,219 +496,6 @@ void VulkanInstance::createDescriptorSets()
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, chronicle::ShaderStage::Vertex);
         VulkanContext::descriptorSets.push_back(descriptorSet);
     }
-}
-
-bool VulkanInstance::checkValidationLayerSupport()
-{
-    CHRZONE_RENDERER;
-
-    auto availableLayers = vk::enumerateInstanceLayerProperties();
-    for (const char* layerName : VALIDATION_LAYERS) {
-        bool layerFound = false;
-
-        for (const auto& layerProperties : availableLayers) {
-            if (strcmp(layerName, layerProperties.layerName) == 0) {
-                layerFound = true;
-                break;
-            }
-        }
-
-        if (!layerFound)
-            return false;
-    }
-
-    return true;
-}
-
-std::vector<const char*> VulkanInstance::getRequiredExtensions()
-{
-    CHRZONE_RENDERER;
-
-#ifdef GLFW_PLATFORM
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-#else
-    throw RendererError("Not implemented");
-#endif
-
-    if (ENABLED_VALIDATION_LAYERS)
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-    return extensions;
-}
-
-bool VulkanInstance::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice)
-{
-    CHRZONE_RENDERER;
-
-    assert(physicalDevice);
-
-    VulkanQueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-
-    bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
-
-    bool swapChainAdequate = false;
-    if (extensionsSupported) {
-        VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-    }
-
-    const auto supportedFeatures = physicalDevice.getFeatures();
-    return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
-}
-
-bool VulkanInstance::checkDeviceExtensionSupport(const vk::PhysicalDevice& physicalDevice)
-{
-    CHRZONE_RENDERER;
-
-    assert(physicalDevice);
-
-    std::set<std::string, std::less<>> requiredExtensions(DEVICE_EXTENSIONS.begin(), DEVICE_EXTENSIONS.end());
-
-    for (const auto& extension : physicalDevice.enumerateDeviceExtensionProperties())
-        requiredExtensions.erase(extension.extensionName);
-
-    return requiredExtensions.empty();
-}
-
-VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice physicalDevice)
-{
-    CHRZONE_RENDERER;
-
-    assert(physicalDevice);
-
-    VulkanQueueFamilyIndices indices;
-
-    auto queueFamilies = physicalDevice.getQueueFamilyProperties();
-
-    int i = 0;
-    for (const auto& queueFamily : queueFamilies) {
-        if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
-            indices.graphicsFamily = i;
-
-        if (queueFamily.queueCount > 0 && physicalDevice.getSurfaceSupportKHR(i, VulkanContext::surface))
-            indices.presentFamily = i;
-
-        if (indices.IsComplete())
-            break;
-
-        i++;
-    }
-
-    return indices;
-}
-
-VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::PhysicalDevice& physicalDevice)
-{
-    CHRZONE_RENDERER;
-
-    assert(physicalDevice);
-
-    VulkanSwapChainSupportDetails details;
-    details.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(VulkanContext::surface);
-    details.formats = physicalDevice.getSurfaceFormatsKHR(VulkanContext::surface);
-    details.presentModes = physicalDevice.getSurfacePresentModesKHR(VulkanContext::surface);
-    return details;
-}
-
-vk::SurfaceFormatKHR VulkanInstance::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
-{
-    CHRZONE_RENDERER;
-
-    assert(availableFormats.size() > 0);
-
-    using enum vk::Format;
-
-    if (availableFormats.size() == 1 && availableFormats[0].format == eUndefined)
-        return { eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
-
-    for (const auto& availableFormat : availableFormats) {
-        if (availableFormat.format == eB8G8R8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
-            return availableFormat;
-    }
-
-    return availableFormats[0];
-}
-
-vk::PresentModeKHR VulkanInstance::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes)
-{
-    CHRZONE_RENDERER;
-
-    assert(availablePresentModes.size() > 0);
-
-    using enum vk::PresentModeKHR;
-
-    vk::PresentModeKHR bestMode = eFifo;
-
-    for (const auto& availablePresentMode : availablePresentModes) {
-        if (availablePresentMode == eMailbox)
-            return availablePresentMode;
-        else if (availablePresentMode == eImmediate)
-            bestMode = availablePresentMode;
-    }
-
-    return bestMode;
-}
-
-vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities)
-{
-    CHRZONE_RENDERER;
-
-    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-        return capabilities.currentExtent;
-    } else {
-        int width;
-        int height;
-
-#ifdef GLFW_PLATFORM
-        glfwGetFramebufferSize(GLFWContext::window, &width, &height);
-#else
-        throw RendererError("Not implemented");
-#endif
-
-        vk::Extent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
-
-        actualExtent.width = std::max(
-            capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-        actualExtent.height = std::max(
-            capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
-
-        return actualExtent;
-    }
-}
-
-vk::Format VulkanInstance::findSupportedFormat(
-    const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features)
-{
-    assert(candidates.size() > 0);
-    assert(features);
-
-    for (const auto& format : candidates) {
-        auto props = VulkanContext::physicalDevice.getFormatProperties(format);
-
-        if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
-            return format;
-        } else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
-            return format;
-        }
-    }
-
-    throw RendererError("Failed to find supported format");
-}
-
-vk::Format VulkanInstance::findDepthFormat()
-{
-    using enum vk::Format;
-
-    return findSupportedFormat({ eD32Sfloat, eD32SfloatS8Uint, eD24UnormS8Uint }, vk::ImageTiling::eOptimal,
-        vk::FormatFeatureFlagBits::eDepthStencilAttachment);
-}
-
-bool VulkanInstance::hasStencilComponent(vk::Format format)
-{
-    return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 }
 
 } // namespace chronicle

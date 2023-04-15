@@ -5,6 +5,10 @@
 
 #include "VulkanCommon.h"
 
+#ifdef GLFW_PLATFORM
+#include "Platform/GLFW/GLFWCommon.h"
+#endif
+
 namespace chronicle {
 
 std::pair<vk::DeviceMemory, vk::Image> VulkanUtils::createImage(uint32_t width, uint32_t height, uint32_t mipLevels,
@@ -384,6 +388,220 @@ void VulkanUtils::endSingleTimeCommands(vk::CommandBuffer commandBuffer)
     VulkanContext::graphicsQueue.waitIdle();
 
     VulkanContext::device.freeCommandBuffers(VulkanContext::commandPool, commandBuffer);
+}
+
+bool VulkanUtils::checkValidationLayerSupport(const std::vector<const char*>& validationLayers)
+{
+    CHRZONE_RENDERER;
+
+    auto availableLayers = vk::enumerateInstanceLayerProperties();
+    for (const char* layerName : validationLayers) {
+        bool layerFound = false;
+
+        for (const auto& layerProperties : availableLayers) {
+            if (strcmp(layerName, layerProperties.layerName) == 0) {
+                layerFound = true;
+                break;
+            }
+        }
+
+        if (!layerFound)
+            return false;
+    }
+
+    return true;
+}
+
+std::vector<const char*> VulkanUtils::getRequiredExtensions()
+{
+    CHRZONE_RENDERER;
+
+#ifdef GLFW_PLATFORM
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+#else
+    throw RendererError("Not implemented");
+#endif
+
+    if (VulkanContext::enabledValidationLayer)
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+    return extensions;
+}
+
+bool VulkanUtils::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice, const std::vector<const char*>& extensions)
+{
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
+
+    VulkanQueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+    bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice, extensions);
+
+    bool swapChainAdequate = false;
+    if (extensionsSupported) {
+        VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    }
+
+    const auto supportedFeatures = physicalDevice.getFeatures();
+    return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+}
+
+bool VulkanUtils::checkDeviceExtensionSupport(
+    const vk::PhysicalDevice& physicalDevice, const std::vector<const char*>& extensions)
+{
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
+
+    std::set<std::string, std::less<>> requiredExtensions(extensions.begin(), extensions.end());
+
+    for (const auto& extension : physicalDevice.enumerateDeviceExtensionProperties())
+        requiredExtensions.erase(extension.extensionName);
+
+    return requiredExtensions.empty();
+}
+
+VulkanQueueFamilyIndices VulkanUtils::findQueueFamilies(vk::PhysicalDevice physicalDevice)
+{
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
+
+    VulkanQueueFamilyIndices indices;
+
+    auto queueFamilies = physicalDevice.getQueueFamilyProperties();
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
+            indices.graphicsFamily = i;
+
+        if (queueFamily.queueCount > 0 && physicalDevice.getSurfaceSupportKHR(i, VulkanContext::surface))
+            indices.presentFamily = i;
+
+        if (indices.IsComplete())
+            break;
+
+        i++;
+    }
+
+    return indices;
+}
+
+VulkanSwapChainSupportDetails VulkanUtils::querySwapChainSupport(const vk::PhysicalDevice& physicalDevice)
+{
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
+
+    VulkanSwapChainSupportDetails details;
+    details.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(VulkanContext::surface);
+    details.formats = physicalDevice.getSurfaceFormatsKHR(VulkanContext::surface);
+    details.presentModes = physicalDevice.getSurfacePresentModesKHR(VulkanContext::surface);
+    return details;
+}
+
+vk::SurfaceFormatKHR VulkanUtils::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
+{
+    CHRZONE_RENDERER;
+
+    assert(availableFormats.size() > 0);
+
+    using enum vk::Format;
+
+    if (availableFormats.size() == 1 && availableFormats[0].format == eUndefined)
+        return { eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
+
+    for (const auto& availableFormat : availableFormats) {
+        if (availableFormat.format == eB8G8R8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+            return availableFormat;
+    }
+
+    return availableFormats[0];
+}
+
+vk::PresentModeKHR VulkanUtils::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes)
+{
+    CHRZONE_RENDERER;
+
+    assert(availablePresentModes.size() > 0);
+
+    using enum vk::PresentModeKHR;
+
+    vk::PresentModeKHR bestMode = eFifo;
+
+    for (const auto& availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == eMailbox)
+            return availablePresentMode;
+        else if (availablePresentMode == eImmediate)
+            bestMode = availablePresentMode;
+    }
+
+    return bestMode;
+}
+
+vk::Extent2D VulkanUtils::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities)
+{
+    CHRZONE_RENDERER;
+
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+        return capabilities.currentExtent;
+    } else {
+        int width;
+        int height;
+
+#ifdef GLFW_PLATFORM
+        glfwGetFramebufferSize(GLFWContext::window, &width, &height);
+#else
+        throw RendererError("Not implemented");
+#endif
+
+        vk::Extent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+
+        actualExtent.width = std::max(
+            capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+        actualExtent.height = std::max(
+            capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+
+        return actualExtent;
+    }
+}
+
+vk::Format VulkanUtils::findSupportedFormat(
+    const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features)
+{
+    assert(candidates.size() > 0);
+    assert(features);
+
+    for (const auto& format : candidates) {
+        auto props = VulkanContext::physicalDevice.getFormatProperties(format);
+
+        if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
+            return format;
+        } else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
+    }
+
+    throw RendererError("Failed to find supported format");
+}
+
+vk::Format VulkanUtils::findDepthFormat()
+{
+    using enum vk::Format;
+
+    return findSupportedFormat({ eD32Sfloat, eD32SfloatS8Uint, eD24UnormS8Uint }, vk::ImageTiling::eOptimal,
+        vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+}
+
+bool VulkanUtils::hasStencilComponent(vk::Format format)
+{
+    return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 }
 
 } // namespace chronicle
