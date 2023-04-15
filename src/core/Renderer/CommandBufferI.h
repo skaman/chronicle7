@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #pragma once
 
 #include "pch.h"
@@ -6,12 +9,17 @@
 
 namespace chronicle {
 
+/// @brief Object used to record command which can be sebsequently submitted to GPU for execution.
+/// @tparam T Type with implementation.
 template <class T> class CommandBufferI {
 public:
+    /// @brief Reset the command buffer to the initial state.
     void reset() const { static_cast<const T*>(this)->reset(); }
 
+    /// @brief Start recording a command buffer.
     void begin() const { static_cast<const T*>(this)->begin(); }
 
+    /// @brief End recording a command buffer.
     void end() const { static_cast<const T*>(this)->end(); }
 
     void beginRenderPass(const RenderPassRef& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const

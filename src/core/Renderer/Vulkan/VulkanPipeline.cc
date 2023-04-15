@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanPipeline.h"
 
 #include "Storage/File.h"
@@ -11,11 +14,18 @@ namespace chronicle {
 
 const int MAX_DESCRIPTOR_SETS = 4;
 
-CHR_CONCRETE(VulkanPipeline)
+CHR_CONCRETE(VulkanPipeline);
 
 VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(pipelineInfo.renderPass);
+    assert(pipelineInfo.shaders.size() > 0);
+    assert(pipelineInfo.vertexBuffers.size() > 0);
+
+    CHRLOG_DEBUG("Create pipeline: shaders count={}, vertex buffer descriptions count={}", pipelineInfo.shaders.size(),
+        pipelineInfo.vertexBuffers.size());
 
     // shader stages
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
@@ -163,7 +173,9 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
 
 VulkanPipeline::~VulkanPipeline()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy pipeline");
 
     VulkanContext::device.destroyPipeline(_graphicsPipeline);
     VulkanContext::device.destroyPipelineLayout(_pipelineLayout);
@@ -179,7 +191,7 @@ PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo)
 
 vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     return VulkanContext::device.createShaderModule(
         { vk::ShaderModuleCreateFlags(), code.size(), std::bit_cast<const uint32_t*>(code.data()) });
@@ -188,7 +200,7 @@ vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& cod
 std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout(
     const std::vector<std::vector<char>>& shadersCode) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     // set number -> binding id -> layout binding
     std::map<uint32_t, std::map<uint32_t, vk::DescriptorSetLayoutBinding>> sets = {};
@@ -236,7 +248,7 @@ std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout(
 
 std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(const std::vector<char>& code) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     SpvReflectShaderModule shaderModule = {};
     SpvReflectResult result = spvReflectCreateShaderModule(code.size(), code.data(), &shaderModule);

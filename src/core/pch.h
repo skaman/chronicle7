@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #pragma once
 
 // renderer defines
@@ -59,50 +62,68 @@
 #include <vector>
 
 // logs
-#ifdef NDEBUG
-#define CHRLOG_DEBUG(...) (void)0;
-#define CHRLOG_INFO(...) (void)0;
-#define CHRLOG_WARN(...) (void)0;
-#define CHRLOG_ERROR(...) (void)0;
-#else
-#define CHRLOG_DEBUG(...)                                                                                              \
-    {                                                                                                                  \
-        SPDLOG_DEBUG(__VA_ARGS__);                                                                                     \
-        std::string message = fmt::format(__VA_ARGS__);                                                                \
-        TracyMessage(message.c_str(), message.size());                                                                 \
-    }
+
+#define COMBINE1(X, Y) X##Y // helper macro
+#define COMBINE(X, Y) COMBINE1(X, Y)
+
+namespace chronicle {
+constexpr tracy::Color::ColorType colorFromErrorLevel(spdlog::level::level_enum lvl)
+{
+    switch (lvl) {
+    case spdlog::level::level_enum::trace:
+        return tracy::Color::Gray;
+    case spdlog::level::level_enum::debug:
+        return tracy::Color::LightGray;
+    case spdlog::level::level_enum::info:
+        return tracy::Color::White;
+    case spdlog::level::level_enum::warn:
+        return tracy::Color::Orange;
+    case spdlog::level::level_enum::err:
+        return tracy::Color::Red;
+    case spdlog::level::level_enum::critical:
+        return tracy::Color::DarkRed;
+    };
+    return tracy::Color::White;
+}
+
+template <typename... Args>
+constexpr void log(
+    spdlog::source_loc source, spdlog::level::level_enum lvl, spdlog::format_string_t<Args...> fmt, Args&&... args)
+{
+    spdlog::log(source, lvl, fmt, std::forward<Args>(args)...);
+    std::string message = fmt::format(fmt, std::forward<Args>(args)...);
+    tracy::Profiler::MessageColor(message.c_str(), message.size(), colorFromErrorLevel(lvl), 0);
+}
+} // namespace chronicle
 
 #define CHRLOG_INFO(...)                                                                                               \
-    {                                                                                                                  \
-        SPDLOG_INFO(__VA_ARGS__);                                                                                      \
-        std::string message = fmt::format(__VA_ARGS__);                                                                \
-        TracyMessage(message.c_str(), message.size());                                                                 \
-    }
-
+    chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::info, __VA_ARGS__)
 #define CHRLOG_WARN(...)                                                                                               \
-    {                                                                                                                  \
-        SPDLOG_WARN(__VA_ARGS__);                                                                                      \
-        std::string message = fmt::format(__VA_ARGS__);                                                                \
-        TracyMessage(message.c_str(), message.size());                                                                 \
-    }
-
+    chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::warn, __VA_ARGS__)
 #define CHRLOG_ERROR(...)                                                                                              \
-    {                                                                                                                  \
-        SPDLOG_ERROR(__VA_ARGS__);                                                                                     \
-        std::string message = fmt::format(__VA_ARGS__);                                                                \
-        TracyMessage(message.c_str(), message.size());                                                                 \
-    }
-#endif
+    chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::err, __VA_ARGS__)
+
+// #ifdef NDEBUG
+// #define CHRLOG_DEBUG(...) (void)0
+// #define CHRLOG_TRACE(...) (void)0
+// #else
+#define CHRLOG_DEBUG(...)                                                                                              \
+    chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::debug, __VA_ARGS__)
+#define CHRLOG_TRACE(...)                                                                                              \
+    chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::trace, __VA_ARGS__)
+// #endif
 
 // trace
 #ifdef NDEBUG
-#define CHRZONE_PLATFORM
-#define CHRZONE_RENDERER
-#define CHRZONE_STORAGE
+#define CHRZONE_PLATFORM (void)0
+#define CHRZONE_RENDERER (void)0
+#define CHRZONE_STORAGE (void)0
+#define CHRZONE_ASSETS (void)0
 #else
-#define CHRZONE_PLATFORM ZoneScopedC(tracy::Color::Blue4);
-#define CHRZONE_RENDERER ZoneScopedC(tracy::Color::Red4);
-#define CHRZONE_STORAGE ZoneScopedC(tracy::Color::Green4);
+#define CHRZONE_PLATFORM ZoneScopedC(tracy::Color::Blue4)
+#define CHRZONE_RENDERER ZoneScopedC(tracy::Color::Red4)
+#define CHRZONE_STORAGE ZoneScopedC(tracy::Color::Green4)
+#define CHRZONE_ASSETS ZoneScopedC(tracy::Color::Yellow4)
 #endif
 
 // stringify
@@ -117,7 +138,7 @@
             : x(std::forward<Args>(args)...)                                                                           \
         {                                                                                                              \
         }                                                                                                              \
-    };
+    }
 
 namespace chronicle {
 

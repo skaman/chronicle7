@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "TextureAsset.h"
 
 #include "Renderer/Renderer.h"
@@ -8,6 +11,12 @@ CHR_CONCRETE(TextureAsset);
 
 TextureAsset::TextureAsset(const std::string& filename)
 {
+    CHRZONE_ASSETS;
+
+    assert(!filename.empty());
+
+    CHRLOG_DEBUG("Loading texture: {}", filename);
+
     int texWidth;
     int texHeight;
     int texChannels;

@@ -1,14 +1,19 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanDescriptorSet.h"
 
 #include "VulkanInstance.h"
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanDescriptorSet)
+CHR_CONCRETE(VulkanDescriptorSet);
 
 VulkanDescriptorSet::VulkanDescriptorSet()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create descriptor set");
 
     // TODO: allocate on build with the right size
     // create a descriptor pool that will hold 10 uniform buffers
@@ -24,7 +29,9 @@ VulkanDescriptorSet::VulkanDescriptorSet()
 
 VulkanDescriptorSet::~VulkanDescriptorSet()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy descriptor set");
 
     for (const auto& state : _descriptorSetsState) {
         if (state.type == vk::DescriptorType::eUniformBuffer) {
@@ -42,7 +49,9 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 
 void VulkanDescriptorSet::build()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Build descriptor set");
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.setBindings(_layoutBindings);

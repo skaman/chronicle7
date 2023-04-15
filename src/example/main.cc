@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "pch.h"
 
 #include <Assets/MeshAsset.h>
@@ -22,6 +25,8 @@ public:
     {
         chronicle::Platform::init();
         chronicle::Renderer::init();
+
+        CHRLOG_INFO("Start");
 
         // assets
         _mesh = chronicle::MeshAsset::load("D:\\viking_room.obj");
@@ -185,6 +190,7 @@ private:
 
 int main()
 {
+    spdlog::set_level(spdlog::level::debug);
     try {
         ExampleApp app {};
         app.init();

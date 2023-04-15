@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanCommandBuffer.h"
 
 #include "VulkanDescriptorSet.h"
@@ -9,11 +12,13 @@
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanCommandBuffer)
+CHR_CONCRETE(VulkanCommandBuffer);
 
 VulkanCommandBuffer::VulkanCommandBuffer()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create command buffer");
 
     vk::CommandBufferAllocateInfo allocInfo = {};
     allocInfo.setCommandPool(VulkanContext::commandPool);
@@ -23,27 +28,50 @@ VulkanCommandBuffer::VulkanCommandBuffer()
     _commandBuffer = VulkanContext::device.allocateCommandBuffers(allocInfo)[0];
 }
 
+VulkanCommandBuffer::~VulkanCommandBuffer()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy command buffer");
+}
+
 void VulkanCommandBuffer::reset() const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Reset command buffer");
 
     _commandBuffer.reset();
 }
 
 void VulkanCommandBuffer::begin() const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Begin command buffer");
 
     vk::CommandBufferBeginInfo beginInfo = {};
     (void)_commandBuffer.begin(beginInfo);
 }
 
-void VulkanCommandBuffer::end() const { _commandBuffer.end(); }
+void VulkanCommandBuffer::end() const
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("End command buffer");
+
+    _commandBuffer.end();
+}
 
 void VulkanCommandBuffer::beginRenderPass(
     const RenderPassRef& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(renderPass);
+
+    CHRLOG_TRACE("Begin render pass: area offset={}x{}, extent={}x{}", renderArea.offset.x, renderArea.offset.y,
+        renderArea.extent.width, renderArea.extent.height);
 
     const auto vulkanRenderPass = static_cast<VulkanRenderPass*>(renderPass.get());
 
@@ -63,14 +91,19 @@ void VulkanCommandBuffer::beginRenderPass(
 
 void VulkanCommandBuffer::endRenderPass() const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("End render pass");
 
     _commandBuffer.endRenderPass();
 }
 
 void VulkanCommandBuffer::setViewport(RectFloat2D viewport, float minDepth, float maxDepth) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Set viewport: area offset={}x{}, extent={}x{}, min depth={}, max depth={}", viewport.offset.x,
+        viewport.offset.y, viewport.extent.width, viewport.extent.height, minDepth, maxDepth);
 
     vk::Viewport viewportInfo = {};
     viewportInfo.setX(viewport.offset.x);
@@ -85,7 +118,10 @@ void VulkanCommandBuffer::setViewport(RectFloat2D viewport, float minDepth, floa
 
 void VulkanCommandBuffer::setScissor(RectInt2D scissor) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Set scissor: area offset={}x{}, extent={}x{}", scissor.offset.x, scissor.offset.y,
+        scissor.extent.width, scissor.extent.height);
 
     _commandBuffer.setScissor(0,
         vk::Rect2D({ scissor.offset.x, scissor.offset.y }, vk::Extent2D(scissor.extent.width, scissor.extent.height)));
@@ -93,14 +129,23 @@ void VulkanCommandBuffer::setScissor(RectInt2D scissor) const
 
 void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(indexCount > 0);
+    assert(instanceCount > 0);
+
+    CHRLOG_TRACE("Draw indexed: index count={}, instance count={}", indexCount, instanceCount);
 
     _commandBuffer.drawIndexed(indexCount, instanceCount, 0, 0, 0);
 }
 
 void VulkanCommandBuffer::bindPipeline(const PipelineRef& pipeline)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(pipeline);
+
+    CHRLOG_TRACE("Bind pipeline");
 
     const auto vulkanPipeline = static_cast<VulkanPipeline*>(pipeline.get());
 
@@ -110,7 +155,11 @@ void VulkanCommandBuffer::bindPipeline(const PipelineRef& pipeline)
 
 void VulkanCommandBuffer::bindVertexBuffer(const VertexBufferRef& vertexBuffer) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(vertexBuffer);
+
+    CHRLOG_TRACE("Bind vertex buffer");
 
     const auto vulkanVertexBuffer = static_cast<VulkanVertexBuffer*>(vertexBuffer.get());
 
@@ -119,7 +168,11 @@ void VulkanCommandBuffer::bindVertexBuffer(const VertexBufferRef& vertexBuffer) 
 
 void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(indexBuffer);
+
+    CHRLOG_TRACE("Bind index buffer");
 
     const auto vulkanIndexBuffer = static_cast<VulkanIndexBuffer*>(indexBuffer.get());
 
@@ -128,7 +181,11 @@ void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer) con
 
 void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(descriptorSet);
+
+    CHRLOG_TRACE("Bind descriptor set: index={}", index);
 
     const auto vulkanDescriptorSet = static_cast<VulkanDescriptorSet*>(descriptorSet.get());
 

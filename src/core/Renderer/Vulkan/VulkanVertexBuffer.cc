@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanVertexBuffer.h"
 
 #include "VulkanInstance.h"
@@ -5,11 +8,13 @@
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanVertexBuffer)
+CHR_CONCRETE(VulkanVertexBuffer);
 
 VulkanVertexBuffer::~VulkanVertexBuffer()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy vertex buffer");
 
     if (_buffer)
         cleanup();
@@ -17,7 +22,12 @@ VulkanVertexBuffer::~VulkanVertexBuffer()
 
 void VulkanVertexBuffer::set(void* src, size_t size)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(src != nullptr);
+    assert(size > 0);
+
+    CHRLOG_DEBUG("Set vertex buffer data: size={}", size);
 
     if (_buffer)
         cleanup();
@@ -44,11 +54,18 @@ void VulkanVertexBuffer::set(void* src, size_t size)
     VulkanContext::device.freeMemory(stagingBufferMemory);
 }
 
-VertexBufferRef VulkanVertexBuffer::create() { return std::make_shared<ConcreteVulkanVertexBuffer>(); }
+VertexBufferRef VulkanVertexBuffer::create()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create vertex buffer");
+
+    return std::make_shared<ConcreteVulkanVertexBuffer>();
+}
 
 void VulkanVertexBuffer::cleanup() const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     VulkanContext::device.destroyBuffer(_buffer);
     VulkanContext::device.freeMemory(_bufferMemory);

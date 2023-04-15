@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "GLFWPlatform.h"
 
 #include "GLFWCommon.h"
@@ -7,7 +10,7 @@ namespace chronicle {
 
 void GLFWPlatform::init()
 {
-    CHRZONE_PLATFORM
+    CHRZONE_PLATFORM;
 
     glfwInit();
 
@@ -21,7 +24,7 @@ void GLFWPlatform::init()
 
 void GLFWPlatform::deinit()
 {
-    CHRZONE_PLATFORM
+    CHRZONE_PLATFORM;
 
     glfwDestroyWindow(GLFWContext::window);
     glfwTerminate();
@@ -29,7 +32,7 @@ void GLFWPlatform::deinit()
 
 bool GLFWPlatform::poll()
 {
-    CHRZONE_PLATFORM
+    CHRZONE_PLATFORM;
 
     if (glfwWindowShouldClose(GLFWContext::window))
         return false;

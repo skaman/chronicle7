@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #pragma once
 
 #include "pch.h"
@@ -40,9 +43,9 @@ private:
     [[nodiscard]] static bool checkValidationLayerSupport();
     [[nodiscard]] static std::vector<const char*> getRequiredExtensions();
     [[nodiscard]] static bool isDeviceSuitable(const vk::PhysicalDevice& physicalDevice);
-    [[nodiscard]] static bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device);
-    [[nodiscard]] static VulkanQueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device);
-    [[nodiscard]] static VulkanSwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device);
+    [[nodiscard]] static bool checkDeviceExtensionSupport(const vk::PhysicalDevice& physicalDevice);
+    [[nodiscard]] static VulkanQueueFamilyIndices findQueueFamilies(vk::PhysicalDevice physicalDevice);
+    [[nodiscard]] static VulkanSwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& physicalDevice);
     [[nodiscard]] static vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
         const std::vector<vk::SurfaceFormatKHR>& availableFormats);
     [[nodiscard]] static vk::PresentModeKHR chooseSwapPresentMode(

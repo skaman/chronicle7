@@ -1737,10 +1737,6 @@
       "level": "On",
       "severity": "Major"
     },
-    "cpp:S5008": {
-      "level": "On",
-      "severity": "Critical"
-    },
     "cpp:S5487": {
       "level": "On",
       "severity": "Blocker"
@@ -2276,6 +2272,9 @@
       "level": "Off"
     },
     "cpp:S5356": {
+      "level": "Off"
+    },
+    "cpp:S5008": {
       "level": "Off"
     }
   }

@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "MeshAsset.h"
 
 #include "Renderer/Renderer.h"
@@ -8,6 +11,12 @@ CHR_CONCRETE(MeshAsset);
 
 MeshAsset::MeshAsset(const std::string& filename)
 {
+    CHRZONE_ASSETS;
+
+    assert(!filename.empty());
+
+    CHRLOG_DEBUG("Loading mesh: {}", filename);
+
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -24,6 +33,8 @@ MeshAsset::MeshAsset(const std::string& filename)
     _indexBuffers.reserve(shapes.size());
     _verticesCount.reserve(shapes.size());
     _indicesCount.reserve(shapes.size());
+
+    CHRLOG_DEBUG("Mesh info: shapes count = {}", shapes.size());
 
     for (uint32_t shapeIndex = 0; shapeIndex < shapes.size(); shapeIndex++) {
         _vertexBuffers.push_back(VertexBuffer::create());
@@ -52,6 +63,8 @@ MeshAsset::MeshAsset(const std::string& filename)
 
             indices.push_back(uniqueVertices[vertex]);
         }
+
+        CHRLOG_DEBUG("Mesh info: shape {}, vertices = {}, indices = {}", shapeIndex, vertices.size(), indices.size());
 
         _verticesCount.push_back(static_cast<uint32_t>(vertices.size()));
         _indicesCount.push_back(static_cast<uint32_t>(indices.size()));

@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #pragma once
 
 #include "pch.h"
@@ -11,7 +14,7 @@ protected:
     explicit VulkanCommandBuffer();
 
 public:
-    ~VulkanCommandBuffer() = default;
+    ~VulkanCommandBuffer();
 
     [[nodiscard]] const vk::CommandBuffer& commandBuffer() const { return _commandBuffer; }
 

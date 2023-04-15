@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanRenderer.h"
 
 #include "VulkanCommandBuffer.h"
@@ -8,25 +11,38 @@
 
 namespace chronicle {
 
-void VulkanRenderer::init() { VulkanInstance::init(); }
+void VulkanRenderer::init()
+{
+    CHRLOG_INFO("Renderer init");
+
+    VulkanInstance::init();
+}
 
 void VulkanRenderer::deinit()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_INFO("Renderer deinit");
 
     VulkanInstance::deinit();
 }
 
 void VulkanRenderer::waitIdle()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Wait idle");
 
     VulkanContext::device.waitIdle();
 }
 
 void VulkanRenderer::waitForFence(const FenceRef& fence)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(fence);
+
+    CHRLOG_TRACE("Wait for fence");
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
     (void)VulkanContext::device.waitForFences(vulkanFence->fence(), true, std::numeric_limits<uint64_t>::max());
@@ -34,7 +50,11 @@ void VulkanRenderer::waitForFence(const FenceRef& fence)
 
 void VulkanRenderer::resetFence(const FenceRef& fence)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(fence);
+
+    CHRLOG_TRACE("Reset fence");
 
     const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
     (void)VulkanContext::device.resetFences(vulkanFence->fence());
@@ -42,7 +62,11 @@ void VulkanRenderer::resetFence(const FenceRef& fence)
 
 std::optional<uint32_t> VulkanRenderer::acquireNextImage(const SemaphoreRef& semaphore)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(semaphore);
+
+    CHRLOG_TRACE("Acquire next image");
 
     const auto vulkanSemaphore = static_cast<const VulkanSemaphore*>(semaphore.get());
 
@@ -59,7 +83,14 @@ std::optional<uint32_t> VulkanRenderer::acquireNextImage(const SemaphoreRef& sem
 void VulkanRenderer::submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore,
     const SemaphoreRef& signalSemaphore, const CommandBufferRef& commandBuffer)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(fence);
+    assert(waitSemaphore);
+    assert(signalSemaphore);
+    assert(commandBuffer);
+
+    CHRLOG_TRACE("Submit");
 
     const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
     const auto vulkanSignalSemaphore = static_cast<const VulkanSemaphore*>(signalSemaphore.get());
@@ -80,7 +111,11 @@ void VulkanRenderer::submit(const FenceRef& fence, const SemaphoreRef& waitSemap
 
 bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(waitSemaphore);
+
+    CHRLOG_TRACE("Present: image index={}", imageIndex);
 
     const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
 

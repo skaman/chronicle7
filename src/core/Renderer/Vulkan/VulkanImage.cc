@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanImage.h"
 
 #include "VulkanInstance.h"
@@ -5,18 +8,27 @@
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanImage)
+CHR_CONCRETE(VulkanImage);
 
-VulkanImage::~VulkanImage() { cleanup(); }
+VulkanImage::~VulkanImage()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy image");
+
+    cleanup();
+}
 
 void VulkanImage::set(void* src, size_t size, uint32_t width, uint32_t height)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     assert(src != nullptr);
     assert(size > 0);
     assert(width > 0);
     assert(height > 0);
+
+    CHRLOG_DEBUG("Set image data: size={}, width={}, height={}", size, width, height);
 
     vk::Buffer stagingBuffer;
     vk::DeviceMemory stagingBufferMemory;
@@ -64,12 +76,14 @@ void VulkanImage::set(void* src, size_t size, uint32_t width, uint32_t height)
 
 void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     assert(_type == ImageType::Swapchain);
     assert(image);
     assert(width > 0);
     assert(height > 0);
+
+    CHRLOG_DEBUG("Update swapchain: format={}, size={}x{}", vk::to_string(format), width, height);
 
     cleanup();
 
@@ -83,12 +97,14 @@ void VulkanImage::updateSwapchain(const vk::Image& image, vk::Format format, uin
 
 void VulkanImage::updateDepthBuffer(uint32_t width, uint32_t height, vk::Format format)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     assert(_type == ImageType::Depth);
     assert(width > 0);
     assert(height > 0);
     assert(format != vk::Format::eUndefined);
+
+    CHRLOG_DEBUG("Update depth buffer: format={}, size={}x{}", vk::to_string(format), width, height);
 
     cleanup();
 
@@ -104,7 +120,9 @@ void VulkanImage::updateDepthBuffer(uint32_t width, uint32_t height, vk::Format 
 
 ImageRef VulkanImage::createTexture(const ImageInfo& imageInfo)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create texture: generate mipmaps={}", imageInfo.generateMipmaps);
 
     auto result = std::make_shared<ConcreteVulkanImage>();
     result->_type = ImageType::Texture;
@@ -114,12 +132,14 @@ ImageRef VulkanImage::createTexture(const ImageInfo& imageInfo)
 
 ImageRef VulkanImage::createSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     assert(image);
     assert(format != vk::Format::eUndefined);
     assert(width > 0);
     assert(height > 0);
+
+    CHRLOG_DEBUG("Create swapchain: format={}, size={}x{}", vk::to_string(format), width, height);
 
     auto result = std::make_shared<ConcreteVulkanImage>();
     result->_type = ImageType::Swapchain;
@@ -132,11 +152,13 @@ ImageRef VulkanImage::createSwapchain(const vk::Image& image, vk::Format format,
 
 ImageRef VulkanImage::createDepthBuffer(uint32_t width, uint32_t height, vk::Format format)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     assert(width > 0);
     assert(height > 0);
     assert(format != vk::Format::eUndefined);
+
+    CHRLOG_DEBUG("Create depth buffer: format={}, size={}x{}", vk::to_string(format), width, height);
 
     auto [imageMemory, image] = VulkanUtils::createImage(width, height, 1, format, vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -153,7 +175,7 @@ ImageRef VulkanImage::createDepthBuffer(uint32_t width, uint32_t height, vk::For
 
 void VulkanImage::cleanup() const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     VulkanContext::device.destroyImageView(_imageView);
 

@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanIndexBuffer.h"
 
 #include "VulkanInstance.h"
@@ -5,11 +8,13 @@
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanIndexBuffer)
+CHR_CONCRETE(VulkanIndexBuffer);
 
 VulkanIndexBuffer::~VulkanIndexBuffer()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy index buffer");
 
     if (_buffer)
         cleanup();
@@ -17,7 +22,15 @@ VulkanIndexBuffer::~VulkanIndexBuffer()
 
 void VulkanIndexBuffer::set(void* src, size_t size)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(src != nullptr);
+    assert(size > 0);
+
+    CHRLOG_DEBUG("Set index buffer data: size={}", size);
+
+    if (_buffer)
+        cleanup();
 
     vk::DeviceSize bufferSize = size;
 
@@ -40,11 +53,18 @@ void VulkanIndexBuffer::set(void* src, size_t size)
     VulkanContext::device.freeMemory(stagingBufferMemory);
 }
 
-IndexBufferRef VulkanIndexBuffer::create() { return std::make_shared<ConcreteVulkanIndexBuffer>(); }
+IndexBufferRef VulkanIndexBuffer::create()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create index buffer");
+
+    return std::make_shared<ConcreteVulkanIndexBuffer>();
+}
 
 void VulkanIndexBuffer::cleanup() const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     VulkanContext::device.destroyBuffer(_buffer);
     VulkanContext::device.freeMemory(_bufferMemory);

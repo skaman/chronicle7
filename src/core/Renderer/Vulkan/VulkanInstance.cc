@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanInstance.h"
 
 #include "VulkanCommandBuffer.h"
@@ -22,7 +25,7 @@ const bool ENABLED_VALIDATION_LAYERS = true;
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanInstance)
+CHR_CONCRETE(VulkanInstance);
 
 VkResult createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback)
@@ -41,23 +44,25 @@ void destroyDebugUtilsMessengerEXT(
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, [[maybe_unused]] void* pUserData)
+    [[maybe_unused]] const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, [[maybe_unused]] void* pUserData)
 {
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        CHRLOG_ERROR("{}", pCallbackData->pMessage)
+        CHRLOG_ERROR("{}", pCallbackData->pMessage);
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-        CHRLOG_WARN("{}", pCallbackData->pMessage)
+        CHRLOG_WARN("{}", pCallbackData->pMessage);
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-        CHRLOG_INFO("{}", pCallbackData->pMessage)
+        CHRLOG_INFO("{}", pCallbackData->pMessage);
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        CHRLOG_DEBUG("{}", pCallbackData->pMessage)
+        CHRLOG_DEBUG("{}", pCallbackData->pMessage);
     }
     return 0;
 }
 
 void VulkanInstance::init()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Vulkan instance init");
 
     createInstance();
     setupDebugCallback();
@@ -70,7 +75,9 @@ void VulkanInstance::init()
 
 void VulkanInstance::deinit()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Vulkan instance deinit");
 
     VulkanContext::depthImage.reset();
     VulkanContext::swapChainImages.clear();
@@ -89,7 +96,9 @@ void VulkanInstance::deinit()
 
 void VulkanInstance::recreateSwapChain()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Recreate swapchain");
 
 #ifdef GLFW_PLATFORM
     int width = 0;
@@ -108,7 +117,9 @@ void VulkanInstance::recreateSwapChain()
 
 void VulkanInstance::createInstance()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create instance");
 
     if (ENABLED_VALIDATION_LAYERS && !checkValidationLayerSupport())
         throw RendererError("Validation layers requested, but not available");
@@ -128,8 +139,8 @@ void VulkanInstance::createInstance()
     createInfo.setPApplicationInfo(&appInfo);
     createInfo.setPEnabledExtensionNames(extensions);
 
+    vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
     if (ENABLED_VALIDATION_LAYERS) {
-        vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
         populateDebugMessengerCreateInfo(debugCreateInfo);
 
         createInfo.setPEnabledLayerNames(VALIDATION_LAYERS);
@@ -141,7 +152,7 @@ void VulkanInstance::createInstance()
 
 void VulkanInstance::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     using enum vk::DebugUtilsMessageSeverityFlagBitsEXT;
     using enum vk::DebugUtilsMessageTypeFlagBitsEXT;
@@ -153,7 +164,7 @@ void VulkanInstance::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCre
 
 void VulkanInstance::setupDebugCallback()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     if (!ENABLED_VALIDATION_LAYERS)
         return;
@@ -170,7 +181,9 @@ void VulkanInstance::setupDebugCallback()
 
 void VulkanInstance::createSurface()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create surface");
 
 #ifdef GLFW_PLATFORM
     VkSurfaceKHR rawSurface;
@@ -185,7 +198,7 @@ void VulkanInstance::createSurface()
 
 void VulkanInstance::pickPhysicalDevice()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     auto devices = VulkanContext::instance.enumeratePhysicalDevices();
     if (devices.size() == 0)
@@ -204,7 +217,9 @@ void VulkanInstance::pickPhysicalDevice()
 
 void VulkanInstance::createLogicalDevice()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create logical device");
 
     VulkanQueueFamilyIndices indices = findQueueFamilies(VulkanContext::physicalDevice);
 
@@ -242,7 +257,9 @@ void VulkanInstance::createLogicalDevice()
 
 void VulkanInstance::createSwapChain()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create swapchain");
 
     auto swapChainSupport = querySwapChainSupport(VulkanContext::physicalDevice);
 
@@ -314,7 +331,9 @@ void VulkanInstance::createSwapChain()
 
 void VulkanInstance::createCommandPool()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create command pool");
 
     auto queueFamilyIndices = findQueueFamilies(VulkanContext::physicalDevice);
     vk::CommandPoolCreateInfo poolInfo = {};
@@ -326,7 +345,7 @@ void VulkanInstance::createCommandPool()
 
 bool VulkanInstance::checkValidationLayerSupport()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     auto availableLayers = vk::enumerateInstanceLayerProperties();
     for (const char* layerName : VALIDATION_LAYERS) {
@@ -348,19 +367,12 @@ bool VulkanInstance::checkValidationLayerSupport()
 
 std::vector<const char*> VulkanInstance::getRequiredExtensions()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
-#ifdef CHRPLATFORM_WINDOWS
-    std::vector<const char*> extensions = { "VK_KHR_surface", "VK_KHR_win32_surface" };
-#endif
-
-#ifdef CHRPLATFORM_MACOS
-    std::vector<const char*> extensions = { "VK_KHR_surface", "VK_EXT_metal_surface" };
-#endif
-
-#ifdef CHRPLATFORM_LINUX
-    throw RendererError("TODO");
-#endif
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
     if (ENABLED_VALIDATION_LAYERS)
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -370,7 +382,9 @@ std::vector<const char*> VulkanInstance::getRequiredExtensions()
 
 bool VulkanInstance::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
 
     VulkanQueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
@@ -386,32 +400,36 @@ bool VulkanInstance::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice)
     return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-bool VulkanInstance::checkDeviceExtensionSupport(const vk::PhysicalDevice& device)
+bool VulkanInstance::checkDeviceExtensionSupport(const vk::PhysicalDevice& physicalDevice)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
 
     std::set<std::string, std::less<>> requiredExtensions(DEVICE_EXTENSIONS.begin(), DEVICE_EXTENSIONS.end());
 
-    for (const auto& extension : device.enumerateDeviceExtensionProperties())
+    for (const auto& extension : physicalDevice.enumerateDeviceExtensionProperties())
         requiredExtensions.erase(extension.extensionName);
 
     return requiredExtensions.empty();
 }
 
-VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice device)
+VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice physicalDevice)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
 
     VulkanQueueFamilyIndices indices;
 
-    auto queueFamilies = device.getQueueFamilyProperties();
+    auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
     int i = 0;
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
             indices.graphicsFamily = i;
 
-        if (queueFamily.queueCount > 0 && device.getSurfaceSupportKHR(i, VulkanContext::surface))
+        if (queueFamily.queueCount > 0 && physicalDevice.getSurfaceSupportKHR(i, VulkanContext::surface))
             indices.presentFamily = i;
 
         if (indices.IsComplete())
@@ -423,20 +441,24 @@ VulkanQueueFamilyIndices VulkanInstance::findQueueFamilies(vk::PhysicalDevice de
     return indices;
 }
 
-VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::PhysicalDevice& device)
+VulkanSwapChainSupportDetails VulkanInstance::querySwapChainSupport(const vk::PhysicalDevice& physicalDevice)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(physicalDevice);
 
     VulkanSwapChainSupportDetails details;
-    details.capabilities = device.getSurfaceCapabilitiesKHR(VulkanContext::surface);
-    details.formats = device.getSurfaceFormatsKHR(VulkanContext::surface);
-    details.presentModes = device.getSurfacePresentModesKHR(VulkanContext::surface);
+    details.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(VulkanContext::surface);
+    details.formats = physicalDevice.getSurfaceFormatsKHR(VulkanContext::surface);
+    details.presentModes = physicalDevice.getSurfacePresentModesKHR(VulkanContext::surface);
     return details;
 }
 
 vk::SurfaceFormatKHR VulkanInstance::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(availableFormats.size() > 0);
 
     using enum vk::Format;
 
@@ -453,7 +475,9 @@ vk::SurfaceFormatKHR VulkanInstance::chooseSwapSurfaceFormat(const std::vector<v
 
 vk::PresentModeKHR VulkanInstance::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(availablePresentModes.size() > 0);
 
     using enum vk::PresentModeKHR;
 
@@ -471,7 +495,7 @@ vk::PresentModeKHR VulkanInstance::chooseSwapPresentMode(const std::vector<vk::P
 
 vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
@@ -499,6 +523,9 @@ vk::Extent2D VulkanInstance::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& 
 vk::Format VulkanInstance::findSupportedFormat(
     const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features)
 {
+    assert(candidates.size() > 0);
+    assert(features);
+
     for (const auto& format : candidates) {
         auto props = VulkanContext::physicalDevice.getFormatProperties(format);
 
@@ -514,8 +541,10 @@ vk::Format VulkanInstance::findSupportedFormat(
 
 vk::Format VulkanInstance::findDepthFormat()
 {
-    return findSupportedFormat({ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
-        vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+    using enum vk::Format;
+
+    return findSupportedFormat({ eD32Sfloat, eD32SfloatS8Uint, eD24UnormS8Uint }, vk::ImageTiling::eOptimal,
+        vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
 bool VulkanInstance::hasStencilComponent(vk::Format format)

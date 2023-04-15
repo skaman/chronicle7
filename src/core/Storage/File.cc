@@ -1,10 +1,13 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "File.h"
 
 namespace chronicle {
 
 std::vector<char> File::readBytes(const std::string& filename)
 {
-    CHRZONE_STORAGE
+    CHRZONE_STORAGE;
 
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 

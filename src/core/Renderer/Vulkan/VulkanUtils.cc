@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanUtils.h"
 
 #include "VulkanCommon.h"
@@ -7,7 +10,15 @@ namespace chronicle {
 std::pair<vk::DeviceMemory, vk::Image> VulkanUtils::createImage(uint32_t width, uint32_t height, uint32_t mipLevels,
     vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(width > 0);
+    assert(height > 0);
+    assert(format != vk::Format::eUndefined);
+
+    CHRLOG_TRACE("Creating Vulkan image: size={}x{}, mip levels={}, format={}, tiling={}, usage={}, properties={}",
+        width, height, mipLevels, vk::to_string(format), vk::to_string(tiling), vk::to_string(usage),
+        vk::to_string(properties));
 
     vk::Extent3D imageExtent = {};
     imageExtent.setWidth(width);
@@ -46,7 +57,13 @@ std::pair<vk::DeviceMemory, vk::Image> VulkanUtils::createImage(uint32_t width, 
 vk::ImageView VulkanUtils::createImageView(
     vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(image);
+    assert(format != vk::Format::eUndefined);
+
+    CHRLOG_TRACE("Creating Vulkan image view: format={}, aspectFlags={}, mipLevels={}", vk::to_string(format),
+        vk::to_string(aspectFlags), mipLevels);
 
     vk::ImageSubresourceRange subresourceRange = {};
     subresourceRange.setAspectMask(aspectFlags);
@@ -66,7 +83,9 @@ vk::ImageView VulkanUtils::createImageView(
 
 vk::Sampler VulkanUtils::createTextureSampler(uint32_t mipLevels)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Creating Vulkan texture sampler: mipLevels={}", mipLevels);
 
     const auto properties = VulkanContext::physicalDevice.getProperties();
 
@@ -93,7 +112,14 @@ vk::Sampler VulkanUtils::createTextureSampler(uint32_t mipLevels)
 void VulkanUtils::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
     vk::Buffer& buffer, vk::DeviceMemory& bufferMemory)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(size > 0);
+    assert(usage);
+    assert(properties);
+
+    CHRLOG_TRACE("Creating Vulkan buffer: size={}, usage={}, properties={}", size, vk::to_string(usage),
+        vk::to_string(properties));
 
     vk::BufferCreateInfo bufferInfo = {};
     bufferInfo.setSize(size);
@@ -115,11 +141,19 @@ void VulkanUtils::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, 
 
 void VulkanUtils::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(size > 0);
+    assert(srcBuffer);
+    assert(dstBuffer);
+
+    CHRLOG_TRACE("Copying Vulkan buffer: size={}", size);
 
     auto commandBuffer = beginSingleTimeCommands();
 
-    const auto& copyRegion = vk::BufferCopy().setSize(size);
+    vk::BufferCopy copyRegion = {};
+    copyRegion.setSize(size);
+
     commandBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
 
     endSingleTimeCommands(commandBuffer);
@@ -127,7 +161,14 @@ void VulkanUtils::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::Dev
 
 void VulkanUtils::copyBufferToImage(vk::Buffer srcBuffer, vk::Image dstImage, uint32_t width, uint32_t height)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(width > 0);
+    assert(height > 0);
+    assert(srcBuffer);
+    assert(dstImage);
+
+    CHRLOG_TRACE("Copying Vulkan buffer to image: size={}x{}", width, height);
 
     auto commandBuffer = beginSingleTimeCommands();
 
@@ -150,9 +191,15 @@ void VulkanUtils::copyBufferToImage(vk::Buffer srcBuffer, vk::Image dstImage, ui
     endSingleTimeCommands(commandBuffer);
 }
 
-void VulkanUtils::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels)
+void VulkanUtils::transitionImageLayout(
+    vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(image);
+
+    CHRLOG_TRACE("Transitioning Vulkan image layout: from={}, to={}, mip levels={}", vk::to_string(oldLayout),
+        vk::to_string(newLayout), mipLevels);
 
     vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -199,7 +246,12 @@ void VulkanUtils::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayo
 void VulkanUtils::generateMipmaps(
     vk::Image image, vk::Format format, uint32_t width, uint32_t height, uint32_t mipLevels)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(image);
+
+    CHRLOG_TRACE("Generating Vulkan mipmaps: size={}x{}, format={}, mip levels={}", width, height,
+        vk::to_string(format), mipLevels);
 
     // Check if image format supports linear blitting
     if (auto formatProperties = VulkanContext::physicalDevice.getFormatProperties(format);
@@ -281,7 +333,7 @@ void VulkanUtils::generateMipmaps(
 
 uint32_t VulkanUtils::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     auto memProperties = VulkanContext::physicalDevice.getMemoryProperties();
 
@@ -296,7 +348,9 @@ uint32_t VulkanUtils::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlag
 
 vk::CommandBuffer VulkanUtils::beginSingleTimeCommands()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Beginning Vulkan single time command");
 
     vk::CommandBufferAllocateInfo allocInfo = {};
     allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
@@ -315,7 +369,11 @@ vk::CommandBuffer VulkanUtils::beginSingleTimeCommands()
 
 void VulkanUtils::endSingleTimeCommands(vk::CommandBuffer commandBuffer)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(commandBuffer);
+
+    CHRLOG_TRACE("Ending Vulkan single time command");
 
     commandBuffer.end();
 

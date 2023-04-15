@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
 #include "VulkanRenderPass.h"
 
 #include "VulkanImage.h"
@@ -5,12 +8,19 @@
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanRenderPass)
+CHR_CONCRETE(VulkanRenderPass);
 
 VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
     : _depthImage(renderPassInfo.depthImage)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    assert(renderPassInfo.colorAttachmentFormat != Format::Undefined);
+    assert(renderPassInfo.depthAttachmentFormat != Format::Undefined);
+    assert(renderPassInfo.images.size() > 0);
+    assert(renderPassInfo.depthImage);
+
+    CHRLOG_DEBUG("Create render pass");
 
     // color attachment
     vk::AttachmentDescription colorAttachment = {};
@@ -89,7 +99,9 @@ VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
 
 VulkanRenderPass::~VulkanRenderPass()
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy render pass");
 
     for (const auto& image : _images) {
         const auto vulkanImage = static_cast<VulkanImage*>(image.get());
@@ -112,7 +124,7 @@ RenderPassRef VulkanRenderPass::create(const RenderPassInfo& renderPassInfo)
 
 vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image, const ImageRef& depthImage) const
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     const auto vulkanImage = static_cast<const VulkanImage*>(image.get());
     const auto vulkanDepthImage = static_cast<const VulkanImage*>(depthImage.get());
@@ -131,7 +143,7 @@ vk::Framebuffer VulkanRenderPass::createFrameBuffer(const ImageRef& image, const
 
 void VulkanRenderPass::recreateFrameBuffer(uint32_t imageIndex)
 {
-    CHRZONE_RENDERER
+    CHRZONE_RENDERER;
 
     VulkanContext::device.destroyFramebuffer(_framebuffers[imageIndex]);
 
