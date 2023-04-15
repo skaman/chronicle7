@@ -11,7 +11,7 @@ namespace chronicle {
 
 class Gui {
 public:
-    static void init(uint32_t swapChainImagesCount, const RenderPassRef& renderPass);
+    static void init();
     static void deinit();
 
     static void newFrame();

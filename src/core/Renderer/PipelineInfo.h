@@ -11,7 +11,6 @@
 namespace chronicle {
 
 struct PipelineInfo {
-    RenderPassRef renderPass = {};
     std::unordered_map<ShaderStage, std::string> shaders = {};
     std::vector<VertexBufferInfo> vertexBuffers = {};
 };

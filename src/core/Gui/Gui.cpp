@@ -7,7 +7,6 @@
 #include "Platform/GLFW/GLFWCommon.h"
 #include "Renderer/Vulkan/VulkanCommandBuffer.h"
 #include "Renderer/Vulkan/VulkanCommon.h"
-#include "Renderer/Vulkan/VulkanRenderPass.h"
 #include "Renderer/Vulkan/VulkanUtils.h"
 
 #include <backends/imgui_impl_glfw.h>
@@ -24,7 +23,7 @@ static void check_vk_result(VkResult err)
         abort();
 }
 
-void Gui::init(uint32_t swapChainImagesCount, const RenderPassRef& renderPass)
+void Gui::init()
 {
     // create descriptor pool
     std::vector<vk::DescriptorPoolSize> sizes = { { vk::DescriptorType::eSampler, 1000 },
@@ -62,8 +61,6 @@ void Gui::init(uint32_t swapChainImagesCount, const RenderPassRef& renderPass)
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-    auto vulkanRenderPass = static_cast<VulkanRenderPass*>(renderPass.get());
-
     ImGui_ImplGlfw_InitForVulkan(GLFWContext::window, true);
 
     // Setup Platform/Renderer backends
@@ -77,11 +74,11 @@ void Gui::init(uint32_t swapChainImagesCount, const RenderPassRef& renderPass)
     init_info.DescriptorPool = GuiContex::descriptorPool;
     init_info.Subpass = 0;
     init_info.MinImageCount = 2;
-    init_info.ImageCount = swapChainImagesCount;
+    init_info.ImageCount = static_cast<uint32_t>(VulkanContext::swapChainImages.size());
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.Allocator = nullptr;
     init_info.CheckVkResultFn = check_vk_result;
-    ImGui_ImplVulkan_Init(&init_info, vulkanRenderPass->renderPass());
+    ImGui_ImplVulkan_Init(&init_info, VulkanContext::renderPass);
 
     auto commandBuffer = VulkanUtils::beginSingleTimeCommands();
     ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);

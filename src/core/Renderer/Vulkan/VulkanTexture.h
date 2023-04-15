@@ -5,16 +5,16 @@
 
 #include "pch.h"
 
-#include "Renderer/ImageI.h"
+#include "Renderer/TextureI.h"
 
 namespace chronicle {
 
-class VulkanImage : public ImageI<VulkanImage>, private NonCopyable<VulkanImage> {
+class VulkanTexture : public TextureI<VulkanTexture>, private NonCopyable<VulkanTexture> {
 protected:
-    explicit VulkanImage() = default;
+    explicit VulkanTexture() = default;
 
 public:
-    ~VulkanImage();
+    ~VulkanTexture();
 
     void set(void* src, size_t size, uint32_t width, uint32_t height);
 
@@ -25,19 +25,9 @@ public:
     [[nodiscard]] const vk::ImageView& imageView() const { return _imageView; }
     [[nodiscard]] const vk::Sampler& sampler() const { return _sampler; }
 
-    void updateSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
-    void updateDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
-
-    [[nodiscard]] static ImageRef createTexture(const ImageInfo& imageInfo);
-    [[nodiscard]] static ImageRef createSwapchain(
-        const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
-    [[nodiscard]] static ImageRef createDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
-
-    entt::delegate<void(void)> updated {};
+    [[nodiscard]] static TextureRef create(const TextureInfo& textureInfo);
 
 private:
-    ImageType _type;
-
     vk::DeviceMemory _imageMemory;
     vk::Image _image;
     vk::ImageView _imageView;

@@ -8,7 +8,7 @@
 #include "Renderer/DescriptorSetI.h"
 
 #include "VulkanCommon.h"
-#include "VulkanImage.h"
+#include "VulkanTexture.h"
 #include "VulkanUtils.h"
 
 namespace chronicle {
@@ -70,7 +70,7 @@ public:
         _buffersMapped[id] = bufferMapped;
     }
 
-    void addSampler(ShaderStage stage, const ImageRef image)
+    void addSampler(ShaderStage stage, const TextureRef texture)
     {
         vk::DescriptorSetLayoutBinding layoutBinding = {};
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
@@ -79,12 +79,12 @@ public:
         layoutBinding.setStageFlags(shaderStageToVulkan(stage));
         _layoutBindings.push_back(layoutBinding);
 
-        const auto vulkanImage = static_cast<const VulkanImage*>(image.get());
+        const auto vulkanTexture = static_cast<const VulkanTexture*>(texture.get());
 
         vk::DescriptorImageInfo imageInfo {};
         imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
-        imageInfo.setImageView(vulkanImage->imageView());
-        imageInfo.setSampler(vulkanImage->sampler());
+        imageInfo.setImageView(vulkanTexture->imageView());
+        imageInfo.setSampler(vulkanTexture->sampler());
 
         VulkanDescriptorSetState descriptorSetState
             = { .type = vk::DescriptorType::eCombinedImageSampler, .combinedImageSampler = { .imageInfo = imageInfo } };

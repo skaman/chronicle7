@@ -13,29 +13,6 @@ namespace chronicle {
 /// @tparam T Type with implementation.
 template <class T> class CommandBufferI {
 public:
-    /// @brief Reset the command buffer to the initial state.
-    void reset() const { static_cast<const T*>(this)->reset(); }
-
-    /// @brief Start recording a command buffer.
-    void begin() const { static_cast<const T*>(this)->begin(); }
-
-    /// @brief End recording a command buffer.
-    void end() const { static_cast<const T*>(this)->end(); }
-
-    void beginRenderPass(const RenderPassRef& renderPass, const RectInt2D& renderArea, uint32_t imageIndex) const
-    {
-        static_cast<const T*>(this)->beginRenderPass(renderPass, renderArea, imageIndex);
-    }
-
-    void endRenderPass() const { static_cast<const T*>(this)->endRenderPass(); }
-
-    void setViewport(RectFloat2D viewport, float minDepth, float maxDepth) const
-    {
-        static_cast<const T*>(this)->setViewport(viewport, minDepth, maxDepth);
-    }
-
-    void setScissor(RectInt2D scissor) const { static_cast<const T*>(this)->setScissor(scissor); }
-
     void drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
     {
         static_cast<const T*>(this)->drawIndexed(indexCount, instanceCount);
@@ -54,8 +31,6 @@ public:
     {
         static_cast<const T*>(this)->bindDescriptorSet(descriptorSet, index);
     }
-
-    [[nodiscard]] static CommandBufferRef create() { return T::create(); }
 
 private:
     CommandBufferI() = default;

@@ -5,17 +5,10 @@
 
 #include "pch.h"
 
-#include "Common.h"
-
 namespace chronicle {
 
-template <class T> class FenceI {
-public:
-    [[nodiscard]] static FenceRef create() { return T::create(); }
-
-private:
-    FenceI() = default;
-    friend T;
+struct TextureInfo {
+    bool generateMipmaps = true;
 };
 
 } // namespace chronicle

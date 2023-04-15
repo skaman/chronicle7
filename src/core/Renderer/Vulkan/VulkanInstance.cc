@@ -4,14 +4,15 @@
 #include "VulkanInstance.h"
 
 #include "VulkanCommandBuffer.h"
-#include "VulkanFence.h"
-#include "VulkanImage.h"
+#include "VulkanDescriptorSet.h"
 #include "VulkanInstance.h"
-#include "VulkanSemaphore.h"
+#include "VulkanUtils.h"
 
 #ifdef GLFW_PLATFORM
 #include "Platform/GLFW/GLFWCommon.h"
 #endif
+
+using namespace entt::literals;
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
@@ -71,6 +72,11 @@ void VulkanInstance::init()
     createLogicalDevice();
     createSwapChain();
     createCommandPool();
+    createRenderPass();
+    createFramebuffers();
+    createSyncObjects();
+    createCommandBuffers();
+    createDescriptorSets();
 }
 
 void VulkanInstance::deinit()
@@ -79,10 +85,22 @@ void VulkanInstance::deinit()
 
     CHRLOG_DEBUG("Vulkan instance deinit");
 
-    VulkanContext::depthImage.reset();
-    VulkanContext::swapChainImages.clear();
+    VulkanContext::descriptorSets.clear();
+    VulkanContext::commandBuffers.clear();
 
-    VulkanContext::device.destroySwapchainKHR(VulkanContext::swapChain);
+    for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
+        VulkanContext::device.destroySemaphore(VulkanContext::imageAvailableSemaphores[i]);
+        VulkanContext::device.destroySemaphore(VulkanContext::renderFinishedSemaphores[i]);
+        VulkanContext::device.destroyFence(VulkanContext::inFlightFences[i]);
+    }
+
+    for (const auto& framebuffer : VulkanContext::framebuffers)
+        VulkanContext::device.destroyFramebuffer(framebuffer);
+
+    VulkanContext::device.destroyRenderPass(VulkanContext::renderPass);
+
+    cleanupSwapChain();
+
     VulkanContext::device.destroyCommandPool(VulkanContext::commandPool);
     VulkanContext::device.destroy();
 
@@ -110,9 +128,24 @@ void VulkanInstance::recreateSwapChain()
 #endif
 
     VulkanContext::device.waitIdle();
-    VulkanContext::device.destroySwapchainKHR(VulkanContext::swapChain);
 
+    cleanupSwapChain();
     createSwapChain();
+}
+
+void VulkanInstance::cleanupSwapChain()
+{
+    CHRZONE_RENDERER;
+
+    VulkanContext::device.destroyImageView(VulkanContext::depthImageView);
+    VulkanContext::device.destroyImage(VulkanContext::depthImage);
+    VulkanContext::device.freeMemory(VulkanContext::depthImageMemory);
+
+    for (const auto& imageView : VulkanContext::swapChainImageViews) {
+        VulkanContext::device.destroyImageView(imageView);
+    }
+
+    VulkanContext::device.destroySwapchainKHR(VulkanContext::swapChain);
 }
 
 void VulkanInstance::createInstance()
@@ -297,36 +330,26 @@ void VulkanInstance::createSwapChain()
     VulkanContext::swapChain = VulkanContext::device.createSwapchainKHR(createInfo);
 
     // create depth buffer
-    // NOTE: the depth buffer MUST be updated before the swap chain images!
-    // the render pass is updated the the swapchain image trigger it, during
-    // the framebuffer recreate the depth image must be already updated.
-    if (VulkanContext::depthImage) {
-        const auto vulkanDepthImage = static_cast<VulkanImage*>(VulkanContext::depthImage.get());
-        vulkanDepthImage->updateDepthBuffer(extent.width, extent.height, VulkanContext::depthImageFormat);
-    } else {
-        VulkanContext::depthImageFormat = findDepthFormat();
-        VulkanContext::depthImage
-            = VulkanImage::createDepthBuffer(extent.width, extent.height, VulkanContext::depthImageFormat);
-    }
+    VulkanContext::depthImageFormat = findDepthFormat();
+    auto [depthImageMemory, depthImage] = VulkanUtils::createImage(extent.width, extent.height, 1,
+        VulkanContext::depthImageFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment,
+        vk::MemoryPropertyFlagBits::eDeviceLocal);
+    VulkanContext::depthImageMemory = depthImageMemory;
+    VulkanContext::depthImage = depthImage;
+    VulkanContext::depthImageView
+        = VulkanUtils::createImageView(depthImage, VulkanContext::depthImageFormat, vk::ImageAspectFlagBits::eDepth, 1);
 
     // create swap chain images
-    auto swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
-
-    VulkanContext::swapChainImages.reserve(swapChainImages.size());
-
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
-        if (VulkanContext::swapChainImages.size() > i) {
-            const auto vulkanImage = static_cast<VulkanImage*>(VulkanContext::swapChainImages[i].get());
-            vulkanImage->updateSwapchain(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
-        } else {
-            auto image
-                = VulkanImage::createSwapchain(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
-            VulkanContext::swapChainImages.push_back(image);
-        }
-    }
-
+    VulkanContext::swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
     VulkanContext::swapChainImageFormat = surfaceFormat.format;
     VulkanContext::swapChainExtent = extent;
+
+    VulkanContext::swapChainImageViews.reserve(VulkanContext::swapChainImages.size());
+    for (const auto& swapChainImage : VulkanContext::swapChainImages) {
+        auto swapChainImageView
+            = VulkanUtils::createImageView(swapChainImage, surfaceFormat.format, vk::ImageAspectFlagBits::eColor, 1);
+        VulkanContext::swapChainImageViews.push_back(swapChainImageView);
+    }
 }
 
 void VulkanInstance::createCommandPool()
@@ -341,6 +364,137 @@ void VulkanInstance::createCommandPool()
     poolInfo.setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
 
     VulkanContext::commandPool = VulkanContext::device.createCommandPool(poolInfo);
+}
+
+void VulkanInstance::createRenderPass()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create render pass");
+
+    // color attachment
+    vk::AttachmentDescription colorAttachment = {};
+    colorAttachment.setFormat(VulkanContext::swapChainImageFormat);
+    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+    vk::AttachmentReference colorAttachmentRef = {};
+    colorAttachmentRef.setAttachment(0);
+    colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+    // depth attachment
+    vk::AttachmentDescription depthAttachment = {};
+    depthAttachment.setFormat(VulkanContext::depthImageFormat);
+    depthAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+    vk::AttachmentReference depthAttachmentRef = {};
+    depthAttachmentRef.setAttachment(1);
+    depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+    // subpass
+    vk::SubpassDescription subpass = {};
+    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
+    subpass.setColorAttachments(colorAttachmentRef);
+    subpass.setPDepthStencilAttachment(&depthAttachmentRef);
+
+    // dependency
+    vk::SubpassDependency dependency = {};
+    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
+    dependency.setDstSubpass(0);
+    dependency.setSrcStageMask(
+        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests);
+    dependency.setDstStageMask(
+        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests);
+    dependency.setDstAccessMask(
+        vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite);
+
+    // render pass
+    std::array<vk::AttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+
+    vk::RenderPassCreateInfo createRenderPassInfo = {};
+    createRenderPassInfo.setAttachments(attachments);
+    createRenderPassInfo.setSubpasses(subpass);
+    createRenderPassInfo.setDependencies(dependency);
+
+    VulkanContext::renderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
+}
+
+void VulkanInstance::createFramebuffers()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create framebuffers");
+
+    VulkanContext::framebuffers.reserve(VulkanContext::swapChainImageViews.size());
+
+    for (const auto& swapChainImageView : VulkanContext::swapChainImageViews) {
+        std::array<vk::ImageView, 2> attachments = { swapChainImageView, VulkanContext::depthImageView };
+
+        vk::FramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.setRenderPass(VulkanContext::renderPass);
+        framebufferInfo.setAttachments(attachments);
+        framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
+        framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
+        framebufferInfo.setLayers(1);
+
+        VulkanContext::framebuffers.push_back(VulkanContext::device.createFramebuffer(framebufferInfo));
+    }
+}
+
+void VulkanInstance::createSyncObjects()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create sync objects");
+
+    VulkanContext::imageAvailableSemaphores.reserve(VulkanContext::maxFramesInFlight);
+    VulkanContext::renderFinishedSemaphores.reserve(VulkanContext::maxFramesInFlight);
+    VulkanContext::inFlightFences.reserve(VulkanContext::maxFramesInFlight);
+
+    for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
+        VulkanContext::imageAvailableSemaphores.push_back(VulkanContext::device.createSemaphore({}));
+        VulkanContext::renderFinishedSemaphores.push_back(VulkanContext::device.createSemaphore({}));
+        VulkanContext::inFlightFences.push_back(
+            VulkanContext::device.createFence({ vk::FenceCreateFlagBits::eSignaled }));
+    }
+}
+
+void VulkanInstance::createCommandBuffers()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create command buffers");
+
+    VulkanContext::commandBuffers.reserve(VulkanContext::maxFramesInFlight);
+    for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
+        auto commandBuffer = chronicle::VulkanCommandBuffer::create();
+        VulkanContext::commandBuffers.push_back(commandBuffer);
+    }
+}
+
+void VulkanInstance::createDescriptorSets()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create descriptor sets");
+
+    VulkanContext::descriptorSets.reserve(VulkanContext::maxFramesInFlight);
+    for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
+        auto descriptorSet = chronicle::DescriptorSet::create();
+        descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, chronicle::ShaderStage::Vertex);
+        VulkanContext::descriptorSets.push_back(descriptorSet);
+    }
 }
 
 bool VulkanInstance::checkValidationLayerSupport()
@@ -369,10 +523,14 @@ std::vector<const char*> VulkanInstance::getRequiredExtensions()
 {
     CHRZONE_RENDERER;
 
+#ifdef GLFW_PLATFORM
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+#else
+    throw RendererError("Not implemented");
+#endif
 
     if (ENABLED_VALIDATION_LAYERS)
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

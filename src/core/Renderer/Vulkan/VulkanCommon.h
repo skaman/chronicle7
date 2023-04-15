@@ -77,30 +77,71 @@ inline vk::VertexInputRate vertextInputRateToVulkan(VertexInputRate vertexInputR
         throw RendererError("Unsupported vertex input rate");
     }
 }
+
+struct UniformBufferObject {
+    alignas(16) glm::mat4 model;
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
+};
+
 struct VulkanContext {
-    static inline vk::Instance instance;
-    static inline VkDebugUtilsMessengerEXT debugCallback;
-    static inline vk::SurfaceKHR surface;
+    // instance, debugger and surface
+    static inline vk::Instance instance = nullptr;
+    static inline VkDebugUtilsMessengerEXT debugCallback = VK_NULL_HANDLE;
+    static inline vk::SurfaceKHR surface = nullptr;
 
-    static inline vk::PhysicalDevice physicalDevice;
-    static inline vk::Device device;
+    // devices
+    static inline vk::PhysicalDevice physicalDevice = nullptr;
+    static inline vk::Device device = nullptr;
 
-    static inline vk::Queue graphicsQueue;
-    static inline vk::Queue presentQueue;
+    // queues
+    static inline vk::Queue graphicsQueue = nullptr;
+    static inline vk::Queue presentQueue = nullptr;
 
-    static inline uint32_t graphicsFamily;
-    static inline uint32_t presentFamily;
+    // families
+    static inline uint32_t graphicsFamily = 0;
+    static inline uint32_t presentFamily = 0;
 
-    static inline vk::SwapchainKHR swapChain;
-    static inline std::vector<ImageRef> swapChainImages;
-    static inline vk::Format swapChainImageFormat;
-    static inline vk::Extent2D swapChainExtent;
-    static inline ImageRef depthImage;
-    static inline vk::Format depthImageFormat;
+    // swapchain
+    static inline vk::SwapchainKHR swapChain = nullptr;
+    static inline std::vector<vk::Image> swapChainImages = {};
+    static inline std::vector<vk::ImageView> swapChainImageViews = {};
+    static inline vk::Format swapChainImageFormat = vk::Format::eUndefined;
+    static inline vk::Extent2D swapChainExtent = {};
+    static inline bool swapChainInvalidated = false; // TODO: i think it's not yet called by the platform
 
-    static inline vk::CommandPool commandPool;
+    // depth image
+    static inline vk::Image depthImage = nullptr;
+    static inline vk::DeviceMemory depthImageMemory = nullptr;
+    static inline vk::ImageView depthImageView = nullptr;
+    static inline vk::Format depthImageFormat = vk::Format::eUndefined;
 
-    static inline bool swapChainInvalidated;
+    // command pool
+    static inline vk::CommandPool commandPool = nullptr;
+
+    // render pass
+    static inline vk::RenderPass renderPass = nullptr;
+
+    // framebuffers
+    static inline std::vector<vk::Framebuffer> framebuffers = {};
+
+    // sync objects
+    static inline std::vector<vk::Semaphore> imageAvailableSemaphores = {};
+    static inline std::vector<vk::Semaphore> renderFinishedSemaphores = {};
+    static inline std::vector<vk::Fence> inFlightFences = {};
+
+    // command buffers
+    static inline std::vector<CommandBufferRef> commandBuffers = {};
+
+    // descriptor sets
+    static inline std::vector<DescriptorSetRef> descriptorSets = {};
+
+    // current frame
+    static inline int currentFrame = 0;
+    static inline int currentImage = 0;
+
+    // options
+    static inline int maxFramesInFlight = 2;
 };
 
 } // namespace chronicle

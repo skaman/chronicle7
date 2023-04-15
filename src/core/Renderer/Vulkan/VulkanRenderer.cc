@@ -4,10 +4,7 @@
 #include "VulkanRenderer.h"
 
 #include "VulkanCommandBuffer.h"
-#include "VulkanFence.h"
-#include "VulkanImage.h"
 #include "VulkanInstance.h"
-#include "VulkanSemaphore.h"
 
 namespace chronicle {
 
@@ -36,91 +33,84 @@ void VulkanRenderer::waitIdle()
     VulkanContext::device.waitIdle();
 }
 
-void VulkanRenderer::waitForFence(const FenceRef& fence)
+bool VulkanRenderer::beginFrame()
 {
     CHRZONE_RENDERER;
 
-    assert(fence);
+    CHRLOG_TRACE("Begin swapchain");
 
-    CHRLOG_TRACE("Wait for fence");
+    (void)VulkanContext::device.waitForFences(
+        VulkanContext::inFlightFences[VulkanContext::currentFrame], true, std::numeric_limits<uint64_t>::max());
 
-    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-    (void)VulkanContext::device.waitForFences(vulkanFence->fence(), true, std::numeric_limits<uint64_t>::max());
-}
-
-void VulkanRenderer::resetFence(const FenceRef& fence)
-{
-    CHRZONE_RENDERER;
-
-    assert(fence);
-
-    CHRLOG_TRACE("Reset fence");
-
-    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-    (void)VulkanContext::device.resetFences(vulkanFence->fence());
-}
-
-std::optional<uint32_t> VulkanRenderer::acquireNextImage(const SemaphoreRef& semaphore)
-{
-    CHRZONE_RENDERER;
-
-    assert(semaphore);
-
-    CHRLOG_TRACE("Acquire next image");
-
-    const auto vulkanSemaphore = static_cast<const VulkanSemaphore*>(semaphore.get());
-
+    VulkanContext::device.resetFences(VulkanContext::inFlightFences[VulkanContext::currentFrame]);
     try {
-        auto result = VulkanContext::device.acquireNextImageKHR(
-            VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(), vulkanSemaphore->semaphore(), nullptr);
-        return result.value;
+        auto result
+            = VulkanContext::device.acquireNextImageKHR(VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(),
+                VulkanContext::imageAvailableSemaphores[VulkanContext::currentFrame], nullptr);
+        VulkanContext::currentImage = result.value;
     } catch (vk::OutOfDateKHRError err) {
         VulkanInstance::recreateSwapChain();
-        return std::optional<uint32_t>();
+        return false;
     }
+    // chronicle::Gui::newFrame();
+
+    const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
+
+    CHRLOG_TRACE(
+        "New frame: area extent={}x{}", VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height);
+
+    vk::CommandBufferBeginInfo beginInfo = {};
+    vulkanCommandBuffer->commandBuffer().begin(beginInfo);
+
+    std::array<vk::ClearValue, 2> clearValues {};
+    clearValues[0].setColor({ std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } });
+    clearValues[1].setDepthStencil({ 1.0f, 0 });
+
+    vk::RenderPassBeginInfo renderPassInfo = {};
+    renderPassInfo.setRenderPass(VulkanContext::renderPass);
+    renderPassInfo.setFramebuffer(VulkanContext::framebuffers[VulkanContext::currentImage]);
+    renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
+    renderPassInfo.setClearValues(clearValues);
+
+    vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+    vk::Viewport viewportInfo = {};
+    viewportInfo.setX(0.0f);
+    viewportInfo.setY(0.0f);
+    viewportInfo.setWidth(static_cast<float>(VulkanContext::swapChainExtent.width));
+    viewportInfo.setHeight(static_cast<float>(VulkanContext::swapChainExtent.height));
+    viewportInfo.setMinDepth(0.0f);
+    viewportInfo.setMaxDepth(1.0f);
+
+    vulkanCommandBuffer->commandBuffer().setViewport(0, viewportInfo);
+    vulkanCommandBuffer->commandBuffer().setScissor(0, vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
+
+    return true;
 }
 
-void VulkanRenderer::submit(const FenceRef& fence, const SemaphoreRef& waitSemaphore,
-    const SemaphoreRef& signalSemaphore, const CommandBufferRef& commandBuffer)
+void VulkanRenderer::endFrame()
 {
     CHRZONE_RENDERER;
 
-    assert(fence);
-    assert(waitSemaphore);
-    assert(signalSemaphore);
-    assert(commandBuffer);
+    CHRLOG_TRACE("End swapchain");
 
-    CHRLOG_TRACE("Submit");
+    // chronicle::Gui::render(_commandBuffers[_currentFrame]);
+    const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
-    const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
-    const auto vulkanSignalSemaphore = static_cast<const VulkanSemaphore*>(signalSemaphore.get());
-
-    const auto vulkanCommandBuffer = static_cast<const VulkanCommandBuffer*>(commandBuffer.get());
+    vulkanCommandBuffer->commandBuffer().endRenderPass();
+    vulkanCommandBuffer->commandBuffer().end();
 
     vk::SubmitInfo submitInfo = {};
     std::array<vk::PipelineStageFlags, 1> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-    submitInfo.setWaitSemaphores(vulkanWaitSemaphore->semaphore());
+    submitInfo.setWaitSemaphores(VulkanContext::imageAvailableSemaphores[VulkanContext::currentFrame]);
     submitInfo.setWaitDstStageMask(waitStages);
     submitInfo.setCommandBuffers(vulkanCommandBuffer->commandBuffer());
-    submitInfo.setSignalSemaphores(vulkanSignalSemaphore->semaphore());
+    submitInfo.setSignalSemaphores(VulkanContext::renderFinishedSemaphores[VulkanContext::currentFrame]);
+    VulkanContext::graphicsQueue.submit(submitInfo, VulkanContext::inFlightFences[VulkanContext::currentFrame]);
 
-    const auto vulkanFence = static_cast<const VulkanFence*>(fence.get());
-
-    VulkanContext::graphicsQueue.submit(submitInfo, vulkanFence->fence());
-}
-
-bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIndex)
-{
-    CHRZONE_RENDERER;
-
-    assert(waitSemaphore);
-
-    CHRLOG_TRACE("Present: image index={}", imageIndex);
-
-    const auto vulkanWaitSemaphore = static_cast<const VulkanSemaphore*>(waitSemaphore.get());
-
+    uint32_t imageIndex = VulkanContext::currentImage;
     vk::PresentInfoKHR presentInfo = {};
-    presentInfo.setWaitSemaphores(vulkanWaitSemaphore->semaphore());
+    presentInfo.setWaitSemaphores(VulkanContext::renderFinishedSemaphores[VulkanContext::currentFrame]);
     presentInfo.setSwapchains(VulkanContext::swapChain);
     presentInfo.setImageIndices(imageIndex);
 
@@ -135,10 +125,11 @@ bool VulkanRenderer::present(const SemaphoreRef& waitSemaphore, uint32_t imageIn
         || VulkanContext::swapChainInvalidated) {
         VulkanContext::swapChainInvalidated = false;
         VulkanInstance::recreateSwapChain();
-        return false;
     }
 
-    return true;
+    VulkanContext::currentFrame = (VulkanContext::currentFrame + 1) % VulkanContext::maxFramesInFlight;
+
+    FrameMark;
 }
 
 } // namespace chronicle

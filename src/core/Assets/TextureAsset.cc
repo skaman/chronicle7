@@ -28,8 +28,8 @@ TextureAsset::TextureAsset(const std::string& filename)
         throw std::runtime_error(fmt::format("Failed to load texture image {}", filename));
     }
 
-    _image = Image::createTexture({ .generateMipmaps = true });
-    _image->set(pixels, imageSize, texWidth, texHeight);
+    _texture = Texture::create({ .generateMipmaps = true });
+    _texture->set(pixels, imageSize, texWidth, texHeight);
 
     stbi_image_free(pixels);
 }

@@ -21,10 +21,10 @@ public:
 
     [[nodiscard]] static TextureAssetRef load(const std::string& filename);
 
-    [[nodiscard]] const ImageRef& image() const { return _image; }
+    [[nodiscard]] const TextureRef& texture() const { return _texture; }
 
 private:
-    ImageRef _image;
+    TextureRef _texture;
 };
 
 } // namespace chronicle

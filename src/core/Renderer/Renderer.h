@@ -7,15 +7,12 @@
 
 #ifdef VULKAN_RENDERER
 
-#include "Vulkan/VulkanDescriptorSet.h"
 #include "Vulkan/VulkanCommandBuffer.h"
-#include "Vulkan/VulkanFence.h"
-#include "Vulkan/VulkanImage.h"
+#include "Vulkan/VulkanDescriptorSet.h"
 #include "Vulkan/VulkanIndexBuffer.h"
 #include "Vulkan/VulkanPipeline.h"
-#include "Vulkan/VulkanRenderPass.h"
-#include "Vulkan/VulkanSemaphore.h"
-#include "Vulkan/VulkanVertexBuffer.h"
 #include "Vulkan/VulkanRenderer.h"
+#include "Vulkan/VulkanTexture.h"
+#include "Vulkan/VulkanVertexBuffer.h"
 
 #endif

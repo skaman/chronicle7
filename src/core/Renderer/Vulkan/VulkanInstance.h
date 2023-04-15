@@ -31,6 +31,7 @@ public:
 
 private:
     static void recreateSwapChain();
+    static void cleanupSwapChain();
     static void createInstance();
     static void populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
     static void setupDebugCallback();
@@ -39,6 +40,11 @@ private:
     static void createLogicalDevice();
     static void createSwapChain();
     static void createCommandPool();
+    static void createRenderPass();
+    static void createFramebuffers();
+    static void createSyncObjects();
+    static void createCommandBuffers();
+    static void createDescriptorSets();
 
     [[nodiscard]] static bool checkValidationLayerSupport();
     [[nodiscard]] static std::vector<const char*> getRequiredExtensions();

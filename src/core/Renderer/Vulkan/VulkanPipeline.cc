@@ -6,7 +6,6 @@
 #include "Storage/File.h"
 
 #include "VulkanInstance.h"
-#include "VulkanRenderPass.h"
 
 #include <spirv-reflect/spirv_reflect.h>
 
@@ -20,7 +19,6 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
 {
     CHRZONE_RENDERER;
 
-    assert(pipelineInfo.renderPass);
     assert(pipelineInfo.shaders.size() > 0);
     assert(pipelineInfo.vertexBuffers.size() > 0);
 
@@ -146,8 +144,6 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
     _pipelineLayout = VulkanContext::device.createPipelineLayout(pipelineLayoutInfo);
 
     // graphics pipeline
-    const auto vulkanRenderPass = static_cast<VulkanRenderPass*>(pipelineInfo.renderPass.get());
-
     vk::GraphicsPipelineCreateInfo graphicsPipelineInfo = {};
     graphicsPipelineInfo.setStages(shaderStages);
     graphicsPipelineInfo.setPVertexInputState(&vertexInputInfo);
@@ -159,7 +155,7 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
     graphicsPipelineInfo.setPColorBlendState(&colorBlending);
     graphicsPipelineInfo.setPDynamicState(&dynamicState);
     graphicsPipelineInfo.setLayout(_pipelineLayout);
-    graphicsPipelineInfo.setRenderPass(vulkanRenderPass->renderPass());
+    graphicsPipelineInfo.setRenderPass(VulkanContext::renderPass);
     graphicsPipelineInfo.setSubpass(0);
 
     vk::Result result;

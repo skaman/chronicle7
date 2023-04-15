@@ -6,21 +6,21 @@
 #include "pch.h"
 
 #include "Common.h"
-#include "ImageInfo.h"
+#include "TextureInfo.h"
 
 namespace chronicle {
 
-template <class T> class ImageI {
+template <class T> class TextureI {
 public:
     void set(void* src, size_t size, uint32_t width, uint32_t height)
     {
         static_cast<T*>(this)->set(src, size, width, height);
     }
 
-    [[nodiscard]] static ImageRef createTexture(const ImageInfo& imageInfo) { return T::createTexture(imageInfo); }
+    [[nodiscard]] static TextureRef create(const TextureInfo& textureInfo) { return T::create(textureInfo); }
 
 private:
-    ImageI() = default;
+    TextureI() = default;
     friend T;
 };
 
