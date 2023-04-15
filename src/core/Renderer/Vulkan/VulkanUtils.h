@@ -12,8 +12,8 @@ namespace chronicle {
 class VulkanUtils {
 public:
     [[nodiscard]] static std::pair<vk::DeviceMemory, vk::Image> createImage(uint32_t width, uint32_t height,
-        uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage,
-        vk::MemoryPropertyFlags properties);
+        uint32_t mipLevels, vk::SampleCountFlagBits numSamples, vk::Format format, vk::ImageTiling tiling,
+        vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties);
     [[nodiscard]] static vk::ImageView createImageView(
         vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels);
     [[nodiscard]] static vk::Sampler createTextureSampler(uint32_t mipLevels);
@@ -49,6 +49,7 @@ public:
         const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features);
     [[nodiscard]] static vk::Format findDepthFormat();
     [[nodiscard]] static bool hasStencilComponent(vk::Format format);
+    [[nodiscard]] static vk::SampleCountFlagBits getMaxUsableSampleCount();
 };
 
 } // namespace chronicle

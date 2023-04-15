@@ -138,6 +138,12 @@ struct VulkanContext {
     // framebuffers
     static inline std::vector<vk::Framebuffer> framebuffers = {};
 
+    // multisampling
+    static inline vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1;
+    static inline vk::Image colorImage = nullptr;
+    static inline vk::DeviceMemory colorImageMemory = nullptr;
+    static inline vk::ImageView colorImageView = nullptr;
+
     // sync objects
     static inline std::vector<vk::Semaphore> imageAvailableSemaphores = {};
     static inline std::vector<vk::Semaphore> renderFinishedSemaphores = {};

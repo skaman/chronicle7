@@ -12,7 +12,8 @@
 namespace chronicle {
 
 std::pair<vk::DeviceMemory, vk::Image> VulkanUtils::createImage(uint32_t width, uint32_t height, uint32_t mipLevels,
-    vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties)
+    vk::SampleCountFlagBits numSamples, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage,
+    vk::MemoryPropertyFlags properties)
 {
     CHRZONE_RENDERER;
 
@@ -39,7 +40,7 @@ std::pair<vk::DeviceMemory, vk::Image> VulkanUtils::createImage(uint32_t width, 
     imageCreateInfo.setInitialLayout(vk::ImageLayout::eUndefined);
     imageCreateInfo.setUsage(usage);
     imageCreateInfo.setSharingMode(vk::SharingMode::eExclusive);
-    imageCreateInfo.setSamples(vk::SampleCountFlagBits::e1);
+    imageCreateInfo.setSamples(numSamples);
 
     auto image = VulkanContext::device.createImage(imageCreateInfo);
 
@@ -602,6 +603,35 @@ vk::Format VulkanUtils::findDepthFormat()
 bool VulkanUtils::hasStencilComponent(vk::Format format)
 {
     return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
+}
+
+vk::SampleCountFlagBits VulkanUtils::getMaxUsableSampleCount()
+{
+    auto physicalDeviceProperties = VulkanContext::physicalDevice.getProperties();
+
+    auto counts = physicalDeviceProperties.limits.framebufferColorSampleCounts
+        & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+    if (counts & vk::SampleCountFlagBits::e64) {
+        return vk::SampleCountFlagBits::e64;
+    }
+    if (counts & vk::SampleCountFlagBits::e32) {
+        return vk::SampleCountFlagBits::e32;
+    }
+    if (counts & vk::SampleCountFlagBits::e16) {
+        return vk::SampleCountFlagBits::e16;
+    }
+    if (counts & vk::SampleCountFlagBits::e8) {
+        return vk::SampleCountFlagBits::e8;
+    }
+    if (counts & vk::SampleCountFlagBits::e4) {
+        return vk::SampleCountFlagBits::e4;
+    }
+    if (counts & vk::SampleCountFlagBits::e2) {
+        return vk::SampleCountFlagBits::e2;
+    }
+
+    return vk::SampleCountFlagBits::e1;
 }
 
 } // namespace chronicle

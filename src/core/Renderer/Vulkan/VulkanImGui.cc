@@ -3,9 +3,9 @@
 
 #include "VulkanImGui.h"
 
+#include "VulkanCommandBuffer.h"
 #include "VulkanCommon.h"
 #include "VulkanUtils.h"
-#include "VulkanCommandBuffer.h"
 
 #ifdef GLFW_PLATFORM
 #include "Platform/GLFW/GLFWCommon.h"
@@ -48,7 +48,7 @@ void VulkanImGui::init()
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -76,7 +76,7 @@ void VulkanImGui::init()
     init_info.Subpass = 0;
     init_info.MinImageCount = 2;
     init_info.ImageCount = static_cast<uint32_t>(VulkanContext::swapChainImages.size());
-    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    init_info.MSAASamples = static_cast<VkSampleCountFlagBits>(VulkanContext::msaaSamples);
     init_info.Allocator = nullptr;
     init_info.CheckVkResultFn = checkVulkanResult;
     ImGui_ImplVulkan_Init(&init_info, VulkanContext::renderPass);

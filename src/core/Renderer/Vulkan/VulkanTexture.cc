@@ -45,8 +45,8 @@ void VulkanTexture::set(void* src, size_t size, uint32_t width, uint32_t height)
     _mipLevels = _generateMipmaps ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1 : 1;
 
     // create vulkan image
-    auto [imageMemory, image] = VulkanUtils::createImage(width, height, _mipLevels, vk::Format::eR8G8B8A8Unorm,
-        vk::ImageTiling::eOptimal,
+    auto [imageMemory, image] = VulkanUtils::createImage(width, height, _mipLevels, vk::SampleCountFlagBits::e1,
+        vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::MemoryPropertyFlagBits::eDeviceLocal);
 

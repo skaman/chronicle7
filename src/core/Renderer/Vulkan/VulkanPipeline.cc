@@ -106,7 +106,7 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
     // multisample state
     vk::PipelineMultisampleStateCreateInfo multisampling = {};
     multisampling.setSampleShadingEnable(false);
-    multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
+    multisampling.setRasterizationSamples(VulkanContext::msaaSamples);
 
     // depth stencil
     vk::PipelineDepthStencilStateCreateInfo depthStencil {};

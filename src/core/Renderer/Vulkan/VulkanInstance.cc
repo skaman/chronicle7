@@ -137,6 +137,10 @@ void VulkanInstance::cleanupSwapChain()
     }
     VulkanContext::framebuffers.clear();
 
+    VulkanContext::device.destroyImageView(VulkanContext::colorImageView);
+    VulkanContext::device.destroyImage(VulkanContext::colorImage);
+    VulkanContext::device.freeMemory(VulkanContext::colorImageMemory);
+
     VulkanContext::device.destroyImageView(VulkanContext::depthImageView);
     VulkanContext::device.destroyImage(VulkanContext::depthImage);
     VulkanContext::device.freeMemory(VulkanContext::depthImageMemory);
@@ -241,6 +245,7 @@ void VulkanInstance::pickPhysicalDevice()
     for (const auto& device : devices) {
         if (VulkanUtils::isDeviceSuitable(device, DEVICE_EXTENSIONS)) {
             VulkanContext::physicalDevice = device;
+            VulkanContext::msaaSamples = VulkanUtils::getMaxUsableSampleCount();
             break;
         }
     }
@@ -330,11 +335,21 @@ void VulkanInstance::createSwapChain()
 
     VulkanContext::swapChain = VulkanContext::device.createSwapchainKHR(createInfo);
 
+    // create color buffer
+    auto [colorImageMemory, colorImage] = VulkanUtils::createImage(extent.width, extent.height, 1,
+        VulkanContext::msaaSamples, surfaceFormat.format, vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+        vk::MemoryPropertyFlagBits::eDeviceLocal);
+    VulkanContext::colorImage = colorImage;
+    VulkanContext::colorImageMemory = colorImageMemory;
+    VulkanContext::colorImageView
+        = VulkanUtils::createImageView(colorImage, surfaceFormat.format, vk::ImageAspectFlagBits::eColor, 1);
+
     // create depth buffer
     VulkanContext::depthImageFormat = VulkanUtils::findDepthFormat();
     auto [depthImageMemory, depthImage] = VulkanUtils::createImage(extent.width, extent.height, 1,
-        VulkanContext::depthImageFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment,
-        vk::MemoryPropertyFlagBits::eDeviceLocal);
+        VulkanContext::msaaSamples, VulkanContext::depthImageFormat, vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
     VulkanContext::depthImageMemory = depthImageMemory;
     VulkanContext::depthImage = depthImage;
     VulkanContext::depthImageView
@@ -376,13 +391,13 @@ void VulkanInstance::createRenderPass()
     // color attachment
     vk::AttachmentDescription colorAttachment = {};
     colorAttachment.setFormat(VulkanContext::swapChainImageFormat);
-    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    colorAttachment.setSamples(VulkanContext::msaaSamples);
     colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
     colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
     colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
     colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
     colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
-    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+    colorAttachment.setFinalLayout(vk::ImageLayout::eAttachmentOptimal);
 
     vk::AttachmentReference colorAttachmentRef = {};
     colorAttachmentRef.setAttachment(0);
@@ -391,7 +406,7 @@ void VulkanInstance::createRenderPass()
     // depth attachment
     vk::AttachmentDescription depthAttachment = {};
     depthAttachment.setFormat(VulkanContext::depthImageFormat);
-    depthAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    depthAttachment.setSamples(VulkanContext::msaaSamples);
     depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
     depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
     depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
@@ -399,15 +414,33 @@ void VulkanInstance::createRenderPass()
     depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
     depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
+    // depth attachment reference
     vk::AttachmentReference depthAttachmentRef = {};
     depthAttachmentRef.setAttachment(1);
     depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+    // resolve attachment
+    vk::AttachmentDescription colorAttachmentResolve = {};
+    colorAttachmentResolve.setFormat(VulkanContext::swapChainImageFormat);
+    colorAttachmentResolve.setSamples(vk::SampleCountFlagBits::e1);
+    colorAttachmentResolve.setLoadOp(vk::AttachmentLoadOp::eDontCare);
+    colorAttachmentResolve.setStoreOp(vk::AttachmentStoreOp::eStore);
+    colorAttachmentResolve.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    colorAttachmentResolve.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    colorAttachmentResolve.setInitialLayout(vk::ImageLayout::eUndefined);
+    colorAttachmentResolve.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+    // resolve attachment reference
+    vk::AttachmentReference colorAttachmentResolveRef = {};
+    colorAttachmentResolveRef.setAttachment(2);
+    colorAttachmentResolveRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     // subpass
     vk::SubpassDescription subpass = {};
     subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
     subpass.setColorAttachments(colorAttachmentRef);
     subpass.setPDepthStencilAttachment(&depthAttachmentRef);
+    subpass.setPResolveAttachments(&colorAttachmentResolveRef);
 
     // dependency
     vk::SubpassDependency dependency = {};
@@ -421,7 +454,7 @@ void VulkanInstance::createRenderPass()
         vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite);
 
     // render pass
-    std::array<vk::AttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+    std::array<vk::AttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
 
     vk::RenderPassCreateInfo createRenderPassInfo = {};
     createRenderPassInfo.setAttachments(attachments);
@@ -440,7 +473,8 @@ void VulkanInstance::createFramebuffers()
     VulkanContext::framebuffers.reserve(VulkanContext::swapChainImageViews.size());
 
     for (const auto& swapChainImageView : VulkanContext::swapChainImageViews) {
-        std::array<vk::ImageView, 2> attachments = { swapChainImageView, VulkanContext::depthImageView };
+        std::array<vk::ImageView, 3> attachments
+            = { VulkanContext::colorImageView, VulkanContext::depthImageView, swapChainImageView };
 
         vk::FramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.setRenderPass(VulkanContext::renderPass);
