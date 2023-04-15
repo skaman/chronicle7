@@ -55,7 +55,7 @@ public:
         static_cast<const T*>(this)->bindDescriptorSet(descriptorSet, index);
     }
 
-    static CommandBufferRef create() { return T::create(); }
+    [[nodiscard]] static CommandBufferRef create() { return T::create(); }
 
 private:
     CommandBufferI() = default;

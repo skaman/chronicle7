@@ -103,7 +103,7 @@ public:
 
     [[nodiscard]] const vk::DescriptorSet& descriptorSet() const { return _descriptorSet; }
 
-    static DescriptorSetRef create();
+    [[nodiscard]] static DescriptorSetRef create();
 
 private:
     vk::DescriptorPool _descriptorPool;

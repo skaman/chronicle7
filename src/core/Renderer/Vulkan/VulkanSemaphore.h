@@ -18,7 +18,7 @@ public:
 
     [[nodiscard]] const vk::Semaphore& semaphore() const { return _semaphore; }
 
-    static SemaphoreRef create();
+    [[nodiscard]] static SemaphoreRef create();
 
 private:
     vk::Semaphore _semaphore;

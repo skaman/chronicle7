@@ -31,7 +31,7 @@ public:
     void bindIndexBuffer(const IndexBufferRef& indexBuffer) const;
     void bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const;
 
-    static CommandBufferRef create();
+    [[nodiscard]] static CommandBufferRef create();
 
 private:
     vk::CommandBuffer _commandBuffer;

@@ -13,7 +13,10 @@ namespace chronicle {
 
 template <class T> class RenderPassI {
 public:
-    static RenderPassRef create(const RenderPassInfo& renderPassInfo) { return T::create(renderPassInfo); }
+    [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo)
+    {
+        return T::create(renderPassInfo);
+    }
 
 private:
     RenderPassI() = default;

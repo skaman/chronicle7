@@ -19,7 +19,7 @@ protected:
 public:
     ~TextureAsset() = default;
 
-    static TextureAssetRef load(const std::string& filename);
+    [[nodiscard]] static TextureAssetRef load(const std::string& filename);
 
     [[nodiscard]] const ImageRef& image() const { return _image; }
 

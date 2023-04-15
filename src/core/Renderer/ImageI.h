@@ -17,7 +17,7 @@ public:
         static_cast<T*>(this)->set(src, size, width, height);
     }
 
-    static ImageRef createTexture(const ImageInfo& imageInfo) { return T::createTexture(imageInfo); }
+    [[nodiscard]] static ImageRef createTexture(const ImageInfo& imageInfo) { return T::createTexture(imageInfo); }
 
 private:
     ImageI() = default;

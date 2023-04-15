@@ -20,7 +20,7 @@ protected:
 public:
     ~MeshAsset() = default;
 
-    static MeshAssetRef load(const std::string& filename);
+    [[nodiscard]] static MeshAssetRef load(const std::string& filename);
 
     [[nodiscard]] VertexBufferInfo bufferInfo() const { return Vertex::bufferInfo(); }
 

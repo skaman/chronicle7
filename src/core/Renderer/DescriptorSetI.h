@@ -25,7 +25,7 @@ public:
 
     void build() { static_cast<T*>(this)->build(); }
 
-    static DescriptorSetRef create() { return T::create(); }
+    [[nodiscard]] static DescriptorSetRef create() { return T::create(); }
 
 private:
     DescriptorSetI() = default;

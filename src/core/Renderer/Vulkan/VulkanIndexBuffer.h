@@ -20,7 +20,7 @@ public:
 
     [[nodiscard]] const vk::Buffer& buffer() const { return _buffer; }
 
-    static IndexBufferRef create();
+    [[nodiscard]] static IndexBufferRef create();
 
 private:
     vk::Buffer _buffer;

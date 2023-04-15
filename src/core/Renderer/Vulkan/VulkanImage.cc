@@ -59,7 +59,7 @@ void VulkanImage::set(void* src, size_t size, uint32_t width, uint32_t height)
     VulkanContext::device.freeMemory(stagingBufferMemory);
 
     if (_generateMipmaps) {
-        VulkanUtils::generateMipmaps(image, vk::Format::eR8G8B8A8Srgb, width, height, _mipLevels);
+        VulkanUtils::generateMipmaps(image, vk::Format::eR8G8B8A8Unorm, width, height, _mipLevels);
     } else {
         VulkanUtils::transitionImageLayout(
             image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, _mipLevels);
@@ -68,7 +68,7 @@ void VulkanImage::set(void* src, size_t size, uint32_t width, uint32_t height)
     _imageMemory = imageMemory;
     _image = image;
     _imageView
-        = VulkanUtils::createImageView(image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor, _mipLevels);
+        = VulkanUtils::createImageView(image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, _mipLevels);
     _width = width;
     _height = height;
     _sampler = VulkanUtils::createTextureSampler(_mipLevels);

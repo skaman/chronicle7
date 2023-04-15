@@ -28,9 +28,10 @@ public:
     void updateSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
     void updateDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
 
-    static ImageRef createTexture(const ImageInfo& imageInfo);
-    static ImageRef createSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
-    static ImageRef createDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
+    [[nodiscard]] static ImageRef createTexture(const ImageInfo& imageInfo);
+    [[nodiscard]] static ImageRef createSwapchain(
+        const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
+    [[nodiscard]] static ImageRef createDepthBuffer(uint32_t width, uint32_t height, vk::Format format);
 
     entt::delegate<void(void)> updated {};
 

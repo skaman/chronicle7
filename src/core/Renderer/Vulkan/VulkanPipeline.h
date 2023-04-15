@@ -24,7 +24,7 @@ public:
     [[nodiscard]] const vk::Pipeline& pipeline() const { return _graphicsPipeline; }
     [[nodiscard]] const vk::PipelineLayout& pipelineLayout() const { return _pipelineLayout; }
 
-    static PipelineRef create(const PipelineInfo& pipelineInfo);
+    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo);
 
 private:
     std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout;

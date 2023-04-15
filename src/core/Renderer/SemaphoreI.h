@@ -11,7 +11,7 @@ namespace chronicle {
 
 template <class T> class SemaphoreI {
 public:
-    static SemaphoreRef create() { return T::create(); }
+    [[nodiscard]] static SemaphoreRef create() { return T::create(); }
 
 private:
     SemaphoreI() = default;

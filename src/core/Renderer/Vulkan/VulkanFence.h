@@ -18,7 +18,7 @@ public:
 
     [[nodiscard]] const vk::Fence& fence() const { return _fence; }
 
-    static FenceRef create();
+    [[nodiscard]] static FenceRef create();
 
 private:
     vk::Fence _fence;

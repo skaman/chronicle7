@@ -24,7 +24,7 @@ public:
     [[nodiscard]] const vk::RenderPass& renderPass() const { return _renderPass; }
     [[nodiscard]] const vk::Framebuffer& frameBuffer(uint32_t imageIndex) const { return _framebuffers[imageIndex]; }
 
-    static RenderPassRef create(const RenderPassInfo& renderPassInfo);
+    [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo);
 
 private:
     vk::RenderPass _renderPass;

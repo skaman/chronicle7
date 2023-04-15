@@ -20,7 +20,7 @@ public:
 
     [[nodiscard]] const vk::Buffer& buffer() const { return _buffer; }
 
-    static VertexBufferRef create();
+    [[nodiscard]] static VertexBufferRef create();
 
 private:
     vk::Buffer _buffer;

@@ -11,7 +11,7 @@ namespace chronicle {
 
 template <class T> class FenceI {
 public:
-    static FenceRef create() { return T::create(); }
+    [[nodiscard]] static FenceRef create() { return T::create(); }
 
 private:
     FenceI() = default;
