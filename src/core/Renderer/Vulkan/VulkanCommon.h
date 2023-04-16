@@ -121,7 +121,7 @@ struct VulkanContext {
     static inline std::vector<vk::ImageView> swapChainImageViews = {};
     static inline vk::Format swapChainImageFormat = vk::Format::eUndefined;
     static inline vk::Extent2D swapChainExtent = {};
-    static inline bool swapChainInvalidated = false; // TODO: i think it's not yet called by the platform
+    static inline bool swapChainInvalidated = false;
 
     // depth image
     static inline vk::Image depthImage = nullptr;

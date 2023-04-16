@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Platform/Common.h"
+
 namespace chronicle {
 
 struct GLFWContext {
@@ -10,6 +12,9 @@ struct GLFWContext {
     static inline std::string title = "Chronicle";
     static inline int width = 1024;
     static inline int height = 768;
+    static inline entt::dispatcher dispatcher = {};
+    static inline GLFWcursor* cursor = nullptr;
+    static inline CursorType cursorType = CursorType::system;
 };
 
 } // namespace chronicle
