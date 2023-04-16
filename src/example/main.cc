@@ -27,6 +27,7 @@ public:
         _mesh = MeshAsset::load("D:\\viking_room.obj");
         _texture = TextureAsset::load("D:\\viking_room.png");
 
+        // descriptor sets
         for (const auto& descriptorSet : Renderer::descriptorSets()) {
             descriptorSet->addSampler(ShaderStage::Fragment, _texture->texture());
             descriptorSet->build();
@@ -75,8 +76,9 @@ public:
             if (!Renderer::beginFrame())
                 continue;
 
+            drawDebugUI(delta);
             // ImGui::ShowDemoWindow();
-            ImGui::ShowMetricsWindow();
+            //ImGui::ShowMetricsWindow();
 
             Renderer::commandBuffer()->bindPipeline(_pipeline);
             Renderer::commandBuffer()->bindVertexBuffer(_mesh->vertexBuffer(0));
@@ -100,6 +102,17 @@ public:
 
             Renderer::endFrame();
         }
+    }
+
+    void drawDebugUI(double delta) {
+        if (!ImGui::Begin("Statistics")) {
+            ImGui::End();
+            return;
+        }
+
+        ImGui::Text("Framerate: %.3f ms/frame (%.1f FPS)", delta * 1000, 1.0 / delta);
+
+        ImGui::End();
     }
 
 private:

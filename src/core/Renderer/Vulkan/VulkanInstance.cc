@@ -67,7 +67,9 @@ void VulkanInstance::init()
     createSwapChain();
     createCommandPool();
     createRenderPass();
+    createDebugRenderPass();
     createFramebuffers();
+    createDebugFramebuffers();
     createSyncObjects();
     createCommandBuffers();
     createDescriptorSets();
@@ -91,6 +93,7 @@ void VulkanInstance::deinit()
     VulkanContext::renderFinishedSemaphores.clear();
     VulkanContext::inFlightFences.clear();
 
+    VulkanContext::device.destroyRenderPass(VulkanContext::debugRenderPass);
     VulkanContext::device.destroyRenderPass(VulkanContext::renderPass);
 
     cleanupSwapChain();
@@ -126,17 +129,26 @@ void VulkanInstance::recreateSwapChain()
     cleanupSwapChain();
     createSwapChain();
     createFramebuffers();
+    createDebugFramebuffers();
 }
 
 void VulkanInstance::cleanupSwapChain()
 {
     CHRZONE_RENDERER;
 
+    // clean debug framebuffers
+    for (const auto& framebuffer : VulkanContext::debugFramebuffers) {
+        VulkanContext::device.destroyFramebuffer(framebuffer);
+    }
+    VulkanContext::debugFramebuffers.clear();
+
+    // clean main frame buffers
     for (const auto& framebuffer : VulkanContext::framebuffers) {
         VulkanContext::device.destroyFramebuffer(framebuffer);
     }
     VulkanContext::framebuffers.clear();
 
+    // clean images and images view
     VulkanContext::device.destroyImageView(VulkanContext::colorImageView);
     VulkanContext::device.destroyImage(VulkanContext::colorImage);
     VulkanContext::device.freeMemory(VulkanContext::colorImageMemory);
@@ -464,6 +476,51 @@ void VulkanInstance::createRenderPass()
     VulkanContext::renderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
 }
 
+void VulkanInstance::createDebugRenderPass()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create ImGui render pass");
+
+    // color attachment
+    vk::AttachmentDescription colorAttachment = {};
+    colorAttachment.setFormat(VulkanContext::swapChainImageFormat);
+    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eLoad);
+    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    colorAttachment.setInitialLayout(vk::ImageLayout::ePresentSrcKHR);
+    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+    vk::AttachmentReference colorAttachmentRef = {};
+    colorAttachmentRef.setAttachment(0);
+    colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+    // subpass
+    vk::SubpassDescription subpass = {};
+    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
+    subpass.setColorAttachments(colorAttachmentRef);
+
+    // dependency
+    vk::SubpassDependency dependency = {};
+    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
+    dependency.setDstSubpass(0);
+    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
+
+    // render pass
+    std::array<vk::AttachmentDescription, 1> attachments = { colorAttachment };
+
+    vk::RenderPassCreateInfo createRenderPassInfo = {};
+    createRenderPassInfo.setAttachments(attachments);
+    createRenderPassInfo.setSubpasses(subpass);
+    createRenderPassInfo.setDependencies(dependency);
+
+    VulkanContext::debugRenderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
+}
+
 void VulkanInstance::createFramebuffers()
 {
     CHRZONE_RENDERER;
@@ -484,6 +541,28 @@ void VulkanInstance::createFramebuffers()
         framebufferInfo.setLayers(1);
 
         VulkanContext::framebuffers.push_back(VulkanContext::device.createFramebuffer(framebufferInfo));
+    }
+}
+
+void VulkanInstance::createDebugFramebuffers()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create ImGui framebuffers");
+
+    VulkanContext::debugFramebuffers.reserve(VulkanContext::swapChainImageViews.size());
+
+    for (const auto& swapChainImageView : VulkanContext::swapChainImageViews) {
+        std::array<vk::ImageView, 1> attachments = { swapChainImageView };
+
+        vk::FramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.setRenderPass(VulkanContext::debugRenderPass);
+        framebufferInfo.setAttachments(attachments);
+        framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
+        framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
+        framebufferInfo.setLayers(1);
+
+        VulkanContext::debugFramebuffers.push_back(VulkanContext::device.createFramebuffer(framebufferInfo));
     }
 }
 

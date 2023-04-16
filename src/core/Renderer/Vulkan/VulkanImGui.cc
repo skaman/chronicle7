@@ -29,9 +29,6 @@ void VulkanImGui::init()
 
     CHRLOG_DEBUG("ImGui init");
 
-    createRenderPass();
-    createFramebuffers();
-
     // create descriptor pool
     std::vector<vk::DescriptorPoolSize> sizes = { { vk::DescriptorType::eSampler, 1000 },
         { vk::DescriptorType::eCombinedImageSampler, 1000 }, { vk::DescriptorType::eSampledImage, 1000 },
@@ -101,78 +98,6 @@ void VulkanImGui::deinit()
     ImGui_ImplGlfw_Shutdown();
 
     VulkanContext::device.destroyDescriptorPool(VulkanImGuiContext::descriptorPool);
-
-    for (const auto& framebuffer : VulkanContext::debugFramebuffers) {
-        VulkanContext::device.destroyFramebuffer(framebuffer);
-    }
-
-    VulkanContext::device.destroyRenderPass(VulkanContext::debugRenderPass);
-}
-void VulkanImGui::createRenderPass()
-{
-    CHRZONE_RENDERER;
-
-    CHRLOG_DEBUG("Create ImGui render pass");
-
-    // color attachment
-    vk::AttachmentDescription colorAttachment = {};
-    colorAttachment.setFormat(VulkanContext::swapChainImageFormat);
-    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eLoad);
-    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    colorAttachment.setInitialLayout(vk::ImageLayout::ePresentSrcKHR);
-    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
-
-    vk::AttachmentReference colorAttachmentRef = {};
-    colorAttachmentRef.setAttachment(0);
-    colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-    // subpass
-    vk::SubpassDescription subpass = {};
-    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-    subpass.setColorAttachments(colorAttachmentRef);
-
-    // dependency
-    vk::SubpassDependency dependency = {};
-    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
-    dependency.setDstSubpass(0);
-    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
-
-    // render pass
-    std::array<vk::AttachmentDescription, 1> attachments = { colorAttachment };
-
-    vk::RenderPassCreateInfo createRenderPassInfo = {};
-    createRenderPassInfo.setAttachments(attachments);
-    createRenderPassInfo.setSubpasses(subpass);
-    createRenderPassInfo.setDependencies(dependency);
-
-    VulkanContext::debugRenderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
-}
-
-void VulkanImGui::createFramebuffers()
-{
-    CHRZONE_RENDERER;
-
-    CHRLOG_DEBUG("Create ImGui framebuffers");
-
-    VulkanContext::debugFramebuffers.reserve(VulkanContext::swapChainImageViews.size());
-
-    for (const auto& swapChainImageView : VulkanContext::swapChainImageViews) {
-        std::array<vk::ImageView, 1> attachments = { swapChainImageView };
-
-        vk::FramebufferCreateInfo framebufferInfo = {};
-        framebufferInfo.setRenderPass(VulkanContext::debugRenderPass);
-        framebufferInfo.setAttachments(attachments);
-        framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
-        framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
-        framebufferInfo.setLayers(1);
-
-        VulkanContext::debugFramebuffers.push_back(VulkanContext::device.createFramebuffer(framebufferInfo));
-    }
 }
 
 void VulkanImGui::newFrame()
@@ -186,6 +111,7 @@ void VulkanImGui::newFrame()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 }
+
 void VulkanImGui::render(const CommandBufferRef& commandBuffer)
 {
     CHRZONE_RENDERER;
@@ -206,4 +132,5 @@ void VulkanImGui::render(const CommandBufferRef& commandBuffer)
         ImGui::RenderPlatformWindowsDefault();
     }
 }
+
 } // namespace chronicle

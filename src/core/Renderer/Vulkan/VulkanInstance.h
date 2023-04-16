@@ -26,7 +26,9 @@ private:
     static void createSwapChain();
     static void createCommandPool();
     static void createRenderPass();
+    static void createDebugRenderPass();
     static void createFramebuffers();
+    static void createDebugFramebuffers();
     static void createSyncObjects();
     static void createCommandBuffers();
     static void createDescriptorSets();

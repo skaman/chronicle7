@@ -19,9 +19,6 @@ public:
     static void init();
     static void deinit();
 
-    static void createRenderPass();
-    static void createFramebuffers();
-
     static void newFrame();
     static void render(const CommandBufferRef& commandBuffer);
 };
