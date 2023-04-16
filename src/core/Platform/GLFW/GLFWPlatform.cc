@@ -72,17 +72,19 @@ void GLFWPlatform::setWindowSize(uint32_t width, uint32_t height)
 
 CursorMode GLFWPlatform::cursorMode()
 {
+    using enum chronicle::CursorMode;
+
     CHRZONE_PLATFORM;
 
     auto inputMode = glfwGetInputMode(GLFWContext::window, GLFW_CURSOR);
     switch (inputMode) {
     case GLFW_CURSOR_HIDDEN:
-        return chronicle::CursorMode::hidden;
+        return hidden;
     case GLFW_CURSOR_DISABLED:
-        return chronicle::CursorMode::disabled;
+        return disabled;
     case GLFW_CURSOR_NORMAL:
     default:
-        return chronicle::CursorMode::normal;
+        return normal;
     }
 }
 

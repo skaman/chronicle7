@@ -134,9 +134,11 @@ struct VulkanContext {
 
     // render pass
     static inline vk::RenderPass renderPass = nullptr;
+    static inline vk::RenderPass debugRenderPass = nullptr;
 
     // framebuffers
     static inline std::vector<vk::Framebuffer> framebuffers = {};
+    static inline std::vector<vk::Framebuffer> debugFramebuffers = {};
 
     // multisampling
     static inline vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1;
@@ -160,7 +162,7 @@ struct VulkanContext {
     static inline int currentImage = 0;
 
     // options
-    static inline int maxFramesInFlight = 2;
+    static inline int maxFramesInFlight = 3;
     static inline bool enabledValidationLayer = true;
 };
 

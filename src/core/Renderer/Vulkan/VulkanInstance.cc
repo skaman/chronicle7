@@ -386,7 +386,7 @@ void VulkanInstance::createRenderPass()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create render pass");
+    CHRLOG_DEBUG("Create main render pass");
 
     // color attachment
     vk::AttachmentDescription colorAttachment = {};
@@ -397,7 +397,7 @@ void VulkanInstance::createRenderPass()
     colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
     colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
     colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
-    colorAttachment.setFinalLayout(vk::ImageLayout::eAttachmentOptimal);
+    colorAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     vk::AttachmentReference colorAttachmentRef = {};
     colorAttachmentRef.setAttachment(0);

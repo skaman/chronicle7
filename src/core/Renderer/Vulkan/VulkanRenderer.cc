@@ -63,9 +63,11 @@ bool VulkanRenderer::beginFrame()
     CHRLOG_TRACE(
         "New frame: area extent={}x{}", VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height);
 
+    // begin main command buffer
     vk::CommandBufferBeginInfo beginInfo = {};
     vulkanCommandBuffer->commandBuffer().begin(beginInfo);
 
+    // begin render pass
     std::array<vk::ClearValue, 2> clearValues {};
     clearValues[0].setColor({ std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } });
     clearValues[1].setDepthStencil({ 1.0f, 0 });
@@ -78,6 +80,7 @@ bool VulkanRenderer::beginFrame()
 
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
+    // set viewport
     vk::Viewport viewportInfo = {};
     viewportInfo.setX(0.0f);
     viewportInfo.setY(0.0f);
@@ -85,8 +88,9 @@ bool VulkanRenderer::beginFrame()
     viewportInfo.setHeight(static_cast<float>(VulkanContext::swapChainExtent.height));
     viewportInfo.setMinDepth(0.0f);
     viewportInfo.setMaxDepth(1.0f);
-
     vulkanCommandBuffer->commandBuffer().setViewport(0, viewportInfo);
+
+    // set scissor
     vulkanCommandBuffer->commandBuffer().setScissor(0, vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
 
     return true;
@@ -98,13 +102,26 @@ void VulkanRenderer::endFrame()
 
     CHRLOG_TRACE("End swapchain");
 
-    VulkanImGui::render(commandBuffer());
-
     const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
+    // end main render pass
+    vulkanCommandBuffer->commandBuffer().endRenderPass();
+
+    // begin debug render pass
+    vk::RenderPassBeginInfo renderPassInfo = {};
+    renderPassInfo.setRenderPass(VulkanContext::debugRenderPass);
+    renderPassInfo.setFramebuffer(VulkanContext::debugFramebuffers[VulkanContext::currentImage]);
+    renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
+    vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+    // draw imgui
+    VulkanImGui::render(commandBuffer());
+
+    // end debug render pass
     vulkanCommandBuffer->commandBuffer().endRenderPass();
     vulkanCommandBuffer->commandBuffer().end();
 
+    // submit command buffers
     vk::SubmitInfo submitInfo = {};
     std::array<vk::PipelineStageFlags, 1> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
     submitInfo.setWaitSemaphores(VulkanContext::imageAvailableSemaphores[VulkanContext::currentFrame]);
@@ -113,6 +130,7 @@ void VulkanRenderer::endFrame()
     submitInfo.setSignalSemaphores(VulkanContext::renderFinishedSemaphores[VulkanContext::currentFrame]);
     VulkanContext::graphicsQueue.submit(submitInfo, VulkanContext::inFlightFences[VulkanContext::currentFrame]);
 
+    // present swapchain
     uint32_t imageIndex = VulkanContext::currentImage;
     vk::PresentInfoKHR presentInfo = {};
     presentInfo.setWaitSemaphores(VulkanContext::renderFinishedSemaphores[VulkanContext::currentFrame]);
