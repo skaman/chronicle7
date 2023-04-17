@@ -19,6 +19,8 @@ public:
     static void init();
     static void deinit();
 
+    static void setupStyle();
+
     static void newFrame();
     static void render(const CommandBufferRef& commandBuffer);
 };

@@ -76,9 +76,9 @@ public:
             if (!Renderer::beginFrame())
                 continue;
 
-            drawDebugUI(delta);
+            drawDebugUI();
             // ImGui::ShowDemoWindow();
-            //ImGui::ShowMetricsWindow();
+            // ImGui::ShowMetricsWindow();
 
             Renderer::commandBuffer()->bindPipeline(_pipeline);
             Renderer::commandBuffer()->bindVertexBuffer(_mesh->vertexBuffer(0));
@@ -86,7 +86,7 @@ public:
             Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
             Renderer::commandBuffer()->drawIndexed(_mesh->indicesCount(0), 1);
 
-            //CHRLOG_DEBUG("{}", delta);
+            // CHRLOG_DEBUG("{}", delta);
 
             float time = 0;
 
@@ -104,13 +104,16 @@ public:
         }
     }
 
-    void drawDebugUI(double delta) {
+    void drawDebugUI()
+    {
+        ImGuiIO& io = ImGui::GetIO();
+
         if (!ImGui::Begin("Statistics")) {
             ImGui::End();
             return;
         }
 
-        ImGui::Text("Framerate: %.3f ms/frame (%.1f FPS)", delta * 1000, 1.0 / delta);
+        ImGui::Text("Framerate: %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
         ImGui::End();
     }

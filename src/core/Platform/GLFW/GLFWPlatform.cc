@@ -62,6 +62,16 @@ bool GLFWPlatform::poll(double& delta)
     return true;
 }
 
+float GLFWPlatform::windowDpiScale()
+{
+    float xscale;
+    float yscale;
+    auto* monitor = glfwGetPrimaryMonitor();
+    glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+
+    return std::max(xscale, yscale);
+}
+
 void GLFWPlatform::setWindowTitle(const std::string_view& title) { GLFWContext::title = title; }
 
 void GLFWPlatform::setWindowSize(uint32_t width, uint32_t height)

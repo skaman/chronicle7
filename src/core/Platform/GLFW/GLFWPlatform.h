@@ -18,6 +18,8 @@ public:
     static void deinit();
     static bool poll(double& delta);
 
+    static float windowDpiScale();
+
     static void setWindowTitle(const std::string_view& title);
     static void setWindowSize(uint32_t width, uint32_t height);
 

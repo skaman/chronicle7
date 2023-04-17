@@ -1,4 +1,5 @@
 find_package(Vulkan REQUIRED COMPONENTS glslc)
+find_package(Python REQUIRED COMPONENTS Interpreter)
 find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
 # https://stackoverflow.com/questions/60420700/cmake-invocation-of-glslc-with-respect-to-includes-dependencies
@@ -19,6 +20,29 @@ function(compile_shader target)
             COMMENT "Compiling shader ${source}"
         )
         target_sources(${target} PRIVATE ${source}.${arg_FORMAT})
+    endforeach()
+endfunction()
+
+function(embed_asset target)
+    cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;FORMAT" "SOURCES")
+    foreach(source ${arg_SOURCES})
+        # Get short filename
+        string(REGEX MATCH "([^/]+)$" filename ${source})
+        # Replace filename spaces & extension separator for C compatibility
+        string(REGEX REPLACE "\\.| |-" "_" filename ${filename})
+
+        set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/foo.cc PROPERTIES GENERATED 1)
+        add_custom_command(
+            OUTPUT ${filename}.cc
+            DEPENDS ${source}
+            COMMAND
+                ${Python_EXECUTABLE}
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../embed_file.py"
+                ${filename}
+                "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
+            COMMENT "Embedding asset ${source}"
+        )
+        target_sources(${target} PRIVATE "${filename}.cc")
     endforeach()
 endfunction()
 
@@ -103,6 +127,11 @@ target_include_directories(chronicle-core
 target_precompile_headers(chronicle-core
   PUBLIC
     "pch.h"
+)
+
+embed_asset(chronicle-core
+    SOURCES
+        "bfont.ttf"
 )
 
 if(WIN32)
