@@ -67,7 +67,7 @@ bool VulkanRenderer::beginFrame()
     vk::CommandBufferBeginInfo beginInfo = {};
     vulkanCommandBuffer->commandBuffer().begin(beginInfo);
 
-    // begin render pass
+    // begin draw pass
     std::array<vk::ClearValue, 2> clearValues {};
     clearValues[0].setColor({ std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } });
     clearValues[1].setDepthStencil({ 1.0f, 0 });
@@ -104,10 +104,10 @@ void VulkanRenderer::endFrame()
 
     const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
-    // end main render pass
+    // end main draw pass
     vulkanCommandBuffer->commandBuffer().endRenderPass();
 
-    // begin debug render pass
+    // begin debug draw pass
     vk::RenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.setRenderPass(VulkanContext::debugRenderPass);
     renderPassInfo.setFramebuffer(VulkanContext::debugFramebuffers[VulkanContext::currentImage]);
@@ -115,9 +115,9 @@ void VulkanRenderer::endFrame()
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
     // draw imgui
-    VulkanImGui::render(commandBuffer());
+    VulkanImGui::draw(commandBuffer());
 
-    // end debug render pass
+    // end debug draw pass
     vulkanCommandBuffer->commandBuffer().endRenderPass();
     vulkanCommandBuffer->commandBuffer().end();
 

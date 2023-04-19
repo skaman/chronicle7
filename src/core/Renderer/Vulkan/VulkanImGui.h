@@ -9,20 +9,27 @@
 
 namespace chronicle {
 
+/// @brief ImGui context
 struct VulkanImGuiContext {
-    static inline vk::DescriptorPool descriptorPool;
-    static inline vk::PipelineCache pipelineCache;
+    static inline vk::DescriptorPool descriptorPool; ///< ImGui descriptor pool
+    static inline vk::PipelineCache pipelineCache; ///< ImGui pipeline cache
 };
 
+/// @brief ImGui integration.
 class VulkanImGui {
 public:
+    /// @brief Initialize ImGui.
     static void init();
+
+    /// @brief Deinitialize ImGui.
     static void deinit();
 
-    static void setupStyle();
-
+    /// @brief Begin an ImGui new frame.
     static void newFrame();
-    static void render(const CommandBufferRef& commandBuffer);
+
+    /// @brief Draw the UI data into the command buffer.
+    /// @param commandBuffer Command where where to draw the UI.
+    static void draw(const CommandBufferRef& commandBuffer);
 };
 
 } // namespace chronicle

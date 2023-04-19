@@ -72,6 +72,7 @@ void VulkanInstance::init()
     createDebugFramebuffers();
     createSyncObjects();
     createCommandBuffers();
+    createDescriptorPool();
     createDescriptorSets();
 }
 
@@ -82,6 +83,8 @@ void VulkanInstance::deinit()
     CHRLOG_DEBUG("Vulkan instance deinit");
 
     VulkanContext::descriptorSets.clear();
+    VulkanContext::device.destroyDescriptorPool(VulkanContext::descriptorPool);
+
     VulkanContext::commandBuffers.clear();
 
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
@@ -465,7 +468,7 @@ void VulkanInstance::createRenderPass()
     dependency.setDstAccessMask(
         vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite);
 
-    // render pass
+    // draw pass
     std::array<vk::AttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
 
     vk::RenderPassCreateInfo createRenderPassInfo = {};
@@ -510,7 +513,7 @@ void VulkanInstance::createDebugRenderPass()
     dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
 
-    // render pass
+    // draw pass
     std::array<vk::AttachmentDescription, 1> attachments = { colorAttachment };
 
     vk::RenderPassCreateInfo createRenderPassInfo = {};
@@ -609,6 +612,22 @@ void VulkanInstance::createDescriptorSets()
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, chronicle::ShaderStage::Vertex);
         VulkanContext::descriptorSets.push_back(descriptorSet);
     }
+}
+
+void VulkanInstance::createDescriptorPool()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Create descriptor pool");
+
+    std::vector<vk::DescriptorPoolSize> sizes
+        = { { vk::DescriptorType::eUniformBuffer, 1000 }, { vk::DescriptorType::eCombinedImageSampler, 1000 } };
+
+    vk::DescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.setMaxSets(static_cast<uint32_t>(10000 * sizes.size()));
+    poolInfo.setPoolSizes(sizes);
+
+    VulkanContext::descriptorPool = VulkanContext::device.createDescriptorPool(poolInfo, nullptr);
 }
 
 } // namespace chronicle

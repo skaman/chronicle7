@@ -10,6 +10,24 @@
 
 namespace chronicle {
 
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec3 color;
+    glm::vec2 texCoord;
+
+    bool operator==(const Vertex& other) const = default;
+
+    static VertexBufferInfo bufferInfo()
+    {
+        using enum chronicle::Format;
+
+        return { .stride = sizeof(Vertex),
+            .attributeDescriptions = { { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, pos) },
+                { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, color) },
+                { .format = R32G32Sfloat, .offset = offsetof(Vertex, texCoord) } } };
+    }
+};
+
 class MeshAsset;
 using MeshAssetRef = std::shared_ptr<MeshAsset>;
 
@@ -40,3 +58,13 @@ private:
 };
 
 } // namespace chronicle
+
+namespace std {
+template <> struct hash<chronicle::Vertex> {
+    size_t operator()(chronicle::Vertex const& vertex) const
+    {
+        return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1)
+            ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
+    }
+};
+} // namespace std

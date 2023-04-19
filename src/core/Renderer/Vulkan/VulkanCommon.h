@@ -66,18 +66,6 @@ inline Format formatFromVulkan(vk::Format format)
     }
 }
 
-inline vk::VertexInputRate vertextInputRateToVulkan(VertexInputRate vertexInputRate)
-{
-    switch (vertexInputRate) {
-    case VertexInputRate::Vertex:
-        return vk::VertexInputRate::eVertex;
-    case VertexInputRate::Instance:
-        return vk::VertexInputRate::eInstance;
-    default:
-        throw RendererError("Unsupported vertex input rate");
-    }
-}
-
 struct DebugShowLinesEvent { };
 
 struct VulkanQueueFamilyIndices {
@@ -134,7 +122,7 @@ struct VulkanContext {
     // command pool
     static inline vk::CommandPool commandPool = nullptr;
 
-    // render pass
+    // draw pass
     static inline vk::RenderPass renderPass = nullptr;
     static inline vk::RenderPass debugRenderPass = nullptr;
 
@@ -157,6 +145,7 @@ struct VulkanContext {
     static inline std::vector<CommandBufferRef> commandBuffers = {};
 
     // descriptor sets
+    static inline vk::DescriptorPool descriptorPool = nullptr; ///< Descriptor pool used to allocate resources.
     static inline std::vector<DescriptorSetRef> descriptorSets = {};
 
     // current frame

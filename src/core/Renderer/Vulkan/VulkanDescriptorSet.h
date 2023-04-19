@@ -13,33 +13,41 @@
 
 namespace chronicle {
 
-struct VulkanDescriptorSetUniformState {
-    vk::DeviceMemory bufferMemory;
-    vk::DescriptorBufferInfo bufferInfo;
+/// @brief Binding data for uniform buffer.
+struct UniformStateBindingData {
+    vk::DeviceMemory bufferMemory; ///< Device memory that contain the data.
+    vk::DescriptorBufferInfo bufferInfo; ///< Descriptor buffer informations.
 };
 
-struct VulkanDescriptorSetCombinedImageSamplerState {
-    vk::DescriptorImageInfo imageInfo;
+/// @brief Binding data for a sampler.
+struct CombinedImageSamplerBindingData {
+    vk::DescriptorImageInfo imageInfo; ///< Descriptor image informations.
 };
 
-struct VulkanDescriptorSetState {
-    vk::DescriptorType type;
+/// @brief Binding informations for a descriptor.
+struct VulkanDescriptorSetBindingInfo {
+    vk::DescriptorType type; ///< Descriptor type.
 
     union {
-        VulkanDescriptorSetUniformState uniform;
-        VulkanDescriptorSetCombinedImageSamplerState combinedImageSampler;
+        UniformStateBindingData uniform; ///< Uniform buffer info.
+        CombinedImageSamplerBindingData combinedImageSampler; ///< Sampler info.
     };
 };
 
+/// @brief Vulkan implementation for @ref DescriptorSetI
 class VulkanDescriptorSet : public DescriptorSetI<VulkanDescriptorSet>, private NonCopyable<VulkanDescriptorSet> {
 protected:
-    explicit VulkanDescriptorSet();
+    /// @brief Default constructor.
+    explicit VulkanDescriptorSet() = default;
 
 public:
+    /// @brief Destructor.
     ~VulkanDescriptorSet();
 
+    /// @brief @see DescriptorSetI#addUniform
     template <class T> void addUniform(entt::hashed_string::hash_type id, ShaderStage stage)
     {
+        // create the descriptor set layout binding
         vk::DescriptorSetLayoutBinding layoutBinding = {};
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
         layoutBinding.setDescriptorType(vk::DescriptorType::eUniformBuffer);
@@ -47,31 +55,32 @@ public:
         layoutBinding.setStageFlags(shaderStageToVulkan(stage));
         _layoutBindings.push_back(layoutBinding);
 
+        // create a buffer that is visible to the host, so it can be updated for every frame.
         uint32_t bufferSize = sizeof(T);
-
         vk::Buffer buffer;
         vk::DeviceMemory bufferMemory;
         void* bufferMapped;
-
         VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, buffer, bufferMemory);
-
         bufferMapped = VulkanContext::device.mapMemory(bufferMemory, 0, bufferSize);
+        _buffersMapped[id] = bufferMapped;
 
+        // create the descriptor buffer informations.
         vk::DescriptorBufferInfo bufferInfo = {};
         bufferInfo.setBuffer(buffer);
         bufferInfo.setOffset(0);
         bufferInfo.setRange(bufferSize);
 
-        VulkanDescriptorSetState descriptorSetState = { .type = vk::DescriptorType::eUniformBuffer,
+        // create and add the descriptor binding informations
+        VulkanDescriptorSetBindingInfo descriptorSetBinding = { .type = vk::DescriptorType::eUniformBuffer,
             .uniform = { .bufferMemory = bufferMemory, .bufferInfo = bufferInfo } };
-
-        _descriptorSetsState.push_back(descriptorSetState);
-        _buffersMapped[id] = bufferMapped;
+        _descriptorSetsBindingInfo.push_back(descriptorSetBinding);
     }
 
+    /// @brief @see DescriptorSetI#addSampler
     void addSampler(ShaderStage stage, const TextureRef texture)
     {
+        // create the descriptor set layout binding
         vk::DescriptorSetLayoutBinding layoutBinding = {};
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
         layoutBinding.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
@@ -79,46 +88,63 @@ public:
         layoutBinding.setStageFlags(shaderStageToVulkan(stage));
         _layoutBindings.push_back(layoutBinding);
 
+        // cast the texture to a vulkan texture
         const auto vulkanTexture = static_cast<const VulkanTexture*>(texture.get());
 
+        // create the descriptor image informations.
         vk::DescriptorImageInfo imageInfo {};
         imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
         imageInfo.setImageView(vulkanTexture->imageView());
         imageInfo.setSampler(vulkanTexture->sampler());
 
-        VulkanDescriptorSetState descriptorSetState
+        // create and add the descriptor binding informations
+        VulkanDescriptorSetBindingInfo descriptorSetBinding
             = { .type = vk::DescriptorType::eCombinedImageSampler, .combinedImageSampler = { .imageInfo = imageInfo } };
-
-        _descriptorSetsState.push_back(descriptorSetState);
+        _descriptorSetsBindingInfo.push_back(descriptorSetBinding);
     }
 
+    /// @brief @see DescriptorSetI#setUniform
     template <class T> void setUniform(entt::hashed_string::hash_type id, const T& data)
     {
         memcpy(_buffersMapped[id], &data, sizeof(T));
     }
 
+    /// @brief @see DescriptorSetI#build
     void build();
 
+    /// @brief Get the vulkan layout bindings for the descriptor set.
+    /// @return Layout bindings.
     [[nodiscard]] const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings() const { return _layoutBindings; }
 
+    /// @brief Get the vulkan handle for the descriptor set.
+    /// @return Vulkan handle.
     [[nodiscard]] const vk::DescriptorSet& descriptorSet() const { return _descriptorSet; }
 
+    /// @brief @see DescriptorSetI#create
     [[nodiscard]] static DescriptorSetRef create();
 
 private:
-    vk::DescriptorPool _descriptorPool;
-    vk::DescriptorSet _descriptorSet;
-    vk::DescriptorSetLayout _descriptorSetLayout;
+    vk::DescriptorSet _descriptorSet = nullptr; ///< Descriptor set handle.
+    vk::DescriptorSetLayout _descriptorSetLayout = nullptr; ///< Descriptor set layout.
 
-    std::vector<vk::DescriptorSetLayoutBinding> _layoutBindings = {};
-    std::vector<VulkanDescriptorSetState> _descriptorSetsState = {};
+    std::vector<vk::DescriptorSetLayoutBinding> _layoutBindings = {}; ///< Layout bindings.
+    std::vector<VulkanDescriptorSetBindingInfo> _descriptorSetsBindingInfo = {}; ///< Descriptor sets binding info.
 
-    std::unordered_map<entt::hashed_string::hash_type, void*> _buffersMapped = {};
+    std::unordered_map<entt::hashed_string::hash_type, void*> _buffersMapped = {}; ///< Map for uniform buffers memory.
 
+    /// @brief Create a write descriptor set for a uniform.
+    /// @param index Descriptor set index.
+    /// @param bindingInfo Binding informations for the descriptor.
+    /// @return Write descriptor set.
     [[nodiscard]] vk::WriteDescriptorSet createUniformWriteDescriptorSet(
-        uint32_t index, const VulkanDescriptorSetState& state) const;
+        uint32_t index, const VulkanDescriptorSetBindingInfo& bindingInfo) const;
+
+    /// @brief Create a write descriptor set for a sampler.
+    /// @param index Descriptor set index.
+    /// @param bindingInfo Binding informations for the descriptor.
+    /// @return Write descriptor set.
     [[nodiscard]] vk::WriteDescriptorSet createCombinedImageSamplerWriteDescriptorSet(
-        uint32_t index, const VulkanDescriptorSetState& state) const;
+        uint32_t index, const VulkanDescriptorSetBindingInfo& bindingInfo) const;
 };
 
 } // namespace chronicle

@@ -32,6 +32,7 @@ private:
     static void createSyncObjects();
     static void createCommandBuffers();
     static void createDescriptorSets();
+    static void createDescriptorPool();
 
     friend class VulkanRenderer;
 };

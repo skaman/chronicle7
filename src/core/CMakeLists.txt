@@ -78,6 +78,7 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanCommon.h"
     "Renderer/Vulkan/VulkanDescriptorSet.h"
     "Renderer/Vulkan/VulkanDescriptorSet.cc"
+    "Renderer/Vulkan/VulkanEnums.h"
     "Renderer/Vulkan/VulkanImGui.h"
     "Renderer/Vulkan/VulkanImGui.cc"
     "Renderer/Vulkan/VulkanIndexBuffer.h"
@@ -104,8 +105,7 @@ add_library(chronicle-core
     "../../vendor/imgui/imgui_tables.cpp"
     "../../vendor/imgui/imgui_widgets.cpp"
     "../../vendor/imgui/backends/imgui_impl_glfw.cpp"
-    "../../vendor/imgui/backends/imgui_impl_vulkan.cpp"
-)
+    "../../vendor/imgui/backends/imgui_impl_vulkan.cpp" "Renderer/Enums.h")
 
 add_library(chronicle::core ALIAS chronicle-core)
 
@@ -154,4 +154,5 @@ target_link_libraries(chronicle-core
         tinyobjloader
         Tracy::TracyClient
         spirv-reflect-static
+        magic_enum::magic_enum
 )

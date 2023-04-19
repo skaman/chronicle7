@@ -4,22 +4,9 @@
 #pragma once
 
 #include "pch.h"
+#include "Enums.h"
 
 namespace chronicle {
-
-enum class ShaderStage { Fragment, Vertex };
-enum class Format {
-    Undefined,
-
-    B8G8R8A8Unorm,
-    R32G32Sfloat,
-    R32G32B32Sfloat,
-
-    D32Sfloat,
-    D32SfloatS8Uint,
-    D24UnormS8Uint
-};
-enum class VertexInputRate { Vertex, Instance };
 
 template <class T> class CommandBufferI;
 template <class T> class DescriptorSetI;

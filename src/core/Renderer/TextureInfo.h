@@ -7,7 +7,9 @@
 
 namespace chronicle {
 
+/// @brief Informations used to create a texture.
 struct TextureInfo {
+    /// @brief Enabled the mipmap generation for the texture.
     bool generateMipmaps = true;
 };
 

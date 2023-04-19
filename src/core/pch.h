@@ -51,6 +51,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 
+// magic enums
+#include <magic_enum.hpp>
+
 // std lib
 #include <bit>
 #include <chrono>

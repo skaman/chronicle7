@@ -10,8 +10,13 @@
 
 namespace chronicle {
 
+/// @brief Object used to handle a graphic pipeline.
+/// @tparam T Type with implementation.
 template <class T> class PipelineI {
 public:
+    /// @brief Factory for create a new pipeline.
+    /// @param pipelineInfo Informations used to create the pipeline.
+    /// @return The pipeline.
     [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo) { return T::create(pipelineInfo); }
 
 private:
