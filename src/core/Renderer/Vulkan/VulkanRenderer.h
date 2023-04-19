@@ -21,6 +21,9 @@ public:
     static bool beginFrame();
     static void endFrame();
 
+    [[nodiscard]] static bool debugShowLines();
+    static void setDebugShowLines(bool enabled);
+
     [[nodiscard]] static const std::vector<DescriptorSetRef>& descriptorSets() { return VulkanContext::descriptorSets; }
     [[nodiscard]] static const DescriptorSetRef& descriptorSet()
     {

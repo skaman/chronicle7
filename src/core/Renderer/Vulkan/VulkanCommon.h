@@ -78,6 +78,8 @@ inline vk::VertexInputRate vertextInputRateToVulkan(VertexInputRate vertexInputR
     }
 }
 
+struct DebugShowLinesEvent { };
+
 struct VulkanQueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
@@ -164,6 +166,12 @@ struct VulkanContext {
     // options
     static inline int maxFramesInFlight = 3;
     static inline bool enabledValidationLayer = true;
+
+    // debug
+    static inline bool debugShowLines = false;
+
+    // events
+    static inline entt::dispatcher dispatcher = {};
 };
 
 } // namespace chronicle

@@ -25,6 +25,9 @@ public:
     static bool beginFrame() { return T::beginFrame(); }
     static void endFrame() { T::endFrame(); }
 
+    [[nodiscard]] static bool debugShowLines() { return T::debugShowLines(); }
+    static void setDebugShowLines(bool enabled) { T::setDebugShowLines(enabled); }
+
     [[nodiscard]] static const std::vector<DescriptorSetRef>& descriptorSets() { return T::descriptorSets(); }
     [[nodiscard]] static const DescriptorSetRef& descriptorSet() { return T::descriptorSet(); }
     [[nodiscard]] static const CommandBufferRef& commandBuffer() { return T::commandBuffer(); }

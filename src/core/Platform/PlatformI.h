@@ -16,7 +16,7 @@ public:
     static void deinit() { T::deinit(); }
     static bool poll(double& delta) { return T::poll(delta); }
 
-    static float windowDpiScale() { return T::windowDpiScale(); }
+    [[nodiscard]] static float windowDpiScale() { return T::windowDpiScale(); }
 
     static void setWindowTitle(const std::string_view& title) { T::setWindowTitle(title); }
     static void setWindowSize(uint32_t width, uint32_t height) { T::setWindowSize(width, height); }

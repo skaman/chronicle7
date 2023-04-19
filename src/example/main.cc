@@ -46,12 +46,6 @@ public:
     void onMouseButton(const MouseButtonEvent& evn) const
     {
         CHRLOG_DEBUG("{} {} {}", (int)evn.data.action, (int)evn.data.button, (int)evn.data.modifier);
-
-        if (evn.data.action == ButtonAction::press) {
-            Platform::setCursorType(CursorType::hand);
-        } else {
-            Platform::setCursorType(CursorType::arrow);
-        }
     }
 
     void deinit()
@@ -106,7 +100,7 @@ public:
 
     void drawDebugUI()
     {
-        ImGuiIO& io = ImGui::GetIO();
+        const ImGuiIO& io = ImGui::GetIO();
 
         if (!ImGui::Begin("Statistics")) {
             ImGui::End();
@@ -114,6 +108,11 @@ public:
         }
 
         ImGui::Text("Framerate: %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        static bool enabled = false;
+        if (ImGui::Checkbox("Show debug lines", &enabled)) {
+
+            Renderer::setDebugShowLines(enabled);
+        }
 
         ImGui::End();
     }

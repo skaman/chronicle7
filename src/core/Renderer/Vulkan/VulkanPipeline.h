@@ -6,6 +6,7 @@
 #include "pch.h"
 
 #include "Renderer/PipelineI.h"
+#include "VulkanCommon.h"
 
 namespace chronicle {
 
@@ -33,6 +34,15 @@ private:
 
     vk::DescriptorPool _descriptorPool;
     std::vector<vk::DescriptorSet> _descriptorSets;
+
+    std::vector<vk::PipelineShaderStageCreateInfo> _shaderStages;
+    std::vector<vk::ShaderModule> _shaderModules;
+    std::vector<VertexBufferInfo> _vertexBuffers;
+
+    void create();
+    void cleanup();
+
+    void debugShowLines(const DebugShowLinesEvent& evn);
 
     vk::ShaderModule createShaderModule(const std::vector<char>& code) const;
     std::vector<vk::DescriptorSetLayout> getDescriptorSetsLayout(

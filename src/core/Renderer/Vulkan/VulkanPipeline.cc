@@ -16,6 +16,7 @@ const int MAX_DESCRIPTOR_SETS = 4;
 CHR_CONCRETE(VulkanPipeline);
 
 VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
+    : _vertexBuffers(pipelineInfo.vertexBuffers)
 {
     CHRZONE_RENDERER;
 
@@ -25,12 +26,8 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
     CHRLOG_DEBUG("Create pipeline: shaders count={}, vertex buffer descriptions count={}", pipelineInfo.shaders.size(),
         pipelineInfo.vertexBuffers.size());
 
-    // shader stages
-    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-    shaderStages.reserve(pipelineInfo.shaders.size());
-
-    std::vector<vk::ShaderModule> shaderModules;
-    shaderModules.reserve(pipelineInfo.shaders.size());
+    _shaderStages.reserve(pipelineInfo.shaders.size());
+    _shaderModules.reserve(pipelineInfo.shaders.size());
 
     std::vector<std::vector<char>> shadersCode = {};
     shadersCode.reserve(pipelineInfo.shaders.size());
@@ -44,36 +41,68 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
         shaderStageCreateInfo.setModule(shaderModule);
         shaderStageCreateInfo.setPName("main");
 
-        shaderStages.push_back(shaderStageCreateInfo);
-        shaderModules.push_back(shaderModule);
+        _shaderStages.push_back(shaderStageCreateInfo);
+        _shaderModules.push_back(shaderModule);
 
         shaderIndex++;
     }
 
+    // descriptor sets layout
+    _descriptorSetsLayout = getDescriptorSetsLayout(shadersCode);
+
+    create();
+
+    VulkanContext::dispatcher.sink<DebugShowLinesEvent>().connect<&VulkanPipeline::debugShowLines>(this);
+}
+
+VulkanPipeline::~VulkanPipeline()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_DEBUG("Destroy pipeline");
+
+    cleanup();
+
+    for (const auto& descriptorSetLayout : _descriptorSetsLayout)
+        VulkanContext::device.destroyDescriptorSetLayout(descriptorSetLayout);
+
+    for (auto const& shaderModule : _shaderModules)
+        VulkanContext::device.destroyShaderModule(shaderModule);
+}
+
+PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo)
+{
+    return std::make_shared<ConcreteVulkanPipeline>(pipelineInfo);
+}
+
+void VulkanPipeline::create()
+{
+    CHRZONE_RENDERER;
+
     // create binding and attribute descriptions for vertex input state
     auto attributeDescriptionsCount = 0;
-    for (const auto& vertexBufferInfo : pipelineInfo.vertexBuffers)
+    for (const auto& vertexBufferInfo : _vertexBuffers)
         attributeDescriptionsCount += vertexBufferInfo.attributeDescriptions.size();
 
     std::vector<vk::VertexInputBindingDescription> bindingDescriptions = {};
-    bindingDescriptions.reserve(pipelineInfo.vertexBuffers.size());
+    bindingDescriptions.reserve(_vertexBuffers.size());
 
     std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = {};
     attributeDescriptions.reserve(attributeDescriptionsCount);
 
-    for (auto i = 0; i < pipelineInfo.vertexBuffers.size(); i++) {
+    for (auto i = 0; i < _vertexBuffers.size(); i++) {
         vk::VertexInputBindingDescription bindingDescription = {};
         bindingDescription.binding = i;
-        bindingDescription.stride = pipelineInfo.vertexBuffers[i].stride;
+        bindingDescription.stride = _vertexBuffers[i].stride;
         bindingDescription.inputRate = vk::VertexInputRate::eVertex;
         bindingDescriptions.push_back(bindingDescription);
 
-        for (auto j = 0; j < pipelineInfo.vertexBuffers[i].attributeDescriptions.size(); j++) {
+        for (auto j = 0; j < _vertexBuffers[i].attributeDescriptions.size(); j++) {
             vk::VertexInputAttributeDescription attributeDescription = {};
             attributeDescription.binding = i;
             attributeDescription.location = j;
-            attributeDescription.format = formatToVulkan(pipelineInfo.vertexBuffers[i].attributeDescriptions[j].format);
-            attributeDescription.offset = pipelineInfo.vertexBuffers[i].attributeDescriptions[j].offset;
+            attributeDescription.format = formatToVulkan(_vertexBuffers[i].attributeDescriptions[j].format);
+            attributeDescription.offset = _vertexBuffers[i].attributeDescriptions[j].offset;
             attributeDescriptions.push_back(attributeDescription);
         }
     }
@@ -97,7 +126,7 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
     vk::PipelineRasterizationStateCreateInfo rasterizer = {};
     rasterizer.setDepthClampEnable(false);
     rasterizer.setRasterizerDiscardEnable(false);
-    rasterizer.setPolygonMode(vk::PolygonMode::eFill);
+    rasterizer.setPolygonMode(VulkanContext::debugShowLines ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
     rasterizer.setLineWidth(1.0f);
     rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
     rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
@@ -134,9 +163,6 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
     vk::PipelineDynamicStateCreateInfo dynamicState = {};
     dynamicState.setDynamicStates(dynamicStates);
 
-    // descriptor sets layout
-    _descriptorSetsLayout = getDescriptorSetsLayout(shadersCode);
-
     // pipeline layout
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.setSetLayouts(_descriptorSetsLayout);
@@ -145,7 +171,7 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
 
     // graphics pipeline
     vk::GraphicsPipelineCreateInfo graphicsPipelineInfo = {};
-    graphicsPipelineInfo.setStages(shaderStages);
+    graphicsPipelineInfo.setStages(_shaderStages);
     graphicsPipelineInfo.setPVertexInputState(&vertexInputInfo);
     graphicsPipelineInfo.setPInputAssemblyState(&inputAssembly);
     graphicsPipelineInfo.setPViewportState(&viewportState);
@@ -162,27 +188,25 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
     std::tie(result, _graphicsPipeline) = VulkanContext::device.createGraphicsPipeline(nullptr, graphicsPipelineInfo);
     if (result != vk::Result::eSuccess)
         throw RendererError("Failed to create graphics pipeline");
-
-    for (auto const& shaderModule : shaderModules)
-        VulkanContext::device.destroyShaderModule(shaderModule);
 }
 
-VulkanPipeline::~VulkanPipeline()
+void VulkanPipeline::cleanup()
 {
     CHRZONE_RENDERER;
-
-    CHRLOG_DEBUG("Destroy pipeline");
 
     VulkanContext::device.destroyPipeline(_graphicsPipeline);
     VulkanContext::device.destroyPipelineLayout(_pipelineLayout);
 
-    for (const auto& descriptorSetLayout : _descriptorSetsLayout)
-        VulkanContext::device.destroyDescriptorSetLayout(descriptorSetLayout);
+    _descriptorSets.clear();
 }
 
-PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo)
+void VulkanPipeline::debugShowLines([[maybe_unused]] const DebugShowLinesEvent& evn)
 {
-    return std::make_shared<ConcreteVulkanPipeline>(pipelineInfo);
+    CHRLOG_DEBUG("Recreate pipeline: shaders count={}, vertex buffer descriptions count={}", _shaderStages.size(),
+        _vertexBuffers.size());
+
+    cleanup();
+    create();
 }
 
 vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const

@@ -78,21 +78,21 @@ void VulkanImGui::init()
     ImGui_ImplGlfw_InitForVulkan(GLFWContext::window, true);
 
     // Setup Platform/Renderer backends
-    ImGui_ImplVulkan_InitInfo init_info = {};
-    init_info.Instance = VulkanContext::instance;
-    init_info.PhysicalDevice = VulkanContext::physicalDevice;
-    init_info.Device = VulkanContext::device;
-    init_info.QueueFamily = VulkanContext::graphicsFamily;
-    init_info.Queue = VulkanContext::graphicsQueue;
-    init_info.PipelineCache = VulkanImGuiContext::pipelineCache;
-    init_info.DescriptorPool = VulkanImGuiContext::descriptorPool;
-    init_info.Subpass = 0;
-    init_info.MinImageCount = VulkanContext::maxFramesInFlight;
-    init_info.ImageCount = static_cast<uint32_t>(VulkanContext::swapChainImages.size());
-    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-    init_info.Allocator = nullptr;
-    init_info.CheckVkResultFn = checkVulkanResult;
-    ImGui_ImplVulkan_Init(&init_info, VulkanContext::debugRenderPass);
+    ImGui_ImplVulkan_InitInfo initInfo = {};
+    initInfo.Instance = VulkanContext::instance;
+    initInfo.PhysicalDevice = VulkanContext::physicalDevice;
+    initInfo.Device = VulkanContext::device;
+    initInfo.QueueFamily = VulkanContext::graphicsFamily;
+    initInfo.Queue = VulkanContext::graphicsQueue;
+    initInfo.PipelineCache = VulkanImGuiContext::pipelineCache;
+    initInfo.DescriptorPool = VulkanImGuiContext::descriptorPool;
+    initInfo.Subpass = 0;
+    initInfo.MinImageCount = VulkanContext::maxFramesInFlight;
+    initInfo.ImageCount = static_cast<uint32_t>(VulkanContext::swapChainImages.size());
+    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.Allocator = nullptr;
+    initInfo.CheckVkResultFn = checkVulkanResult;
+    ImGui_ImplVulkan_Init(&initInfo, VulkanContext::debugRenderPass);
 
     auto commandBuffer = VulkanUtils::beginSingleTimeCommands();
     ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);

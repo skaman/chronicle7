@@ -4,8 +4,8 @@
 #include "VulkanRenderer.h"
 
 #include "VulkanCommandBuffer.h"
-#include "VulkanInstance.h"
 #include "VulkanImGui.h"
+#include "VulkanInstance.h"
 
 namespace chronicle {
 
@@ -153,6 +153,17 @@ void VulkanRenderer::endFrame()
     VulkanContext::currentFrame = (VulkanContext::currentFrame + 1) % VulkanContext::maxFramesInFlight;
 
     FrameMark;
+}
+
+bool VulkanRenderer::debugShowLines() { return VulkanContext::debugShowLines; }
+
+void VulkanRenderer::setDebugShowLines(bool enabled)
+{
+    if (VulkanContext::debugShowLines != enabled)
+    {
+        VulkanContext::debugShowLines = enabled;
+        VulkanContext::dispatcher.trigger<DebugShowLinesEvent>();
+    }
 }
 
 } // namespace chronicle
