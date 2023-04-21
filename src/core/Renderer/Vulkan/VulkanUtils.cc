@@ -25,11 +25,13 @@ std::pair<vk::DeviceMemory, vk::Image> VulkanUtils::createImage(uint32_t width, 
         width, height, mipLevels, vk::to_string(format), vk::to_string(tiling), vk::to_string(usage),
         vk::to_string(properties));
 
+    // image extent
     vk::Extent3D imageExtent = {};
     imageExtent.setWidth(width);
     imageExtent.setHeight(height);
     imageExtent.setDepth(1);
 
+    // create image
     vk::ImageCreateInfo imageCreateInfo {};
     imageCreateInfo.setImageType(vk::ImageType::e2D);
     imageCreateInfo.setExtent(imageExtent);
@@ -41,21 +43,20 @@ std::pair<vk::DeviceMemory, vk::Image> VulkanUtils::createImage(uint32_t width, 
     imageCreateInfo.setUsage(usage);
     imageCreateInfo.setSharingMode(vk::SharingMode::eExclusive);
     imageCreateInfo.setSamples(numSamples);
-
     auto image = VulkanContext::device.createImage(imageCreateInfo);
 
     // allocate memory
     const auto memRequirements = VulkanContext::device.getImageMemoryRequirements(image);
-
     vk::MemoryAllocateInfo allocInfo = {};
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.setAllocationSize(memRequirements.size);
     allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits, properties));
-
     auto imageMemory = VulkanContext::device.allocateMemory(allocInfo, nullptr);
 
+    // bind image memory
     vkBindImageMemory(VulkanContext::device, image, imageMemory, 0);
 
+    // return data
     return { imageMemory, image };
 }
 
@@ -70,6 +71,7 @@ vk::ImageView VulkanUtils::createImageView(
     CHRLOG_TRACE("Creating Vulkan image view: format={}, aspectFlags={}, mipLevels={}", vk::to_string(format),
         vk::to_string(aspectFlags), mipLevels);
 
+    // image subresource range
     vk::ImageSubresourceRange subresourceRange = {};
     subresourceRange.setAspectMask(aspectFlags);
     subresourceRange.setBaseMipLevel(0);
@@ -77,12 +79,12 @@ vk::ImageView VulkanUtils::createImageView(
     subresourceRange.setBaseArrayLayer(0);
     subresourceRange.setLayerCount(1);
 
+    // create image view
     vk::ImageViewCreateInfo viewInfo = {};
     viewInfo.image = image;
     viewInfo.viewType = vk::ImageViewType::e2D;
     viewInfo.format = format;
     viewInfo.setSubresourceRange(subresourceRange);
-
     return VulkanContext::device.createImageView(viewInfo);
 }
 
@@ -92,8 +94,10 @@ vk::Sampler VulkanUtils::createTextureSampler(uint32_t mipLevels)
 
     CHRLOG_TRACE("Creating Vulkan texture sampler: mipLevels={}", mipLevels);
 
+    // get device properties
     const auto properties = VulkanContext::physicalDevice.getProperties();
 
+    // create sampler
     vk::SamplerCreateInfo samplerInfo = {};
     samplerInfo.setMagFilter(vk::Filter::eLinear);
     samplerInfo.setMinFilter(vk::Filter::eLinear);
@@ -110,12 +114,11 @@ vk::Sampler VulkanUtils::createTextureSampler(uint32_t mipLevels)
     samplerInfo.setMipLodBias(0.0f);
     samplerInfo.setMinLod(0.0f);
     samplerInfo.setMaxLod(static_cast<float>(mipLevels));
-
     return VulkanContext::device.createSampler(samplerInfo);
 }
 
-void VulkanUtils::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-    vk::Buffer& buffer, vk::DeviceMemory& bufferMemory)
+std::pair<vk::DeviceMemory, vk::Buffer> VulkanUtils::createBuffer(
+    vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
 {
     CHRZONE_RENDERER;
 
@@ -126,22 +129,27 @@ void VulkanUtils::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, 
     CHRLOG_TRACE("Creating Vulkan buffer: size={}, usage={}, properties={}", size, vk::to_string(usage),
         vk::to_string(properties));
 
+    // create buffer
     vk::BufferCreateInfo bufferInfo = {};
     bufferInfo.setSize(size);
     bufferInfo.setUsage(usage);
     bufferInfo.setSharingMode(vk::SharingMode::eExclusive);
+    auto buffer = VulkanContext::device.createBuffer(bufferInfo);
 
-    buffer = VulkanContext::device.createBuffer(bufferInfo);
-
+    // get memory requirements
     auto memRequirements = VulkanContext::device.getBufferMemoryRequirements(buffer);
 
+    // allocate memory
     vk::MemoryAllocateInfo allocInfo = {};
     allocInfo.setAllocationSize(memRequirements.size);
     allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits, properties));
+    auto bufferMemory = VulkanContext::device.allocateMemory(allocInfo);
 
-    bufferMemory = VulkanContext::device.allocateMemory(allocInfo);
-
+    // bind buffer memory
     VulkanContext::device.bindBufferMemory(buffer, bufferMemory, 0);
+
+    // return data
+    return std::pair<vk::DeviceMemory, vk::Buffer>(bufferMemory, buffer);
 }
 
 void VulkanUtils::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
@@ -154,13 +162,15 @@ void VulkanUtils::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::Dev
 
     CHRLOG_TRACE("Copying Vulkan buffer: size={}", size);
 
+    // begin single time command buffer
     auto commandBuffer = beginSingleTimeCommands();
 
+    // copy buffer
     vk::BufferCopy copyRegion = {};
     copyRegion.setSize(size);
-
     commandBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
 
+    // end single time command buffer
     endSingleTimeCommands(commandBuffer);
 }
 
@@ -175,14 +185,17 @@ void VulkanUtils::copyBufferToImage(vk::Buffer srcBuffer, vk::Image dstImage, ui
 
     CHRLOG_TRACE("Copying Vulkan buffer to image: size={}x{}", width, height);
 
+    // begin single time command buffer
     auto commandBuffer = beginSingleTimeCommands();
 
+    // image subresource layers
     vk::ImageSubresourceLayers subresourceLayers = {};
     subresourceLayers.setAspectMask(vk::ImageAspectFlagBits::eColor);
     subresourceLayers.setMipLevel(0);
     subresourceLayers.setBaseArrayLayer(0);
     subresourceLayers.setLayerCount(1);
 
+    // copy buffer to image
     vk::BufferImageCopy region = {};
     region.setBufferOffset(0);
     region.setBufferRowLength(0);
@@ -190,9 +203,9 @@ void VulkanUtils::copyBufferToImage(vk::Buffer srcBuffer, vk::Image dstImage, ui
     region.setImageSubresource(subresourceLayers);
     region.setImageOffset({ 0, 0, 0 });
     region.setImageExtent({ width, height, 1 });
-
     commandBuffer.copyBufferToImage(srcBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal, region);
 
+    // end single time command buffer
     endSingleTimeCommands(commandBuffer);
 }
 
@@ -206,8 +219,10 @@ void VulkanUtils::transitionImageLayout(
     CHRLOG_TRACE("Transitioning Vulkan image layout: from={}, to={}, mip levels={}", vk::to_string(oldLayout),
         vk::to_string(newLayout), mipLevels);
 
+    // begin single time command buffer
     vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
+    // image subresource range
     vk::ImageSubresourceRange subresourceRange = {};
     subresourceRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
     subresourceRange.setBaseMipLevel(0);
@@ -215,6 +230,7 @@ void VulkanUtils::transitionImageLayout(
     subresourceRange.setBaseArrayLayer(0);
     subresourceRange.setLayerCount(1);
 
+    // image memory barrier
     vk::ImageMemoryBarrier barrier = {};
     barrier.setOldLayout(oldLayout);
     barrier.setNewLayout(newLayout);
@@ -223,9 +239,9 @@ void VulkanUtils::transitionImageLayout(
     barrier.setImage(image);
     barrier.setSubresourceRange(subresourceRange);
 
+    // detect source and destination data
     vk::PipelineStageFlags sourceStage;
     vk::PipelineStageFlags destinationStage;
-
     if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
         barrier.setSrcAccessMask(vk::AccessFlags());
         barrier.setDstAccessMask(vk::AccessFlagBits::eTransferWrite);
@@ -243,8 +259,10 @@ void VulkanUtils::transitionImageLayout(
         throw RendererError("Unsupported layout transition");
     }
 
+    // create pipeline barrier
     commandBuffer.pipelineBarrier(sourceStage, destinationStage, vk::DependencyFlags(), nullptr, nullptr, barrier);
 
+    // end single time command buffer
     endSingleTimeCommands(commandBuffer);
 }
 
@@ -264,37 +282,42 @@ void VulkanUtils::generateMipmaps(
         throw RendererError("Texture image format does not support linear blitting");
     }
 
+    // begin single time command buffer
     auto commandBuffer = beginSingleTimeCommands();
 
+    // image subresource range
     vk::ImageSubresourceRange subresource = {};
     subresource.setAspectMask(vk::ImageAspectFlagBits::eColor);
     subresource.setBaseArrayLayer(0);
     subresource.setLayerCount(1);
     subresource.setLevelCount(1);
 
+    // image memory barrier
     vk::ImageMemoryBarrier barrier = {};
     barrier.setImage(image);
     barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setSubresourceRange(subresource);
 
+    // create every miplevel
     uint32_t mipWidth = width;
     uint32_t mipHeight = height;
-
     for (uint32_t i = 1; i < mipLevels; i++) {
+        // pipeline barrier
         barrier.subresourceRange.setBaseMipLevel(i - 1);
         barrier.setOldLayout(vk::ImageLayout::eTransferDstOptimal);
         barrier.setNewLayout(vk::ImageLayout::eTransferSrcOptimal);
         barrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite);
         barrier.setDstAccessMask(vk::AccessFlagBits::eTransferRead);
-
         commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer,
             vk::DependencyFlags(), nullptr, nullptr, barrier);
 
+        // set source and destination offsets
         std::array<vk::Offset3D, 2> srcOffsets = { vk::Offset3D(0, 0, 0), vk::Offset3D(mipWidth, mipHeight, 1) };
         std::array<vk::Offset3D, 2> dstOffsets = { vk::Offset3D(0, 0, 0),
             vk::Offset3D(mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1) };
 
+        // blit image
         vk::ImageBlit blit = {};
         blit.setSrcOffsets(srcOffsets);
         blit.srcSubresource.setAspectMask(vk::ImageAspectFlagBits::eColor);
@@ -306,33 +329,34 @@ void VulkanUtils::generateMipmaps(
         blit.dstSubresource.setMipLevel(i);
         blit.dstSubresource.setBaseArrayLayer(0);
         blit.dstSubresource.setLayerCount(1);
-
         commandBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image,
             vk::ImageLayout::eTransferDstOptimal, blit, vk::Filter::eLinear);
 
+        // pipeline barrier
         barrier.setOldLayout(vk::ImageLayout::eTransferSrcOptimal);
         barrier.setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
         barrier.setSrcAccessMask(vk::AccessFlagBits::eTransferRead);
         barrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
-
         commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
             vk::DependencyFlags(), nullptr, nullptr, barrier);
 
+        // calculate next mipmap size
         if (mipWidth > 1)
             mipWidth /= 2;
         if (mipHeight > 1)
             mipHeight /= 2;
     }
 
+    // pipeline barrier
     barrier.subresourceRange.setBaseMipLevel(mipLevels - 1);
     barrier.setOldLayout(vk::ImageLayout::eTransferDstOptimal);
     barrier.setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
     barrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite);
     barrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
-
     commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
         vk::DependencyFlags(), nullptr, nullptr, barrier);
 
+    // end single time command buffer
     endSingleTimeCommands(commandBuffer);
 }
 
@@ -340,8 +364,10 @@ uint32_t VulkanUtils::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlag
 {
     CHRZONE_RENDERER;
 
+    // get memory properties
     auto memProperties = VulkanContext::physicalDevice.getMemoryProperties();
 
+    // get the first memory location with compatible flags
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
             return i;
@@ -357,18 +383,19 @@ vk::CommandBuffer VulkanUtils::beginSingleTimeCommands()
 
     CHRLOG_TRACE("Beginning Vulkan single time command");
 
+    // allocate command buffer
     vk::CommandBufferAllocateInfo allocInfo = {};
     allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     allocInfo.setCommandPool(VulkanContext::commandPool);
     allocInfo.setCommandBufferCount(1);
-
     auto commandBuffer = VulkanContext::device.allocateCommandBuffers(allocInfo);
 
+    // begin command buffer
     vk::CommandBufferBeginInfo beginInfo = {};
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-
     commandBuffer[0].begin(beginInfo);
 
+    // return command buffer
     return commandBuffer[0];
 }
 
@@ -380,14 +407,18 @@ void VulkanUtils::endSingleTimeCommands(vk::CommandBuffer commandBuffer)
 
     CHRLOG_TRACE("Ending Vulkan single time command");
 
+    // end command buffer
     commandBuffer.end();
 
+    // submit command buffer
     vk::SubmitInfo submitInfo = {};
     submitInfo.setCommandBuffers(commandBuffer);
-
     VulkanContext::graphicsQueue.submit(submitInfo, nullptr);
+
+    // wait for queue idle
     VulkanContext::graphicsQueue.waitIdle();
 
+    // free command buffer
     VulkanContext::device.freeCommandBuffers(VulkanContext::commandPool, commandBuffer);
 }
 
@@ -395,6 +426,7 @@ bool VulkanUtils::checkValidationLayerSupport(const std::vector<const char*>& va
 {
     CHRZONE_RENDERER;
 
+    // check validation layer support
     auto availableLayers = vk::enumerateInstanceLayerProperties();
     for (const char* layerName : validationLayers) {
         bool layerFound = false;
@@ -418,6 +450,7 @@ std::vector<const char*> VulkanUtils::getRequiredExtensions()
     CHRZONE_RENDERER;
 
 #ifdef GLFW_PLATFORM
+    // get required extension from GLFW api
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -426,9 +459,11 @@ std::vector<const char*> VulkanUtils::getRequiredExtensions()
     throw RendererError("Not implemented");
 #endif
 
+    // if validation layer is enabled, add the debug utils extension
     if (VulkanContext::enabledValidationLayer)
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
+    // return all the extensions
     return extensions;
 }
 
@@ -438,17 +473,21 @@ bool VulkanUtils::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice, con
 
     assert(physicalDevice);
 
+    // find queue families
     VulkanQueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
+    // check if the extensions are supported
     bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice, extensions);
-
     bool swapChainAdequate = false;
     if (extensionsSupported) {
         VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
+    // get supported features
     const auto supportedFeatures = physicalDevice.getFeatures();
+
+    // check and return result
     return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
@@ -459,11 +498,14 @@ bool VulkanUtils::checkDeviceExtensionSupport(
 
     assert(physicalDevice);
 
+    // copy the required extensions into a set
     std::set<std::string, std::less<>> requiredExtensions(extensions.begin(), extensions.end());
 
+    // enumerate all the device extensions and remove from the set
     for (const auto& extension : physicalDevice.enumerateDeviceExtensionProperties())
         requiredExtensions.erase(extension.extensionName);
 
+    // if there's still an extension into the set, the device doesn't support all the extensions.
     return requiredExtensions.empty();
 }
 
@@ -473,11 +515,12 @@ VulkanQueueFamilyIndices VulkanUtils::findQueueFamilies(vk::PhysicalDevice physi
 
     assert(physicalDevice);
 
-    VulkanQueueFamilyIndices indices;
-
+    // get family properties
     auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
+    // populate the queue family indices
     int i = 0;
+    VulkanQueueFamilyIndices indices;
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
             indices.graphicsFamily = i;
@@ -491,6 +534,7 @@ VulkanQueueFamilyIndices VulkanUtils::findQueueFamilies(vk::PhysicalDevice physi
         i++;
     }
 
+    // return data
     return indices;
 }
 
@@ -500,6 +544,7 @@ VulkanSwapChainSupportDetails VulkanUtils::querySwapChainSupport(const vk::Physi
 
     assert(physicalDevice);
 
+    // populate and return the swapchain support details
     VulkanSwapChainSupportDetails details;
     details.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(VulkanContext::surface);
     details.formats = physicalDevice.getSurfaceFormatsKHR(VulkanContext::surface);
@@ -515,14 +560,17 @@ vk::SurfaceFormatKHR VulkanUtils::chooseSwapSurfaceFormat(const std::vector<vk::
 
     using enum vk::Format;
 
+    // if no available format is defined, just return a default
     if (availableFormats.size() == 1 && availableFormats[0].format == eUndefined)
         return { eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
 
+    // check and return the first available format that match
     for (const auto& availableFormat : availableFormats) {
         if (availableFormat.format == eB8G8R8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
             return availableFormat;
     }
 
+    // return the first format if no one match
     return availableFormats[0];
 }
 
@@ -534,15 +582,14 @@ vk::PresentModeKHR VulkanUtils::chooseSwapPresentMode(const std::vector<vk::Pres
 
     using enum vk::PresentModeKHR;
 
+    // check the best presentation mode
     vk::PresentModeKHR bestMode = eFifo;
-
     for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == eMailbox)
             return availablePresentMode;
         else if (availablePresentMode == eImmediate)
             bestMode = availablePresentMode;
     }
-
     return bestMode;
 }
 
@@ -557,18 +604,18 @@ vk::Extent2D VulkanUtils::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& cap
         int height;
 
 #ifdef GLFW_PLATFORM
+        // get the framebuffer size
         glfwGetFramebufferSize(GLFWContext::window, &width, &height);
 #else
         throw RendererError("Not implemented");
 #endif
 
+        // calculate and return the extent
         vk::Extent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
-
         actualExtent.width = std::max(
             capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
         actualExtent.height = std::max(
             capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
-
         return actualExtent;
     }
 }
@@ -579,6 +626,7 @@ vk::Format VulkanUtils::findSupportedFormat(
     assert(candidates.size() > 0);
     assert(features);
 
+    // find and return the best supported format
     for (const auto& format : candidates) {
         auto props = VulkanContext::physicalDevice.getFormatProperties(format);
 
@@ -607,11 +655,14 @@ bool VulkanUtils::hasStencilComponent(vk::Format format)
 
 vk::SampleCountFlagBits VulkanUtils::getMaxUsableSampleCount()
 {
+    // get device properties
     auto physicalDeviceProperties = VulkanContext::physicalDevice.getProperties();
 
+    // get the supported samples flags
     auto counts = physicalDeviceProperties.limits.framebufferColorSampleCounts
         & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
+    // return the highest one
     if (counts & vk::SampleCountFlagBits::e64) {
         return vk::SampleCountFlagBits::e64;
     }
@@ -630,7 +681,6 @@ vk::SampleCountFlagBits VulkanUtils::getMaxUsableSampleCount()
     if (counts & vk::SampleCountFlagBits::e2) {
         return vk::SampleCountFlagBits::e2;
     }
-
     return vk::SampleCountFlagBits::e1;
 }
 

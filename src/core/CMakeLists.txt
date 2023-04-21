@@ -63,6 +63,7 @@ add_library(chronicle-core
     "Renderer/CommandBufferI.h"
     "Renderer/Common.h"
     "Renderer/DescriptorSetI.h"
+    "Renderer/Enums.h"
     "Renderer/IndexBufferI.h"
     "Renderer/PipelineI.h"
     "Renderer/PipelineInfo.h"
@@ -79,6 +80,7 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanDescriptorSet.h"
     "Renderer/Vulkan/VulkanDescriptorSet.cc"
     "Renderer/Vulkan/VulkanEnums.h"
+    "Renderer/Vulkan/VulkanEvents.h"
     "Renderer/Vulkan/VulkanImGui.h"
     "Renderer/Vulkan/VulkanImGui.cc"
     "Renderer/Vulkan/VulkanIndexBuffer.h"
@@ -105,7 +107,8 @@ add_library(chronicle-core
     "../../vendor/imgui/imgui_tables.cpp"
     "../../vendor/imgui/imgui_widgets.cpp"
     "../../vendor/imgui/backends/imgui_impl_glfw.cpp"
-    "../../vendor/imgui/backends/imgui_impl_vulkan.cpp" "Renderer/Enums.h")
+    "../../vendor/imgui/backends/imgui_impl_vulkan.cpp"
+)
 
 add_library(chronicle::core ALIAS chronicle-core)
 

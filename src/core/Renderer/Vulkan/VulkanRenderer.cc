@@ -4,6 +4,7 @@
 #include "VulkanRenderer.h"
 
 #include "VulkanCommandBuffer.h"
+#include "VulkanEvents.h"
 #include "VulkanImGui.h"
 #include "VulkanInstance.h"
 
@@ -13,7 +14,10 @@ void VulkanRenderer::init()
 {
     CHRLOG_INFO("Renderer init");
 
+    // initalize vulkan instance
     VulkanInstance::init();
+
+    // initialize imgui
     VulkanImGui::init();
 }
 
@@ -23,7 +27,10 @@ void VulkanRenderer::deinit()
 
     CHRLOG_INFO("Renderer deinit");
 
+    // deinitialize imgui
     VulkanImGui::deinit();
+
+    // deinitialize vulkan instance
     VulkanInstance::deinit();
 }
 
@@ -33,6 +40,7 @@ void VulkanRenderer::waitIdle()
 
     CHRLOG_TRACE("Wait idle");
 
+    // wait for GPU idle
     VulkanContext::device.waitIdle();
 }
 
@@ -42,10 +50,14 @@ bool VulkanRenderer::beginFrame()
 
     CHRLOG_TRACE("Begin swapchain");
 
+    // wait for fence (image GPU processing completed)
     (void)VulkanContext::device.waitForFences(
         VulkanContext::inFlightFences[VulkanContext::currentFrame], true, std::numeric_limits<uint64_t>::max());
 
+    // reset the fence
     VulkanContext::device.resetFences(VulkanContext::inFlightFences[VulkanContext::currentFrame]);
+
+    // acquire the image
     try {
         auto result
             = VulkanContext::device.acquireNextImageKHR(VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(),
@@ -56,8 +68,10 @@ bool VulkanRenderer::beginFrame()
         return false;
     }
 
+    // new imgui frame
     VulkanImGui::newFrame();
 
+    // cast the command buffer to a vulkan command buffer
     const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
     CHRLOG_TRACE(
@@ -72,12 +86,12 @@ bool VulkanRenderer::beginFrame()
     clearValues[0].setColor({ std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } });
     clearValues[1].setDepthStencil({ 1.0f, 0 });
 
+    // begin render pass
     vk::RenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.setRenderPass(VulkanContext::renderPass);
     renderPassInfo.setFramebuffer(VulkanContext::framebuffers[VulkanContext::currentImage]);
     renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
     renderPassInfo.setClearValues(clearValues);
-
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
     // set viewport
@@ -102,6 +116,7 @@ void VulkanRenderer::endFrame()
 
     CHRLOG_TRACE("End swapchain");
 
+    // cast the command buffer to a vulkan command buffer
     const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
     // end main draw pass
@@ -136,7 +151,6 @@ void VulkanRenderer::endFrame()
     presentInfo.setWaitSemaphores(VulkanContext::renderFinishedSemaphores[VulkanContext::currentFrame]);
     presentInfo.setSwapchains(VulkanContext::swapChain);
     presentInfo.setImageIndices(imageIndex);
-
     vk::Result resultPresent;
     try {
         resultPresent = VulkanContext::presentQueue.presentKHR(presentInfo);
@@ -144,12 +158,14 @@ void VulkanRenderer::endFrame()
         resultPresent = vk::Result::eErrorOutOfDateKHR;
     }
 
+    // check present result
     if (resultPresent == vk::Result::eErrorOutOfDateKHR || resultPresent == vk::Result::eSuboptimalKHR
         || VulkanContext::swapChainInvalidated) {
         VulkanContext::swapChainInvalidated = false;
         VulkanInstance::recreateSwapChain();
     }
 
+    // update current frame
     VulkanContext::currentFrame = (VulkanContext::currentFrame + 1) % VulkanContext::maxFramesInFlight;
 
     FrameMark;
@@ -159,8 +175,8 @@ bool VulkanRenderer::debugShowLines() { return VulkanContext::debugShowLines; }
 
 void VulkanRenderer::setDebugShowLines(bool enabled)
 {
-    if (VulkanContext::debugShowLines != enabled)
-    {
+    // set the debug show lines if needed
+    if (VulkanContext::debugShowLines != enabled) {
         VulkanContext::debugShowLines = enabled;
         VulkanContext::dispatcher.trigger<DebugShowLinesEvent>();
     }

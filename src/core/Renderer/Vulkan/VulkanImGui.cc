@@ -123,8 +123,13 @@ void VulkanImGui::newFrame()
 
     CHRLOG_TRACE("ImGui new frame");
 
+    // new frame for vulkan bakend
     ImGui_ImplVulkan_NewFrame();
+
+    // new frame for GLFW backend
     ImGui_ImplGlfw_NewFrame();
+
+    // imgui new frame
     ImGui::NewFrame();
 }
 
@@ -134,14 +139,17 @@ void VulkanImGui::draw(const CommandBufferRef& commandBuffer)
 
     CHRLOG_TRACE("ImGui render");
 
+    // cast command buffer into vulkan command buffer
     auto vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer.get());
 
+    // render imgui
     ImGui::Render();
 
+    // draw imgui data
     ImDrawData* main_draw_data = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(main_draw_data, vulkanCommandBuffer->commandBuffer());
 
-    // Update and Render additional Platform Windows
+    // update and render additional platform windows
     const ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         ImGui::UpdatePlatformWindows();

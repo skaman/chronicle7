@@ -8,6 +8,7 @@
 #include "Renderer/DescriptorSetI.h"
 
 #include "VulkanCommon.h"
+#include "VulkanEnums.h"
 #include "VulkanTexture.h"
 #include "VulkanUtils.h"
 
@@ -52,16 +53,14 @@ public:
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
         layoutBinding.setDescriptorType(vk::DescriptorType::eUniformBuffer);
         layoutBinding.setDescriptorCount(1);
-        layoutBinding.setStageFlags(shaderStageToVulkan(stage));
+        layoutBinding.setStageFlags(VulkanEnums::shaderStageToVulkan(stage));
         _layoutBindings.push_back(layoutBinding);
 
         // create a buffer that is visible to the host, so it can be updated for every frame.
         uint32_t bufferSize = sizeof(T);
-        vk::Buffer buffer;
-        vk::DeviceMemory bufferMemory;
         void* bufferMapped;
-        VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
-            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, buffer, bufferMemory);
+        auto [bufferMemory, buffer] = VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
         bufferMapped = VulkanContext::device.mapMemory(bufferMemory, 0, bufferSize);
         _buffersMapped[id] = bufferMapped;
 
@@ -85,7 +84,7 @@ public:
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
         layoutBinding.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
         layoutBinding.setDescriptorCount(1);
-        layoutBinding.setStageFlags(shaderStageToVulkan(stage));
+        layoutBinding.setStageFlags(VulkanEnums::shaderStageToVulkan(stage));
         _layoutBindings.push_back(layoutBinding);
 
         // cast the texture to a vulkan texture

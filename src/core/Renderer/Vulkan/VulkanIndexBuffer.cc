@@ -16,6 +16,7 @@ VulkanIndexBuffer::~VulkanIndexBuffer()
 
     CHRLOG_DEBUG("Destroy index buffer");
 
+    // clean resources if needed
     if (_buffer)
         cleanup();
 }
@@ -29,36 +30,39 @@ void VulkanIndexBuffer::set(void* src, size_t size)
 
     CHRLOG_DEBUG("Set index buffer data: size={}", size);
 
+    // clean resources if needed
     if (_buffer)
         cleanup();
 
+    // create a buffer visible to the host
     vk::DeviceSize bufferSize = size;
+    auto [stagingBufferMemory, stagingBuffer]
+        = VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-    vk::Buffer stagingBuffer;
-    vk::DeviceMemory stagingBufferMemory;
-    VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-        stagingBufferMemory);
-
+    // copy data to buffer
     void* data = VulkanContext::device.mapMemory(stagingBufferMemory, 0, bufferSize);
     memcpy(data, src, bufferSize);
     VulkanContext::device.unmapMemory(stagingBufferMemory);
 
-    VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
-        vk::MemoryPropertyFlagBits::eDeviceLocal, _buffer, _bufferMemory);
+    // create a buffer visible only from the GPU
+    auto [bufferMemory, buffer] = VulkanUtils::createBuffer(bufferSize,
+        vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
+        vk::MemoryPropertyFlagBits::eDeviceLocal);
+    _buffer = buffer;
+    _bufferMemory = bufferMemory;
 
+    // copy data from local visible buffer to GPU visible buffer
     VulkanUtils::copyBuffer(stagingBuffer, _buffer, bufferSize);
 
+    // destroy local visible buffer
     VulkanContext::device.destroyBuffer(stagingBuffer);
     VulkanContext::device.freeMemory(stagingBufferMemory);
 }
 
 IndexBufferRef VulkanIndexBuffer::create()
 {
-    CHRZONE_RENDERER;
-
-    CHRLOG_DEBUG("Create index buffer");
-
+    // create an instance of the class
     return std::make_shared<ConcreteVulkanIndexBuffer>();
 }
 
@@ -66,6 +70,7 @@ void VulkanIndexBuffer::cleanup() const
 {
     CHRZONE_RENDERER;
 
+    // destroy buffer and free memory
     VulkanContext::device.destroyBuffer(_buffer);
     VulkanContext::device.freeMemory(_bufferMemory);
 }
