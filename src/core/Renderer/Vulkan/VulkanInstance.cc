@@ -105,6 +105,20 @@ void VulkanInstance::deinit()
 
     CHRLOG_DEBUG("Vulkan instance deinit");
 
+    // reset descriptor sets references
+    // this must be happen before to clean the garbage collector
+    for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
+        VulkanContext::framesData[i].descriptorSet.reset();
+    }
+
+    // clean data from frames garbage collectors
+    for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
+        VulkanUtils::cleanupGarbageCollector(VulkanContext::framesData[i].garbageCollector);
+    }
+
+    // wait for garbage collector destruction
+    VulkanContext::device.waitIdle();
+
     // destroy destriptor pool
     VulkanContext::device.destroyDescriptorPool(VulkanContext::descriptorPool);
 

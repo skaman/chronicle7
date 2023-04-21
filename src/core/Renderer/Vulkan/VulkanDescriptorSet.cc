@@ -15,11 +15,14 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 
     CHRLOG_DEBUG("Destroy descriptor set");
 
+    // get garbage collector
+    auto& garbageCollector = VulkanContext::framesData[VulkanContext::currentFrame].garbageCollector;
+
     // clean data inside the binding info
     for (const auto& state : _descriptorSetsBindingInfo) {
         if (state.type == vk::DescriptorType::eUniformBuffer) {
-            VulkanContext::device.destroyBuffer(state.uniform.bufferInfo.buffer);
-            VulkanContext::device.freeMemory(state.uniform.bufferMemory);
+            garbageCollector.emplace_back(state.uniform.bufferInfo.buffer);
+            garbageCollector.emplace_back(state.uniform.bufferMemory);
         }
     }
 

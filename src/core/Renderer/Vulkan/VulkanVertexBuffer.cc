@@ -70,9 +70,12 @@ void VulkanVertexBuffer::cleanup() const
 {
     CHRZONE_RENDERER;
 
+    // get garbage collector
+    auto& garbageCollector = VulkanContext::framesData[VulkanContext::currentFrame].garbageCollector;
+
     // destroy buffer and free memory
-    VulkanContext::device.destroyBuffer(_buffer);
-    VulkanContext::device.freeMemory(_bufferMemory);
+    garbageCollector.emplace_back(_buffer);
+    garbageCollector.emplace_back(_bufferMemory);
 }
 
 } // namespace chronicle

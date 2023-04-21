@@ -684,4 +684,35 @@ vk::SampleCountFlagBits VulkanUtils::getMaxUsableSampleCount()
     return vk::SampleCountFlagBits::e1;
 }
 
+void VulkanUtils::cleanupGarbageCollector(std::vector<GarbageCollectorData>& data)
+{
+    using enum chronicle::GarbageType;
+
+    // cycle all items and clean them
+    for (const auto& item : data) {
+        switch (item.type) {
+        case pipeline:
+            VulkanContext::device.destroyPipeline(item.pipeline);
+            break;
+        case pipelineLayout:
+            VulkanContext::device.destroyPipelineLayout(item.pipelineLayout);
+            break;
+        case buffer:
+            VulkanContext::device.destroyBuffer(item.buffer);
+            break;
+        case deviceMemory:
+            VulkanContext::device.freeMemory(item.deviceMemory);
+            break;
+        case descriptorSetLayout:
+            VulkanContext::device.destroyDescriptorSetLayout(item.descriptorSetLayout);
+            break;
+        default:
+            break;
+        }
+    }
+
+    // clear the vector
+    data.clear();
+}
+
 } // namespace chronicle

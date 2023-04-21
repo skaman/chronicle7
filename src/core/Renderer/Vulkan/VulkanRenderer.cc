@@ -7,6 +7,7 @@
 #include "VulkanEvents.h"
 #include "VulkanImGui.h"
 #include "VulkanInstance.h"
+#include "VulkanUtils.h"
 
 namespace chronicle {
 
@@ -51,13 +52,16 @@ bool VulkanRenderer::beginFrame()
     CHRLOG_TRACE("Begin swapchain");
 
     // get the current frame data
-    const VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
+    VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
 
     // wait for fence (image GPU processing completed)
     (void)VulkanContext::device.waitForFences(frameData.inFlightFence, true, std::numeric_limits<uint64_t>::max());
 
     // reset the fence
     VulkanContext::device.resetFences(frameData.inFlightFence);
+
+    // clean the frame garbage collector
+    VulkanUtils::cleanupGarbageCollector(frameData.garbageCollector);
 
     // acquire the image
     try {

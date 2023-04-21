@@ -83,7 +83,8 @@ public:
 
             // CHRLOG_DEBUG("{}", delta);
 
-            float time = 0;
+            static float time = 0;
+            //time += delta;
 
             UniformBufferObject ubo {};
             ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));

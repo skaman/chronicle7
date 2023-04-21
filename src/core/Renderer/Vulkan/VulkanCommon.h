@@ -34,6 +34,51 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 proj; ///< Projection.
 };
 
+/// @brief Entry types for garbage collector.
+enum class GarbageType { pipeline, pipelineLayout, buffer, deviceMemory, descriptorSetLayout };
+
+/// @brief Garbage collector data.
+struct GarbageCollectorData {
+    GarbageType type; ///< Entry type.
+    union {
+        vk::Pipeline pipeline; ///< Pipeline
+        vk::PipelineLayout pipelineLayout; ///< Pipeline layout
+        vk::Buffer buffer; ///< Buffer
+        vk::DeviceMemory deviceMemory; ///< Device memory
+        vk::DescriptorSetLayout descriptorSetLayout; ///< Descriptor set layout
+    };
+
+    explicit GarbageCollectorData(vk::Pipeline pipeline)
+        : type(GarbageType::pipeline)
+        , pipeline(pipeline)
+    {
+    }
+
+    explicit GarbageCollectorData(vk::PipelineLayout pipelineLayout)
+        : type(GarbageType::pipelineLayout)
+        , pipelineLayout(pipelineLayout)
+    {
+    }
+
+    explicit GarbageCollectorData(vk::Buffer buffer)
+        : type(GarbageType::buffer)
+        , buffer(buffer)
+    {
+    }
+
+    explicit GarbageCollectorData(vk::DeviceMemory deviceMemory)
+        : type(GarbageType::deviceMemory)
+        , deviceMemory(deviceMemory)
+    {
+    }
+
+    explicit GarbageCollectorData(vk::DescriptorSetLayout descriptorSetLayout)
+        : type(GarbageType::descriptorSetLayout)
+        , descriptorSetLayout(descriptorSetLayout)
+    {
+    }
+};
+
 /// @brief Data related to a single frame in flight.
 struct VulkanFrameData {
     // sync objects
@@ -46,6 +91,9 @@ struct VulkanFrameData {
 
     // descriptor sets
     DescriptorSetRef descriptorSet = nullptr; ///< Descriptor set.
+
+    // resource to be destroyed
+    std::vector<GarbageCollectorData> garbageCollector = {}; ///< Garbage collector data.
 };
 
 /// @brief Data related to a single swapchain image.

@@ -205,9 +205,12 @@ void VulkanPipeline::cleanup()
 {
     CHRZONE_RENDERER;
 
-    // destroy graphics pipeline and layout
-    VulkanContext::device.destroyPipeline(_graphicsPipeline);
-    VulkanContext::device.destroyPipelineLayout(_pipelineLayout);
+    // get garbage collector
+    auto& garbageCollector = VulkanContext::framesData[VulkanContext::currentFrame].garbageCollector;
+
+    // add data to destroy to the garbage collector
+    garbageCollector.emplace_back(_graphicsPipeline);
+    garbageCollector.emplace_back(_pipelineLayout);
 
     // descriptor sets clear
     _descriptorSets.clear();

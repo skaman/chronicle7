@@ -162,6 +162,10 @@ public:
     /// @brief Get max usable sample count.
     /// @return Sample count flags.
     [[nodiscard]] static vk::SampleCountFlagBits getMaxUsableSampleCount();
+
+    /// @brief Cleanup garbage collector data.
+    /// @param data Gargabe collector data.
+    static void cleanupGarbageCollector(std::vector<GarbageCollectorData>& data);
 };
 
 } // namespace chronicle
