@@ -87,7 +87,7 @@ void VulkanImGui::init()
     initInfo.DescriptorPool = VulkanImGuiContext::descriptorPool;
     initInfo.Subpass = 0;
     initInfo.MinImageCount = VulkanContext::maxFramesInFlight;
-    initInfo.ImageCount = static_cast<uint32_t>(VulkanContext::swapChainImages.size());
+    initInfo.ImageCount = static_cast<uint32_t>(VulkanContext::imagesData.size());
     initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.Allocator = nullptr;
     initInfo.CheckVkResultFn = checkVulkanResult;

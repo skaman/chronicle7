@@ -34,6 +34,31 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 proj; ///< Projection.
 };
 
+/// @brief Data related to a single frame in flight.
+struct VulkanFrameData {
+    // sync objects
+    vk::Semaphore imageAvailableSemaphore = nullptr; ///< Image available semaphore.
+    vk::Semaphore renderFinishedSemaphore = nullptr; ///< Render finished semaphore.
+    vk::Fence inFlightFence = nullptr; ///< Fence for frames in flight.
+
+    // command buffers
+    CommandBufferRef commandBuffer = nullptr; ///< Command Buffer.
+
+    // descriptor sets
+    DescriptorSetRef descriptorSet = nullptr; ///< Descriptor set.
+};
+
+/// @brief Data related to a single swapchain image.
+struct VulkanImageData {
+    // swapchain
+    vk::Image swapChainImage = nullptr; ///< Swapchain images.
+    vk::ImageView swapChainImageView = nullptr; ///< Swapchain image views.
+
+    // framebuffers
+    vk::Framebuffer framebuffer = nullptr; ///< Framebuffer main render pass.
+    vk::Framebuffer debugFramebuffer = nullptr; ///< Framebuffer debug render pass.
+};
+
 struct VulkanContext {
     // instance, debugger and surface
     static inline vk::Instance instance = nullptr; ///< Vulkan instance.
@@ -54,8 +79,6 @@ struct VulkanContext {
 
     // swapchain
     static inline vk::SwapchainKHR swapChain = nullptr; ///< Swapchain.
-    static inline std::vector<vk::Image> swapChainImages = {}; ///< Swapchain images.
-    static inline std::vector<vk::ImageView> swapChainImageViews = {}; ///< Swapchain image views.
     static inline vk::Format swapChainImageFormat = vk::Format::eUndefined; ///< Swapchain image format.
     static inline vk::Extent2D swapChainExtent = {}; ///< Swapchain extent.
     static inline bool swapChainInvalidated = false; ///< Indicate if the swapchain is invalidated and need recreation.
@@ -73,27 +96,20 @@ struct VulkanContext {
     static inline vk::RenderPass renderPass = nullptr; ///< Main render pass.
     static inline vk::RenderPass debugRenderPass = nullptr; ///< Debug render pass.
 
-    // framebuffers
-    static inline std::vector<vk::Framebuffer> framebuffers = {}; ///< Framebuffer main render pass.
-    static inline std::vector<vk::Framebuffer> debugFramebuffers = {}; ///< Framebuffer debug render pass.
-
     // multisampling
     static inline vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1; ///< Number of samples.
     static inline vk::Image colorImage = nullptr; ///< Multisampling color image.
     static inline vk::DeviceMemory colorImageMemory = nullptr; ///< Memory for multisampling color image.
     static inline vk::ImageView colorImageView = nullptr; ///< Multisampling color image view.
 
-    // sync objects
-    static inline std::vector<vk::Semaphore> imageAvailableSemaphores = {}; ///< Image available semaphores.
-    static inline std::vector<vk::Semaphore> renderFinishedSemaphores = {}; ///< Render finished semaphores.
-    static inline std::vector<vk::Fence> inFlightFences = {}; ///< Fences for frames in flight.
-
-    // command buffers
-    static inline std::vector<CommandBufferRef> commandBuffers = {}; ///< Command Buffers.
-
     // descriptor sets
     static inline vk::DescriptorPool descriptorPool = nullptr; ///< Descriptor pool used to allocate resources.
-    static inline std::vector<DescriptorSetRef> descriptorSets = {}; ///< Descriptor sets.
+
+    // frame data
+    static inline std::vector<VulkanFrameData> framesData = {}; ///< Data related to the frames in flight.
+
+    // images data
+    static inline std::vector<VulkanImageData> imagesData = {}; ///< Data related to the swapchain images.
 
     // current frame
     static inline int currentFrame = 0; ///< Index of current frame in flight.

@@ -28,7 +28,8 @@ public:
         _texture = TextureAsset::load("D:\\viking_room.png");
 
         // descriptor sets
-        for (const auto& descriptorSet : Renderer::descriptorSets()) {
+        for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
+            const auto& descriptorSet = Renderer::descriptorSet(i);
             descriptorSet->addSampler(ShaderStage::Fragment, _texture->texture());
             descriptorSet->build();
         }

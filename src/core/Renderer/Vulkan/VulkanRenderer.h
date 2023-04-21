@@ -37,19 +37,25 @@ public:
     /// @brief @see RendererI#setDebugShowLines
     static void setDebugShowLines(bool enabled);
 
-    /// @brief @see RendererI#descriptorSets
-    [[nodiscard]] static const std::vector<DescriptorSetRef>& descriptorSets() { return VulkanContext::descriptorSets; }
+    /// @brief @see RendererI#descriptorSet
+    [[nodiscard]] static const DescriptorSetRef& descriptorSet(uint32_t index)
+    {
+        assert(index >= 0);
+        assert(index < VulkanContext::maxFramesInFlight);
+
+        return VulkanContext::framesData[index].descriptorSet;
+    }
 
     /// @brief @see RendererI#descriptorSet
     [[nodiscard]] static const DescriptorSetRef& descriptorSet()
     {
-        return VulkanContext::descriptorSets[VulkanContext::currentFrame];
+        return VulkanContext::framesData[VulkanContext::currentFrame].descriptorSet;
     }
 
     /// @brief @see RendererI#commandBuffer
     [[nodiscard]] static const CommandBufferRef& commandBuffer()
     {
-        return VulkanContext::commandBuffers[VulkanContext::currentFrame];
+        return VulkanContext::framesData[VulkanContext::currentFrame].commandBuffer;
     }
 
     /// @brief @see RendererI#width
@@ -57,6 +63,9 @@ public:
 
     /// @brief @see RendererI#height
     [[nodiscard]] static uint32_t height() { return VulkanContext::swapChainExtent.height; }
+
+    /// @brief @see RendererI#maxFramesInFlight
+    [[nodiscard]] static uint32_t maxFramesInFlight() { return VulkanContext::maxFramesInFlight; }
 };
 
 } // namespace chronicle

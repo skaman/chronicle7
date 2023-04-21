@@ -50,23 +50,27 @@ bool VulkanRenderer::beginFrame()
 
     CHRLOG_TRACE("Begin swapchain");
 
+    // get the current frame data
+    const VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
+
     // wait for fence (image GPU processing completed)
-    (void)VulkanContext::device.waitForFences(
-        VulkanContext::inFlightFences[VulkanContext::currentFrame], true, std::numeric_limits<uint64_t>::max());
+    (void)VulkanContext::device.waitForFences(frameData.inFlightFence, true, std::numeric_limits<uint64_t>::max());
 
     // reset the fence
-    VulkanContext::device.resetFences(VulkanContext::inFlightFences[VulkanContext::currentFrame]);
+    VulkanContext::device.resetFences(frameData.inFlightFence);
 
     // acquire the image
     try {
-        auto result
-            = VulkanContext::device.acquireNextImageKHR(VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(),
-                VulkanContext::imageAvailableSemaphores[VulkanContext::currentFrame], nullptr);
+        auto result = VulkanContext::device.acquireNextImageKHR(
+            VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(), frameData.imageAvailableSemaphore, nullptr);
         VulkanContext::currentImage = result.value;
     } catch (vk::OutOfDateKHRError err) {
         VulkanInstance::recreateSwapChain();
         return false;
     }
+
+    // get the current image data
+    const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
 
     // new imgui frame
     VulkanImGui::newFrame();
@@ -89,7 +93,7 @@ bool VulkanRenderer::beginFrame()
     // begin render pass
     vk::RenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.setRenderPass(VulkanContext::renderPass);
-    renderPassInfo.setFramebuffer(VulkanContext::framebuffers[VulkanContext::currentImage]);
+    renderPassInfo.setFramebuffer(imageData.framebuffer);
     renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
     renderPassInfo.setClearValues(clearValues);
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
@@ -116,6 +120,12 @@ void VulkanRenderer::endFrame()
 
     CHRLOG_TRACE("End swapchain");
 
+    // get the current frame data
+    const VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
+
+    // get the current image data
+    const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
+
     // cast the command buffer to a vulkan command buffer
     const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
@@ -125,7 +135,7 @@ void VulkanRenderer::endFrame()
     // begin debug draw pass
     vk::RenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.setRenderPass(VulkanContext::debugRenderPass);
-    renderPassInfo.setFramebuffer(VulkanContext::debugFramebuffers[VulkanContext::currentImage]);
+    renderPassInfo.setFramebuffer(imageData.debugFramebuffer);
     renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
@@ -139,16 +149,16 @@ void VulkanRenderer::endFrame()
     // submit command buffers
     vk::SubmitInfo submitInfo = {};
     std::array<vk::PipelineStageFlags, 1> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-    submitInfo.setWaitSemaphores(VulkanContext::imageAvailableSemaphores[VulkanContext::currentFrame]);
+    submitInfo.setWaitSemaphores(frameData.imageAvailableSemaphore);
     submitInfo.setWaitDstStageMask(waitStages);
     submitInfo.setCommandBuffers(vulkanCommandBuffer->commandBuffer());
-    submitInfo.setSignalSemaphores(VulkanContext::renderFinishedSemaphores[VulkanContext::currentFrame]);
-    VulkanContext::graphicsQueue.submit(submitInfo, VulkanContext::inFlightFences[VulkanContext::currentFrame]);
+    submitInfo.setSignalSemaphores(frameData.renderFinishedSemaphore);
+    VulkanContext::graphicsQueue.submit(submitInfo, frameData.inFlightFence);
 
     // present swapchain
     uint32_t imageIndex = VulkanContext::currentImage;
     vk::PresentInfoKHR presentInfo = {};
-    presentInfo.setWaitSemaphores(VulkanContext::renderFinishedSemaphores[VulkanContext::currentFrame]);
+    presentInfo.setWaitSemaphores(frameData.renderFinishedSemaphore);
     presentInfo.setSwapchains(VulkanContext::swapChain);
     presentInfo.setImageIndices(imageIndex);
     vk::Result resultPresent;

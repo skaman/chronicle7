@@ -78,6 +78,9 @@ void VulkanInstance::init()
 
     CHRLOG_DEBUG("Vulkan instance init");
 
+    // allocate data for frame in flights
+    VulkanContext::framesData.resize(VulkanContext::maxFramesInFlight);
+
     // initialize everything
     createInstance();
     setupDebugCallback();
@@ -102,22 +105,18 @@ void VulkanInstance::deinit()
 
     CHRLOG_DEBUG("Vulkan instance deinit");
 
-    // destroy destriptor sets and pool
-    VulkanContext::descriptorSets.clear();
+    // destroy destriptor pool
     VulkanContext::device.destroyDescriptorPool(VulkanContext::descriptorPool);
 
-    // destroy command buffers
-    VulkanContext::commandBuffers.clear();
-
-    // destroy synchronization objects
+    // clean frame data
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-        VulkanContext::device.destroySemaphore(VulkanContext::imageAvailableSemaphores[i]);
-        VulkanContext::device.destroySemaphore(VulkanContext::renderFinishedSemaphores[i]);
-        VulkanContext::device.destroyFence(VulkanContext::inFlightFences[i]);
+        // destroy synchronization objects
+        VulkanContext::device.destroySemaphore(VulkanContext::framesData[i].imageAvailableSemaphore);
+        VulkanContext::device.destroySemaphore(VulkanContext::framesData[i].renderFinishedSemaphore);
+        VulkanContext::device.destroyFence(VulkanContext::framesData[i].inFlightFence);
     }
-    VulkanContext::imageAvailableSemaphores.clear();
-    VulkanContext::renderFinishedSemaphores.clear();
-    VulkanContext::inFlightFences.clear();
+
+    VulkanContext::framesData.clear();
 
     // destroy rendering passes
     VulkanContext::device.destroyRenderPass(VulkanContext::debugRenderPass);
@@ -180,17 +179,11 @@ void VulkanInstance::cleanupSwapChain()
 {
     CHRZONE_RENDERER;
 
-    // clean debug framebuffers
-    for (const auto& framebuffer : VulkanContext::debugFramebuffers) {
-        VulkanContext::device.destroyFramebuffer(framebuffer);
+    // clean framebuffers
+    for (const auto& imageData : VulkanContext::imagesData) {
+        VulkanContext::device.destroyFramebuffer(imageData.framebuffer);
+        VulkanContext::device.destroyFramebuffer(imageData.debugFramebuffer);
     }
-    VulkanContext::debugFramebuffers.clear();
-
-    // clean main frame buffers
-    for (const auto& framebuffer : VulkanContext::framebuffers) {
-        VulkanContext::device.destroyFramebuffer(framebuffer);
-    }
-    VulkanContext::framebuffers.clear();
 
     // clean color images and images view
     VulkanContext::device.destroyImageView(VulkanContext::colorImageView);
@@ -203,10 +196,12 @@ void VulkanInstance::cleanupSwapChain()
     VulkanContext::device.freeMemory(VulkanContext::depthImageMemory);
 
     // clean swap chain image views
-    for (const auto& imageView : VulkanContext::swapChainImageViews) {
-        VulkanContext::device.destroyImageView(imageView);
+    for (const auto& imageData : VulkanContext::imagesData) {
+        VulkanContext::device.destroyImageView(imageData.swapChainImageView);
     }
-    VulkanContext::swapChainImageViews.clear();
+
+    // clean image data
+    VulkanContext::imagesData.clear();
 
     // destroy swapchain
     VulkanContext::device.destroySwapchainKHR(VulkanContext::swapChain);
@@ -420,15 +415,16 @@ void VulkanInstance::createSwapChain()
         = VulkanUtils::createImageView(depthImage, VulkanContext::depthImageFormat, vk::ImageAspectFlagBits::eDepth, 1);
 
     // create swap chain images
-    VulkanContext::swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
+    auto swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
     VulkanContext::swapChainImageFormat = surfaceFormat.format;
     VulkanContext::swapChainExtent = extent;
 
-    VulkanContext::swapChainImageViews.reserve(VulkanContext::swapChainImages.size());
-    for (const auto& swapChainImage : VulkanContext::swapChainImages) {
-        auto swapChainImageView
-            = VulkanUtils::createImageView(swapChainImage, surfaceFormat.format, vk::ImageAspectFlagBits::eColor, 1);
-        VulkanContext::swapChainImageViews.push_back(swapChainImageView);
+    // prepare images data structures
+    VulkanContext::imagesData.resize(swapChainImages.size());
+    for (auto i = 0; i < swapChainImages.size(); i++) {
+        VulkanContext::imagesData[i].swapChainImage = swapChainImages[i];
+        VulkanContext::imagesData[i].swapChainImageView = VulkanUtils::createImageView(
+            swapChainImages[i], surfaceFormat.format, vk::ImageAspectFlagBits::eColor, 1);
     }
 }
 
@@ -579,20 +575,17 @@ void VulkanInstance::createFramebuffers()
 
     CHRLOG_DEBUG("Create framebuffers");
 
-    // reserve the required memory
-    VulkanContext::framebuffers.reserve(VulkanContext::swapChainImageViews.size());
-
     // create the framebuffers
-    for (const auto& swapChainImageView : VulkanContext::swapChainImageViews) {
+    for (auto& imageData : VulkanContext::imagesData) {
         std::array<vk::ImageView, 3> attachments
-            = { VulkanContext::colorImageView, VulkanContext::depthImageView, swapChainImageView };
+            = { VulkanContext::colorImageView, VulkanContext::depthImageView, imageData.swapChainImageView };
         vk::FramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.setRenderPass(VulkanContext::renderPass);
         framebufferInfo.setAttachments(attachments);
         framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
         framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
         framebufferInfo.setLayers(1);
-        VulkanContext::framebuffers.push_back(VulkanContext::device.createFramebuffer(framebufferInfo));
+        imageData.framebuffer = VulkanContext::device.createFramebuffer(framebufferInfo);
     }
 }
 
@@ -602,19 +595,16 @@ void VulkanInstance::createDebugFramebuffers()
 
     CHRLOG_DEBUG("Create ImGui framebuffers");
 
-    // reserve the required memory
-    VulkanContext::debugFramebuffers.reserve(VulkanContext::swapChainImageViews.size());
-
     // create the framebuffers
-    for (const auto& swapChainImageView : VulkanContext::swapChainImageViews) {
-        std::array<vk::ImageView, 1> attachments = { swapChainImageView };
+    for (auto& imageData : VulkanContext::imagesData) {
+        std::array<vk::ImageView, 1> attachments = { imageData.swapChainImageView };
         vk::FramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.setRenderPass(VulkanContext::debugRenderPass);
         framebufferInfo.setAttachments(attachments);
         framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
         framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
         framebufferInfo.setLayers(1);
-        VulkanContext::debugFramebuffers.push_back(VulkanContext::device.createFramebuffer(framebufferInfo));
+        imageData.debugFramebuffer = VulkanContext::device.createFramebuffer(framebufferInfo);
     }
 }
 
@@ -624,17 +614,12 @@ void VulkanInstance::createSyncObjects()
 
     CHRLOG_DEBUG("Create sync objects");
 
-    // reserve the required memory
-    VulkanContext::imageAvailableSemaphores.reserve(VulkanContext::maxFramesInFlight);
-    VulkanContext::renderFinishedSemaphores.reserve(VulkanContext::maxFramesInFlight);
-    VulkanContext::inFlightFences.reserve(VulkanContext::maxFramesInFlight);
-
     // create synchronization objects
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-        VulkanContext::imageAvailableSemaphores.push_back(VulkanContext::device.createSemaphore({}));
-        VulkanContext::renderFinishedSemaphores.push_back(VulkanContext::device.createSemaphore({}));
-        VulkanContext::inFlightFences.push_back(
-            VulkanContext::device.createFence({ vk::FenceCreateFlagBits::eSignaled }));
+        VulkanContext::framesData[i].imageAvailableSemaphore = VulkanContext::device.createSemaphore({});
+        VulkanContext::framesData[i].renderFinishedSemaphore = VulkanContext::device.createSemaphore({});
+        VulkanContext::framesData[i].inFlightFence
+            = VulkanContext::device.createFence({ vk::FenceCreateFlagBits::eSignaled });
     }
 }
 
@@ -644,13 +629,9 @@ void VulkanInstance::createCommandBuffers()
 
     CHRLOG_DEBUG("Create command buffers");
 
-    // reserve the required memory
-    VulkanContext::commandBuffers.reserve(VulkanContext::maxFramesInFlight);
-
     // create the command buffers
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-        auto commandBuffer = chronicle::VulkanCommandBuffer::create();
-        VulkanContext::commandBuffers.push_back(commandBuffer);
+        VulkanContext::framesData[i].commandBuffer = VulkanCommandBuffer::create();
     }
 }
 
@@ -660,14 +641,11 @@ void VulkanInstance::createDescriptorSets()
 
     CHRLOG_DEBUG("Create descriptor sets");
 
-    // reserve the required memory
-    VulkanContext::descriptorSets.reserve(VulkanContext::maxFramesInFlight);
-
     // create the descriptor sets
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
         auto descriptorSet = chronicle::DescriptorSet::create();
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, chronicle::ShaderStage::Vertex);
-        VulkanContext::descriptorSets.push_back(descriptorSet);
+        VulkanContext::framesData[i].descriptorSet = descriptorSet;
     }
 }
 

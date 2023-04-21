@@ -47,10 +47,9 @@ public:
     /// @param enabled Activation status.
     static void setDebugShowLines(bool enabled) { T::setDebugShowLines(enabled); }
 
-    /// @brief Get all the descriptor sets. There's one descriptor set for every frame in flight available.
-    ///        If you need the descriptor set for the current frame, please see @ref descriptorSet.
-    /// @return The descriptor sets.
-    [[nodiscard]] static const std::vector<DescriptorSetRef>& descriptorSets() { return T::descriptorSets(); }
+    /// @brief Get the descriptor set for a specific frame.
+    /// @return The descriptor set.
+    [[nodiscard]] static const DescriptorSetRef& descriptorSet(uint32_t index) { return T::descriptorSet(index); }
 
     /// @brief Get the descriptor set for the current frame.
     /// @return The descriptor set.
@@ -67,6 +66,10 @@ public:
     /// @brief Get the swapchain height.
     /// @return Swapchain height.
     [[nodiscard]] static uint32_t height() { return T::height(); }
+
+    /// @brief Get the number of max frames in flight.
+    /// @return Max frames in flight.
+    [[nodiscard]] static uint32_t maxFramesInFlight() { return T::maxFramesInFlight(); }
 
 private:
     RendererI() = default;
