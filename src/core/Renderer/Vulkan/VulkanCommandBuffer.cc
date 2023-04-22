@@ -13,7 +13,7 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanCommandBuffer);
 
-VulkanCommandBuffer::VulkanCommandBuffer()
+VulkanCommandBuffer::VulkanCommandBuffer(const char* debugName)
 {
     CHRZONE_RENDERER;
 
@@ -25,6 +25,11 @@ VulkanCommandBuffer::VulkanCommandBuffer()
     allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     allocInfo.setCommandBufferCount(1);
     _commandBuffer = VulkanContext::device.allocateCommandBuffers(allocInfo)[0];
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    // set the debug object name
+    VulkanUtils::setDebugObjectName(_commandBuffer, debugName);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
 void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
@@ -104,6 +109,30 @@ void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSe
         vk::PipelineBindPoint::eGraphics, _currentPipelineLayout, index, vulkanDescriptorSet->descriptorSet(), nullptr);
 }
 
-CommandBufferRef VulkanCommandBuffer::create() { return std::make_shared<ConcreteVulkanCommandBuffer>(); }
+void VulkanCommandBuffer::beginDebugLabel(const char* name, glm::vec4 color) const
+{
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    VulkanUtils::beginDebugLabel(_commandBuffer, name, color);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
+}
+
+void VulkanCommandBuffer::endDebugLabel() const
+{
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    VulkanUtils::endDebugLabel(_commandBuffer);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
+}
+
+void VulkanCommandBuffer::insertDebugLabel(const char* name, glm::vec4 color) const
+{
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    VulkanUtils::insertDebugLabel(_commandBuffer, name, color);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
+}
+
+CommandBufferRef VulkanCommandBuffer::create(const char* debugName)
+{
+    return std::make_shared<ConcreteVulkanCommandBuffer>(debugName);
+}
 
 } // namespace chronicle

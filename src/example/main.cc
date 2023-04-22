@@ -40,7 +40,7 @@ public:
         pipelineInfo.shaders[ShaderStage::Fragment] = "Shaders/triangle.frag.bin";
         pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
 
-        _pipeline = Pipeline::create(pipelineInfo);
+        _pipeline = Pipeline::create(pipelineInfo, "Test pipeline");
     }
 
     void onCursorPosition(const CursorPositionEvent& evn) const { }
@@ -75,16 +75,18 @@ public:
             // ImGui::ShowDemoWindow();
             // ImGui::ShowMetricsWindow();
 
+            Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
             Renderer::commandBuffer()->bindPipeline(_pipeline);
             Renderer::commandBuffer()->bindVertexBuffer(_mesh->vertexBuffer(0));
             Renderer::commandBuffer()->bindIndexBuffer(_mesh->indexBuffer(0));
             Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
             Renderer::commandBuffer()->drawIndexed(_mesh->indicesCount(0), 1);
+            Renderer::commandBuffer()->endDebugLabel();
 
             // CHRLOG_DEBUG("{}", delta);
 
             static float time = 0;
-            //time += delta;
+            // time += delta;
 
             UniformBufferObject ubo {};
             ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));

@@ -16,8 +16,12 @@ template <class T> class PipelineI {
 public:
     /// @brief Factory for create a new pipeline.
     /// @param pipelineInfo Informations used to create the pipeline.
+    /// @param debugName Debug name.
     /// @return The pipeline.
-    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo) { return T::create(pipelineInfo); }
+    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const char* debugName)
+    {
+        return T::create(pipelineInfo, debugName);
+    }
 
 private:
     PipelineI() = default;

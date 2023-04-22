@@ -39,7 +39,8 @@ struct VulkanDescriptorSetBindingInfo {
 class VulkanDescriptorSet : public DescriptorSetI<VulkanDescriptorSet>, private NonCopyable<VulkanDescriptorSet> {
 protected:
     /// @brief Default constructor.
-    explicit VulkanDescriptorSet() = default;
+    /// @param debugName Debug name.
+    explicit VulkanDescriptorSet(const char* debugName);
 
 public:
     /// @brief Destructor.
@@ -120,9 +121,12 @@ public:
     [[nodiscard]] const vk::DescriptorSet& descriptorSet() const { return _descriptorSet; }
 
     /// @brief @see DescriptorSetI#create
-    [[nodiscard]] static DescriptorSetRef create();
+    /// @param debugName Debug name.
+    [[nodiscard]] static DescriptorSetRef create(const char* debugName);
 
 private:
+    std::string _debugName; ///< Debug name.
+
     vk::DescriptorSet _descriptorSet = nullptr; ///< Descriptor set handle.
     vk::DescriptorSetLayout _descriptorSetLayout = nullptr; ///< Descriptor set layout.
 

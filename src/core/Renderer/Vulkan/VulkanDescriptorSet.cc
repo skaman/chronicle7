@@ -9,6 +9,14 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanDescriptorSet);
 
+VulkanDescriptorSet::VulkanDescriptorSet(const char* debugName)
+{
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    if (debugName != nullptr)
+        _debugName = debugName;
+#endif // VULKAN_ENABLE_DEBUG_MARKER
+}
+
 VulkanDescriptorSet::~VulkanDescriptorSet()
 {
     CHRZONE_RENDERER;
@@ -68,12 +76,17 @@ void VulkanDescriptorSet::build()
 
     // update the descriptor sets
     VulkanContext::device.updateDescriptorSets(descriptorWrites, nullptr);
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    // set the debug object name
+    VulkanUtils::setDebugObjectName(_descriptorSet, _debugName.c_str());
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
-DescriptorSetRef VulkanDescriptorSet::create()
+DescriptorSetRef VulkanDescriptorSet::create(const char* debugName)
 {
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanDescriptorSet>();
+    return std::make_shared<ConcreteVulkanDescriptorSet>(debugName);
 }
 
 vk::WriteDescriptorSet VulkanDescriptorSet::createUniformWriteDescriptorSet(

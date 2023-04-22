@@ -4,6 +4,7 @@
 #include "VulkanUtils.h"
 
 #include "VulkanCommon.h"
+#include "VulkanExtensions.h"
 
 #ifdef GLFW_PLATFORM
 #include "Platform/GLFW/GLFWCommon.h"
@@ -459,9 +460,13 @@ std::vector<const char*> VulkanUtils::getRequiredExtensions()
     throw RendererError("Not implemented");
 #endif
 
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#else
     // if validation layer is enabled, add the debug utils extension
     if (VulkanContext::enabledValidationLayer)
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 
     // return all the extensions
     return extensions;
@@ -501,6 +506,16 @@ bool VulkanUtils::checkDeviceExtensionSupport(
 
     // copy the required extensions into a set
     std::set<std::string, std::less<>> requiredExtensions(extensions.begin(), extensions.end());
+
+    //// get data from physical device
+    // auto deviceExtensions = physicalDevice.enumerateDeviceExtensionProperties();
+    // auto properties = physicalDevice.getProperties();
+    //
+    //// log all available extensions
+    // CHRLOG_DEBUG("Available device extensions on {}:", properties.deviceName);
+    // for (const auto& extension : deviceExtensions) {
+    //     CHRLOG_DEBUG("- {}", extension.extensionName);
+    // }
 
     // enumerate all the device extensions and remove from the set
     for (const auto& extension : physicalDevice.enumerateDeviceExtensionProperties())
@@ -714,6 +729,93 @@ void VulkanUtils::cleanupGarbageCollector(std::vector<GarbageCollectorData>& dat
 
     // clear the vector
     data.clear();
+}
+
+void VulkanUtils::setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const char* name)
+{
+    if (name == nullptr)
+        return;
+
+    VkDebugUtilsObjectNameInfoEXT objectNameInfo = {};
+    objectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    objectNameInfo.objectType = (VkObjectType)objectType;
+    objectNameInfo.objectHandle = handle;
+    objectNameInfo.pObjectName = name;
+    objectNameInfo.pNext = nullptr;
+
+    setDebugUtilsObjectNameEXT(VulkanContext::instance, VulkanContext::device, &objectNameInfo);
+}
+
+void VulkanUtils::setDebugObjectName(vk::Buffer buffer, const char* name)
+{
+    if (name == nullptr)
+        return;
+
+    setDebugObjectName(vk::ObjectType::eBuffer, (uint64_t)(VkBuffer)buffer, name);
+}
+
+void VulkanUtils::setDebugObjectName(vk::CommandBuffer commandBuffer, const char* name)
+{
+    if (name == nullptr)
+        return;
+
+    setDebugObjectName(vk::ObjectType::eCommandBuffer, (uint64_t)(VkCommandBuffer)commandBuffer, name);
+}
+
+void VulkanUtils::setDebugObjectName(vk::DescriptorSet descriptorSet, const char* name)
+{
+    if (name == nullptr)
+        return;
+
+    setDebugObjectName(vk::ObjectType::eDescriptorSet, (uint64_t)(VkDescriptorSet)descriptorSet, name);
+}
+
+void VulkanUtils::setDebugObjectName(vk::Pipeline pipeline, const char* name)
+{
+    if (name == nullptr)
+        return;
+
+    setDebugObjectName(vk::ObjectType::ePipeline, (uint64_t)(VkPipeline)pipeline, name);
+}
+
+void VulkanUtils::beginDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color)
+{
+    if (name == nullptr)
+        return;
+
+    VkDebugUtilsLabelEXT debugLabelInfo = {};
+    debugLabelInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+    debugLabelInfo.pLabelName = name;
+    debugLabelInfo.color[0] = color.r;
+    debugLabelInfo.color[1] = color.g;
+    debugLabelInfo.color[2] = color.b;
+    debugLabelInfo.color[3] = color.a;
+    debugLabelInfo.pNext = nullptr;
+
+    cmdBeginDebugUtilsLabelEXT(VulkanContext::instance, commandBuffer, &debugLabelInfo);
+}
+
+void VulkanUtils::endDebugLabel(vk::CommandBuffer commandBuffer)
+{
+
+    cmdEndDebugUtilsLabelEXT(VulkanContext::instance, commandBuffer);
+}
+
+void VulkanUtils::insertDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color)
+{
+    if (name == nullptr)
+        return;
+
+    VkDebugUtilsLabelEXT debugLabelInfo = {};
+    debugLabelInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+    debugLabelInfo.pLabelName = name;
+    debugLabelInfo.color[0] = color.r;
+    debugLabelInfo.color[1] = color.g;
+    debugLabelInfo.color[2] = color.b;
+    debugLabelInfo.color[3] = color.a;
+    debugLabelInfo.pNext = nullptr;
+
+    cmdInsertDebugUtilsLabelEXT(VulkanContext::instance, commandBuffer, &debugLabelInfo);
 }
 
 } // namespace chronicle

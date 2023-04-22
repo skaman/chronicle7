@@ -19,7 +19,11 @@ public:
     ///        set into the index buffer.
     /// @param src Pointer to memory data location.
     /// @param size Size of the data to set into the index buffer.
-    void set(void* src, size_t size) { static_cast<T*>(this)->set(src, size); }
+    /// @param debugName Debug name.
+    void set(void* src, size_t size, const char* debugName = nullptr)
+    {
+        static_cast<T*>(this)->set(src, size, debugName);
+    }
 
     /// @brief Factory for create a new index buffer.
     /// @return The index buffer.

@@ -69,8 +69,15 @@ MeshAsset::MeshAsset(const std::string& filename)
         _verticesCount.push_back(static_cast<uint32_t>(vertices.size()));
         _indicesCount.push_back(static_cast<uint32_t>(indices.size()));
 
-        vertexBuffer->set((void*)vertices.data(), sizeof(vertices[0]) * vertices.size());
-        indexBuffer->set((void*)indices.data(), sizeof(indices[0]) * indices.size());
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+        auto tmpDebugName = std::format("{} (mesh {})", filename, shapeIndex);
+        const char* debugName = tmpDebugName.c_str();
+#else
+        const char* debugName = nullptr;
+#endif // VULKAN_ENABLE_DEBUG_MARKER
+
+        vertexBuffer->set((void*)vertices.data(), sizeof(vertices[0]) * vertices.size(), debugName);
+        indexBuffer->set((void*)indices.data(), sizeof(indices[0]) * indices.size(), debugName);
     }
 }
 

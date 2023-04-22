@@ -7,6 +7,7 @@
 
 #include "VulkanEnums.h"
 #include "VulkanInstance.h"
+#include "VulkanUtils.h"
 
 #include <spirv-reflect/spirv_reflect.h>
 
@@ -16,7 +17,7 @@ const int MAX_DESCRIPTOR_SETS = 4;
 
 CHR_CONCRETE(VulkanPipeline);
 
-VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
+VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const char* debugName)
     : _vertexBuffers(pipelineInfo.vertexBuffers)
 {
     CHRZONE_RENDERER;
@@ -26,6 +27,11 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo)
 
     CHRLOG_DEBUG("Create pipeline: shaders count={}, vertex buffer descriptions count={}", pipelineInfo.shaders.size(),
         pipelineInfo.vertexBuffers.size());
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    if (debugName != nullptr)
+        _debugName = debugName;
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 
     // reserve the required memory
     _shaderStages.reserve(pipelineInfo.shaders.size());
@@ -75,10 +81,10 @@ VulkanPipeline::~VulkanPipeline()
         VulkanContext::device.destroyShaderModule(shaderModule);
 }
 
-PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo)
+PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo, const char* debugName)
 {
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanPipeline>(pipelineInfo);
+    return std::make_shared<ConcreteVulkanPipeline>(pipelineInfo, debugName);
 }
 
 void VulkanPipeline::create()
@@ -199,6 +205,11 @@ void VulkanPipeline::create()
     std::tie(result, _graphicsPipeline) = VulkanContext::device.createGraphicsPipeline(nullptr, graphicsPipelineInfo);
     if (result != vk::Result::eSuccess)
         throw RendererError("Failed to create graphics pipeline");
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    // set the debug object name
+    VulkanUtils::setDebugObjectName(_graphicsPipeline, _debugName.c_str());
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
 void VulkanPipeline::cleanup()

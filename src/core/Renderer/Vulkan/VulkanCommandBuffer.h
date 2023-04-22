@@ -13,7 +13,8 @@ namespace chronicle {
 class VulkanCommandBuffer : public CommandBufferI<VulkanCommandBuffer>, private NonCopyable<VulkanCommandBuffer> {
 protected:
     /// @brief Default constructor.
-    explicit VulkanCommandBuffer();
+    /// @param debugName Debug name.
+    explicit VulkanCommandBuffer(const char* debugName);
 
 public:
     /// @brief Destructor.
@@ -34,12 +35,22 @@ public:
     /// @brief @see CommandBufferI#bindDescriptorSet
     void bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const;
 
+    /// @brief @see CommandBufferI#beginDebugLabel
+    void beginDebugLabel(const char* name, glm::vec4 color) const;
+
+    /// @brief @see CommandBufferI#endDebugLabel
+    void endDebugLabel() const;
+
+    /// @brief @see CommandBufferI#insertDebugLabel
+    void insertDebugLabel(const char* name, glm::vec4 color) const;
+
     /// @brief Get the vulkan handle for the command buffer.
     /// @return Vulkan handle.
     [[nodiscard]] const vk::CommandBuffer& commandBuffer() const { return _commandBuffer; }
 
     /// @brief @see CommandBufferI#create
-    [[nodiscard]] static CommandBufferRef create();
+    /// @param debugName Debug name.
+    [[nodiscard]] static CommandBufferRef create(const char* debugName);
 
 private:
     vk::CommandBuffer _commandBuffer; ///< Command buffer.

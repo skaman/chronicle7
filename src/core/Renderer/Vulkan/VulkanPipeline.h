@@ -22,7 +22,8 @@ class VulkanPipeline : public PipelineI<VulkanPipeline>, private NonCopyable<Vul
 protected:
     /// @brief Default constructor.
     /// @param pipelineInfo Informations used to create a new pipeline.
-    explicit VulkanPipeline(const PipelineInfo& pipelineInfo);
+    /// @param debugName Debug name.
+    explicit VulkanPipeline(const PipelineInfo& pipelineInfo, const char* debugName);
 
 public:
     /// @brief Destructor.
@@ -37,9 +38,12 @@ public:
     [[nodiscard]] const vk::PipelineLayout& pipelineLayout() const { return _pipelineLayout; }
 
     /// @brief @see PipelineI#create
-    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo);
+    /// @param debugName Debug name.
+    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const char* debugName);
 
 private:
+    std::string _debugName; ///< Debug name.
+
     std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout; ///< Descriptor sets layout.
     vk::PipelineLayout _pipelineLayout; ///< Pipeline layout.
     vk::Pipeline _graphicsPipeline; ///< Graphics pipeline.

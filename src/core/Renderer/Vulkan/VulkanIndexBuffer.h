@@ -20,7 +20,7 @@ public:
     ~VulkanIndexBuffer();
 
     /// @brief @see IndexBufferI#set
-    void set(void* src, size_t size);
+    void set(void* src, size_t size, const char* debugName);
 
     /// @brief Get the vulkan handle for the buffer.
     /// @return Vulkan handle.

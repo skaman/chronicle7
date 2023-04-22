@@ -81,6 +81,7 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanDescriptorSet.cc"
     "Renderer/Vulkan/VulkanEnums.h"
     "Renderer/Vulkan/VulkanEvents.h"
+    "Renderer/Vulkan/VulkanExtensions.h"
     "Renderer/Vulkan/VulkanImGui.h"
     "Renderer/Vulkan/VulkanImGui.cc"
     "Renderer/Vulkan/VulkanIndexBuffer.h"
@@ -118,7 +119,13 @@ target_compile_definitions(chronicle-core
     PUBLIC
         RENDERER=VULKAN
         PLATFORM=GLFW
+    PRIVATE
+        $<$<CONFIG:Debug>:VULKAN_ENABLE_DEBUG_MARKER>
 )
+
+#IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+#    message("debug mode")
+#ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 target_include_directories(chronicle-core    
     PUBLIC
@@ -128,8 +135,8 @@ target_include_directories(chronicle-core
 )
 
 target_precompile_headers(chronicle-core
-  PUBLIC
-    "pch.h"
+    PUBLIC
+        "pch.h"
 )
 
 embed_asset(chronicle-core

@@ -166,6 +166,48 @@ public:
     /// @brief Cleanup garbage collector data.
     /// @param data Gargabe collector data.
     static void cleanupGarbageCollector(std::vector<GarbageCollectorData>& data);
+
+    /// @brief Set a debug name to the object.
+    /// @param objectType Object type.
+    /// @param handle Object handle.
+    /// @param name Debug name.
+    static void setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const char* name);
+
+    /// @brief Set a debug name to a buffer.
+    /// @param buffer Buffer handle.
+    /// @param name Debug name.
+    static void setDebugObjectName(vk::Buffer buffer, const char* name);
+
+    /// @brief Set a debug name to a buffer.
+    /// @param commandBuffer Command buffer handle.
+    /// @param name Debug name.
+    static void setDebugObjectName(vk::CommandBuffer commandBuffer, const char* name);
+
+    /// @brief Set a debug name to a buffer.
+    /// @param descriptorSet Descriptor set handle.
+    /// @param name Debug name.
+    static void setDebugObjectName(vk::DescriptorSet descriptorSet, const char* name);
+
+    /// @brief Set a debug name to a buffer.
+    /// @param pipeline Pipeline handle.
+    /// @param name Debug name.
+    static void setDebugObjectName(vk::Pipeline pipeline, const char* name);
+
+    /// @brief Begin a debug label.
+    /// @param commandBuffer Command buffer where to add the label.
+    /// @param name Label name.
+    /// @param color Label color.
+    static void beginDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color);
+
+    /// @brief End a debug label.
+    /// @param commandBuffer Command buffer where the label was added.
+    static void endDebugLabel(vk::CommandBuffer commandBuffer);
+
+    /// @brief Insert a debug label.
+    /// @param commandBuffer Command buffer where to insert the labe.
+    /// @param name Label name.
+    /// @param color Label color.
+    static void insertDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color);
 };
 
 } // namespace chronicle

@@ -43,8 +43,9 @@ public:
     void build() { static_cast<T*>(this)->build(); }
 
     /// @brief Factory for create a new descriptor set.
+    /// @param debugName Debug name.
     /// @return The descriptor set.
-    [[nodiscard]] static DescriptorSetRef create() { return T::create(); }
+    [[nodiscard]] static DescriptorSetRef create(const char* debugName) { return T::create(debugName); }
 
 private:
     DescriptorSetI() = default;

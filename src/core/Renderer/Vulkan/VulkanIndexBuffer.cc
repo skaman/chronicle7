@@ -21,7 +21,7 @@ VulkanIndexBuffer::~VulkanIndexBuffer()
         cleanup();
 }
 
-void VulkanIndexBuffer::set(void* src, size_t size)
+void VulkanIndexBuffer::set(void* src, size_t size, const char* debugName)
 {
     CHRZONE_RENDERER;
 
@@ -58,6 +58,11 @@ void VulkanIndexBuffer::set(void* src, size_t size)
     // destroy local visible buffer
     VulkanContext::device.destroyBuffer(stagingBuffer);
     VulkanContext::device.freeMemory(stagingBufferMemory);
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    // set the debug object name
+    VulkanUtils::setDebugObjectName(_buffer, debugName);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
 IndexBufferRef VulkanIndexBuffer::create()

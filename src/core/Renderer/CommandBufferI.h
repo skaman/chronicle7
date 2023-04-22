@@ -47,6 +47,25 @@ public:
         static_cast<const T*>(this)->bindDescriptorSet(descriptorSet, index);
     }
 
+    /// @brief Begin a debug label.
+    /// @param name Label name.
+    /// @param color Label color.
+    void beginDebugLabel(const char* name, glm::vec4 color) const
+    {
+        static_cast<const T*>(this)->beginDebugLabel(name, color);
+    }
+
+    /// @brief End a debug label.
+    void endDebugLabel() const { static_cast<const T*>(this)->endDebugLabel(); }
+
+    /// @brief Insert a debug label.
+    /// @param name Label name.
+    /// @param color Label color.
+    void insertDebugLabel(const char* name, glm::vec4 color) const
+    {
+        static_cast<const T*>(this)->insertDebugLabel(name, color);
+    }
+
 private:
     CommandBufferI() = default;
     friend T;

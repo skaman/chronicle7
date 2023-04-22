@@ -5,6 +5,7 @@
 
 #include "VulkanCommandBuffer.h"
 #include "VulkanDescriptorSet.h"
+#include "VulkanExtensions.h"
 #include "VulkanInstance.h"
 #include "VulkanUtils.h"
 
@@ -18,37 +19,14 @@ namespace chronicle {
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
-const std::vector<const char*> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+const std::vector<const char*> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME
+//#ifdef VULKAN_ENABLE_DEBUG_MARKER
+//    ,
+//    VK_EXT_DEBUG_MARKER_EXTENSION_NAME
+//#endif // VULKAN_ENABLE_DEBUG_MARKER
+};
 
 CHR_CONCRETE(VulkanInstance);
-
-/// @brief vkCreateDebugUtilsMessengerEXT.
-/// @param instance The instance the messenger will be used with.
-/// @param pCreateInfo A pointer to a VkDebugUtilsMessengerCreateInfoEXT structure containing the callback pointer, as
-///                    well as defining conditions under which this messenger will trigger the callback.
-/// @param pAllocator Controls host memory allocation as described in the Memory Allocation chapter.
-/// @param pCallback A pointer to a VkDebugUtilsMessengerEXT handle in which the created object is returned.
-/// @return On success VK_SUCCESS, on failure VK_ERROR_OUT_OF_HOST_MEMORY.
-VkResult createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback)
-{
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    return func != nullptr ? func(instance, pCreateInfo, pAllocator, pCallback) : VK_ERROR_EXTENSION_NOT_PRESENT;
-}
-
-/// @brief Destroy a debug messenger object.
-/// @param instance The instance where the callback was created.
-/// @param callback The VkDebugUtilsMessengerEXT object to destroy. messenger is an externally synchronized object and
-///                 must not be used on more than one thread at a time. This means that vkDestroyDebugUtilsMessengerEXT
-///                 must not be called when a callback is active.
-/// @param pAllocator Controls host memory allocation as described in the Memory Allocation chapter.
-void destroyDebugUtilsMessengerEXT(
-    VkInstance instance, VkDebugUtilsMessengerEXT callback, const VkAllocationCallbacks* pAllocator)
-{
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr)
-        func(instance, callback, pAllocator);
-}
 
 /// @brief Debug messages callback.
 /// @param messageSeverity Bitmask specifying which severities of events cause a debug messenger callback.
@@ -646,7 +624,14 @@ void VulkanInstance::createCommandBuffers()
 
     // create the command buffers
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-        VulkanContext::framesData[i].commandBuffer = VulkanCommandBuffer::create();
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+        auto tmpDebugName = std::format("Main command buffer (frame {})", i);
+        const char* debugName = tmpDebugName.c_str();
+#else
+        const char* debugName = nullptr;
+#endif // VULKAN_ENABLE_DEBUG_MARKER
+
+        VulkanContext::framesData[i].commandBuffer = VulkanCommandBuffer::create(debugName);
     }
 }
 
@@ -658,7 +643,14 @@ void VulkanInstance::createDescriptorSets()
 
     // create the descriptor sets
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-        auto descriptorSet = chronicle::DescriptorSet::create();
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+        auto tmpDebugName = std::format("Main descriptor set (frame {})", i);
+        const char* debugName = tmpDebugName.c_str();
+#else
+        const char* debugName = nullptr;
+#endif // VULKAN_ENABLE_DEBUG_MARKER
+
+        auto descriptorSet = chronicle::DescriptorSet::create(debugName);
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, chronicle::ShaderStage::Vertex);
         VulkanContext::framesData[i].descriptorSet = descriptorSet;
     }
