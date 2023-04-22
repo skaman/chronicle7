@@ -351,6 +351,7 @@ void VulkanInstance::createLogicalDevice()
     // get and enabled the device features
     auto deviceFeatures = vk::PhysicalDeviceFeatures();
     deviceFeatures.setSamplerAnisotropy(true);
+    deviceFeatures.setFillModeNonSolid(true);
 
     // create the logical device
     vk::DeviceCreateInfo createInfo = {};

@@ -488,7 +488,8 @@ bool VulkanUtils::isDeviceSuitable(const vk::PhysicalDevice& physicalDevice, con
     const auto supportedFeatures = physicalDevice.getFeatures();
 
     // check and return result
-    return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+    return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy
+        && supportedFeatures.fillModeNonSolid;
 }
 
 bool VulkanUtils::checkDeviceExtensionSupport(
