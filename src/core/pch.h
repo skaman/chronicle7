@@ -30,7 +30,12 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/transform.hpp>
 
 // entt
 #include <entt/entt.hpp>
@@ -48,6 +53,30 @@
 #include <stb/stb_image.h>
 
 // imgui
+#define IM_VEC2_CLASS_EXTRA                                                                                            \
+    constexpr ImVec2(glm::vec2& f)                                                                                     \
+        : x(f.x)                                                                                                       \
+        , y(f.y)                                                                                                       \
+    {                                                                                                                  \
+    }                                                                                                                  \
+    operator glm::vec2() const                                                                                         \
+    {                                                                                                                  \
+        return glm::vec2(x, y);                                                                                        \
+    }
+
+#define IM_VEC4_CLASS_EXTRA                                                                                            \
+    constexpr ImVec4(const glm::vec4& f)                                                                               \
+        : x(f.x)                                                                                                       \
+        , y(f.y)                                                                                                       \
+        , z(f.z)                                                                                                       \
+        , w(f.w)                                                                                                       \
+    {                                                                                                                  \
+    }                                                                                                                  \
+    operator glm::vec4() const                                                                                         \
+    {                                                                                                                  \
+        return glm::vec4(x, y, z, w);                                                                                  \
+    }
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 
@@ -85,8 +114,9 @@ constexpr tracy::Color::ColorType colorFromErrorLevel(spdlog::level::level_enum 
         return tracy::Color::Red;
     case spdlog::level::level_enum::critical:
         return tracy::Color::DarkRed;
+    default:
+        return tracy::Color::White;
     };
-    return tracy::Color::White;
 }
 
 template <typename... Args>

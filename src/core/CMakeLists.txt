@@ -100,6 +100,8 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanVertexBuffer.cc"
     "Storage/File.h"
     "Storage/File.cc"
+    "Utils/Camera.h"
+    "Utils/Camera.cc"
 
     # IMGUI
     "../../vendor/imgui/imgui.cpp"
