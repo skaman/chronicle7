@@ -6,9 +6,19 @@ set_property(TARGET chronicle-example PROPERTY CXX_STANDARD 20)
 compile_shader(chronicle-example
     ENV vulkan1.1
     FORMAT bin
+    LANGUAGE hlsl
+    STAGE vertex
     SOURCES
-        Shaders/triangle.vert
-        Shaders/triangle.frag
+        Shaders/triangle.vert.hlsl
+)
+
+compile_shader(chronicle-example
+    ENV vulkan1.1
+    FORMAT bin
+    LANGUAGE hlsl
+    STAGE fragment
+    SOURCES
+        Shaders/triangle.frag.hlsl
 )
 
 target_include_directories(chronicle-example

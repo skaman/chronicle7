@@ -4,8 +4,9 @@ find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
 # https://stackoverflow.com/questions/60420700/cmake-invocation-of-glslc-with-respect-to-includes-dependencies
 function(compile_shader target)
-    cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;FORMAT" "SOURCES")
+    cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;FORMAT;LANGUAGE;STAGE" "SOURCES")
     foreach(source ${arg_SOURCES})
+        string(REGEX REPLACE "\\.[^.]*$" "" outputname ${source})
         add_custom_command(
             OUTPUT ${source}.${arg_FORMAT}
             DEPENDS ${source}
@@ -14,10 +15,12 @@ function(compile_shader target)
                 ${glslc_executable}
                 $<$<BOOL:${arg_ENV}>:--target-env=${arg_ENV}>
                 $<$<BOOL:${arg_FORMAT}>:-mfmt=${arg_FORMAT}>
+                $<$<BOOL:${arg_LANGUAGE}>:-x${arg_LANGUAGE}>
+                $<$<BOOL:${arg_STAGE}>:-fshader-stage=${arg_STAGE}>
                 -MD -MF ${source}.d
-                -o ${source}.${arg_FORMAT}
+                -o ${outputname}.${arg_FORMAT}
                 ${CMAKE_CURRENT_SOURCE_DIR}/${source}
-            COMMENT "Compiling shader ${source}"
+            COMMENT "Compiling shader ${source} ${outputname}"
         )
         target_sources(${target} PRIVATE ${source}.${arg_FORMAT})
     endforeach()

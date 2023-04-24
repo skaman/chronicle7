@@ -329,7 +329,13 @@ std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(con
             const SpvReflectDescriptorBinding& bindingRefl = *(setRefl.bindings[bindingIndex]);
             vk::DescriptorSetLayoutBinding& layoutBinding = layout.bindings[bindingIndex];
             layoutBinding.setBinding(bindingRefl.binding);
-            layoutBinding.descriptorType = static_cast<vk::DescriptorType>(bindingRefl.descriptor_type);
+            // TODO: how i should handle this?
+            if (bindingRefl.descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER
+                || bindingRefl.descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE) {
+                layoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+            } else {
+                layoutBinding.descriptorType = static_cast<vk::DescriptorType>(bindingRefl.descriptor_type);
+            }
             layoutBinding.setDescriptorCount(1);
             for (uint32_t dimensionIndex = 0; dimensionIndex < bindingRefl.array.dims_count; ++dimensionIndex) {
                 layoutBinding.setDescriptorCount(
