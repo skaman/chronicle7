@@ -51,6 +51,8 @@ endfunction()
 
 add_library(chronicle-core
     "pch.cc"
+    "Assets/AssetLoader.h"
+    "Assets/AssetLoader.cc"
     "Assets/MeshAsset.h"
     "Assets/MeshAsset.cc"
     "Assets/ShaderAsset.h"
@@ -68,6 +70,8 @@ add_library(chronicle-core
     "Renderer/DescriptorSetI.h"
     "Renderer/Enums.h"
     "Renderer/IndexBufferI.h"
+    "Renderer/MaterialI.h"
+    "Renderer/MeshI.h"
     "Renderer/PipelineI.h"
     "Renderer/PipelineInfo.h"
     "Renderer/Renderer.h"
@@ -91,6 +95,10 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanIndexBuffer.cc"
     "Renderer/Vulkan/VulkanInstance.h"
     "Renderer/Vulkan/VulkanInstance.cc"
+    "Renderer/Vulkan/VulkanMaterial.h"
+    "Renderer/Vulkan/VulkanMaterial.cc"
+    "Renderer/Vulkan/VulkanMesh.h"
+    "Renderer/Vulkan/VulkanMesh.cc"
     "Renderer/Vulkan/VulkanPipeline.h"
     "Renderer/Vulkan/VulkanPipeline.cc"
     "Renderer/Vulkan/VulkanRenderer.h"

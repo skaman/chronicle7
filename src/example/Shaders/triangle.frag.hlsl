@@ -3,7 +3,7 @@
 
 struct VSOutput
 {
-    [[vk::location(0)]] float3 Color : COLOR0;
+    //[[vk::location(0)]] float3 Color : COLOR0;
     [[vk::location(1)]] float2 TexCoord : TEXCOORD0;
 };
 

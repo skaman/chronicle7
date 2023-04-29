@@ -116,7 +116,7 @@ void VulkanPipeline::create()
         for (auto j = 0; j < _vertexBuffers[i].attributeDescriptions.size(); j++) {
             vk::VertexInputAttributeDescription attributeDescription = {};
             attributeDescription.binding = i;
-            attributeDescription.location = j;
+            attributeDescription.location = _vertexBuffers[i].attributeDescriptions[j].location;
             attributeDescription.format
                 = VulkanEnums::formatToVulkan(_vertexBuffers[i].attributeDescriptions[j].format);
             attributeDescription.offset = _vertexBuffers[i].attributeDescriptions[j].offset;

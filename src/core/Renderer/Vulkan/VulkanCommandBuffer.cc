@@ -6,6 +6,8 @@
 #include "VulkanDescriptorSet.h"
 #include "VulkanIndexBuffer.h"
 #include "VulkanInstance.h"
+#include "VulkanMaterial.h"
+#include "VulkanMesh.h"
 #include "VulkanPipeline.h"
 #include "VulkanVertexBuffer.h"
 
@@ -91,6 +93,31 @@ void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer) con
 
     // bind the index buffer
     _commandBuffer.bindIndexBuffer(vulkanIndexBuffer->buffer(), vk::DeviceSize(0), vk::IndexType::eUint32);
+}
+
+void VulkanCommandBuffer::bindMesh(const MeshRef& mesh, uint32_t submeshIndex) const
+{
+    CHRZONE_RENDERER;
+
+    assert(mesh);
+    assert(mesh->submeshCount() > submeshIndex);
+
+    CHRLOG_TRACE("Bind mesh");
+
+    // cast the mesh to vulkan mesh
+    const auto vulkanMesh = static_cast<VulkanMesh*>(mesh.get());
+
+    // get the binding informations
+    const auto& bindingInfo = vulkanMesh->bindingInfo(submeshIndex);
+
+    // bind the vertex buffers
+    _commandBuffer.bindVertexBuffers(0, bindingInfo.vertexBuffers, bindingInfo.vertexBuffersOffsets);
+
+    // bind the index buffer
+    _commandBuffer.bindIndexBuffer(bindingInfo.indexBuffer, bindingInfo.indexBufferOffset, bindingInfo.indexType);
+
+    // bind the descriptor set
+    bindDescriptorSet(vulkanMesh->material(submeshIndex)->descriptorSet(), 1);
 }
 
 void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const

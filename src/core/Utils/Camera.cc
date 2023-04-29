@@ -6,7 +6,7 @@ Camera::Camera()
     : _fov(45.0f)
     , _aspect(1920.0f / 1080.0f)
     , _zNear(0.1f)
-    , _zFar(100.0f)
+    , _zFar(10000.0f)
 {
     recalculateProjection();
     recalculateView();

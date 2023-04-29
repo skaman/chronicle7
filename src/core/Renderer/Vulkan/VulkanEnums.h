@@ -5,6 +5,8 @@
 
 #include "pch.h"
 
+#include "VulkanCommon.h"
+
 namespace chronicle {
 
 class VulkanEnums {
@@ -21,17 +23,116 @@ public:
         }
     }
 
+    static vk::IndexType indexTypeToVulkan(IndexType indexType)
+    {
+        switch (indexType) {
+        case chronicle::IndexType::uint16:
+            return vk::IndexType::eUint16;
+        case chronicle::IndexType::uint32:
+            return vk::IndexType::eUint32;
+        default:
+            throw RendererError("Unsupported index type");
+        }
+    }
+
     static vk::Format formatToVulkan(Format format)
     {
         switch (format) {
-        case Format::Undefined:
+        case Format::undefined:
             return vk::Format::eUndefined;
-        case Format::B8G8R8A8Unorm:
-            return vk::Format::eB8G8R8A8Unorm;
+
+            // 8 bit signed int
+        case Format::R8Sint:
+            return vk::Format::eR8Sint;
+        case Format::R8G8Sint:
+            return vk::Format::eR8G8Sint;
+        case Format::R8G8B8Sint:
+            return vk::Format::eR8G8B8Sint;
+        case Format::R8G8B8A8Sint:
+            return vk::Format::eR8G8B8A8Sint;
+
+            // 8 bit unsigned int
+        case Format::R8Uint:
+            return vk::Format::eR8Uint;
+        case Format::R8G8Uint:
+            return vk::Format::eR8G8Uint;
+        case Format::R8G8B8Uint:
+            return vk::Format::eR8G8B8Uint;
+        case Format::R8G8B8A8Uint:
+            return vk::Format::eR8G8B8A8Uint;
+
+            // 8 bit normalized
+        case Format::R8Unorm:
+            return vk::Format::eR8Unorm;
+        case Format::R8G8Unorm:
+            return vk::Format::eR8G8Unorm;
+        case Format::R8G8B8Unorm:
+            return vk::Format::eR8G8B8Unorm;
+        case Format::R8G8B8A8Unorm:
+            return vk::Format::eR8G8B8A8Unorm;
+
+            // 16 bit signed int
+        case Format::R16Sint:
+            return vk::Format::eR16Sint;
+        case Format::R16G16Sint:
+            return vk::Format::eR16G16Sint;
+        case Format::R16G16B16Sint:
+            return vk::Format::eR16G16B16Sint;
+        case Format::R16G16B16A16Sint:
+            return vk::Format::eR16G16B16A16Sint;
+
+            // 16 bit unsigned int
+        case Format::R16Uint:
+            return vk::Format::eR16Uint;
+        case Format::R16G16Uint:
+            return vk::Format::eR16G16Uint;
+        case Format::R16G16B16Uint:
+            return vk::Format::eR16G16B16Uint;
+        case Format::R16G16B16A16Uint:
+            return vk::Format::eR16G16B16A16Uint;
+
+            // 16 bit normalized
+        case Format::R16Unorm:
+            return vk::Format::eR16Unorm;
+        case Format::R16G16Unorm:
+            return vk::Format::eR16G16Unorm;
+        case Format::R16G16B16Unorm:
+            return vk::Format::eR16G16B16Unorm;
+        case Format::R16G16B16A16Unorm:
+            return vk::Format::eR16G16B16A16Unorm;
+
+            // 32 bit signed int
+        case Format::R32Sint:
+            return vk::Format::eR32Sint;
+        case Format::R32G32Sint:
+            return vk::Format::eR32G32Sint;
+        case Format::R32G32B32Sint:
+            return vk::Format::eR32G32B32Sint;
+        case Format::R32G32B32A32Sint:
+            return vk::Format::eR32G32B32A32Sint;
+
+            // 32 bit unsigned int
+        case Format::R32Uint:
+            return vk::Format::eR32Uint;
+        case Format::R32G32Uint:
+            return vk::Format::eR32G32Uint;
+        case Format::R32G32B32Uint:
+            return vk::Format::eR32G32B32Uint;
+        case Format::R32G32B32A32Uint:
+            return vk::Format::eR32G32B32A32Uint;
+
+            // 32 bit signed float
+        case Format::R32Sfloat:
+            return vk::Format::eR32Sfloat;
         case Format::R32G32Sfloat:
             return vk::Format::eR32G32Sfloat;
         case Format::R32G32B32Sfloat:
             return vk::Format::eR32G32B32Sfloat;
+        case Format::R32G32B32A32Sfloat:
+            return vk::Format::eR32G32B32A32Sfloat;
+
+        case Format::B8G8R8A8Unorm:
+            return vk::Format::eB8G8R8A8Unorm;
         case Format::D32Sfloat:
             return vk::Format::eD32Sfloat;
         case Format::D32SfloatS8Uint:
@@ -47,13 +148,100 @@ public:
     {
         switch (format) {
         case vk::Format::eUndefined:
-            return Format::Undefined;
-        case vk::Format::eB8G8R8A8Unorm:
-            return Format::B8G8R8A8Unorm;
+            return Format::undefined;
+
+            // 8 bit signed int
+        case vk::Format::eR8Sint:
+            return Format::R8Sint;
+        case vk::Format::eR8G8Sint:
+            return Format::R8G8Sint;
+        case vk::Format::eR8G8B8Sint:
+            return Format::R8G8B8Sint;
+        case vk::Format::eR8G8B8A8Sint:
+            return Format::R8G8B8A8Sint;
+
+            // 8 bit unsigned int
+        case vk::Format::eR8Uint:
+            return Format::R8Uint;
+        case vk::Format::eR8G8Uint:
+            return Format::R8G8Uint;
+        case vk::Format::eR8G8B8Uint:
+            return Format::R8G8B8Uint;
+        case vk::Format::eR8G8B8A8Uint:
+            return Format::R8G8B8A8Uint;
+
+            // 8 bit normalized
+        case vk::Format::eR8Unorm:
+            return Format::R8Unorm;
+        case vk::Format::eR8G8Unorm:
+            return Format::R8G8Unorm;
+        case vk::Format::eR8G8B8Unorm:
+            return Format::R8G8B8Unorm;
+        case vk::Format::eR8G8B8A8Unorm:
+            return Format::R8G8B8A8Unorm;
+
+            // 16 bit signed int
+        case vk::Format::eR16Sint:
+            return Format::R16Sint;
+        case vk::Format::eR16G16Sint:
+            return Format::R16G16Sint;
+        case vk::Format::eR16G16B16Sint:
+            return Format::R16G16B16Sint;
+        case vk::Format::eR16G16B16A16Sint:
+            return Format::R16G16B16A16Sint;
+
+            // 16 bit unsigned int
+        case vk::Format::eR16Uint:
+            return Format::R16Uint;
+        case vk::Format::eR16G16Uint:
+            return Format::R16G16Uint;
+        case vk::Format::eR16G16B16Uint:
+            return Format::R16G16B16Uint;
+        case vk::Format::eR16G16B16A16Uint:
+            return Format::R16G16B16A16Uint;
+
+            // 16 bit normalized
+        case vk::Format::eR16Unorm:
+            return Format::R16Unorm;
+        case vk::Format::eR16G16Unorm:
+            return Format::R16G16Unorm;
+        case vk::Format::eR16G16B16Unorm:
+            return Format::R16G16B16Unorm;
+        case vk::Format::eR16G16B16A16Unorm:
+            return Format::R16G16B16A16Unorm;
+
+            // 32 bit signed int
+        case vk::Format::eR32Sint:
+            return Format::R32Sint;
+        case vk::Format::eR32G32Sint:
+            return Format::R32G32Sint;
+        case vk::Format::eR32G32B32Sint:
+            return Format::R32G32B32Sint;
+        case vk::Format::eR32G32B32A32Sint:
+            return Format::R32G32B32A32Sint;
+
+            // 32 bit unsigned int
+        case vk::Format::eR32Uint:
+            return Format::R32Uint;
+        case vk::Format::eR32G32Uint:
+            return Format::R32G32Uint;
+        case vk::Format::eR32G32B32Uint:
+            return Format::R32G32B32Uint;
+        case vk::Format::eR32G32B32A32Uint:
+            return Format::R32G32B32A32Uint;
+
+            // 32 bit signed float
+        case vk::Format::eR32Sfloat:
+            return Format::R32Sfloat;
         case vk::Format::eR32G32Sfloat:
             return Format::R32G32Sfloat;
         case vk::Format::eR32G32B32Sfloat:
             return Format::R32G32B32Sfloat;
+        case vk::Format::eR32G32B32A32Sfloat:
+            return Format::R32G32B32A32Sfloat;
+
+        case vk::Format::eB8G8R8A8Unorm:
+            return Format::B8G8R8A8Unorm;
         case vk::Format::eD32Sfloat:
             return Format::D32Sfloat;
         case vk::Format::eD32SfloatS8Uint:

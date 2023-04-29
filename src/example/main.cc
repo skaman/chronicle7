@@ -3,6 +3,7 @@
 
 #include "pch.h"
 
+#include <Assets/AssetLoader.h>
 #include <Assets/MeshAsset.h>
 #include <Assets/TextureAsset.h>
 #include <Platform/Platform.h>
@@ -29,6 +30,10 @@ public:
         _mesh = MeshAsset::load("D:\\viking_room.obj");
         _texture = TextureAsset::load("D:\\viking_room.png");
 
+        auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
+        // auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Box\\glTF\\Box.gltf");
+        _mesh2 = test.meshes[0];
+
         // descriptor sets
         for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
             const auto& descriptorSet = Renderer::descriptorSet(i);
@@ -40,7 +45,8 @@ public:
         PipelineInfo pipelineInfo = {};
         pipelineInfo.shaders[ShaderStage::Vertex] = "Shaders/triangle.vert.bin";
         pipelineInfo.shaders[ShaderStage::Fragment] = "Shaders/triangle.frag.bin";
-        pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
+        pipelineInfo.vertexBuffers = _mesh2->vertexBuffersInfo(0);
+        // pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
 
         _pipeline = Pipeline::create(pipelineInfo, "Test pipeline");
     }
@@ -60,6 +66,7 @@ public:
         Renderer::waitIdle();
 
         _mesh.reset();
+        _mesh2.reset();
         _texture.reset();
         _pipeline.reset();
 
@@ -88,10 +95,14 @@ public:
 
             Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
             Renderer::commandBuffer()->bindPipeline(_pipeline);
-            Renderer::commandBuffer()->bindVertexBuffer(_mesh->vertexBuffer(0));
-            Renderer::commandBuffer()->bindIndexBuffer(_mesh->indexBuffer(0));
+            // Renderer::commandBuffer()->bindVertexBuffer(_mesh->vertexBuffer(0));
+            // Renderer::commandBuffer()->bindIndexBuffer(_mesh->indexBuffer(0));
+            // Renderer::commandBuffer()->drawIndexed(_mesh->indicesCount(0), 1);
             Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
-            Renderer::commandBuffer()->drawIndexed(_mesh->indicesCount(0), 1);
+            for (auto i = 0; i < _mesh2->submeshCount(); i++) {
+                Renderer::commandBuffer()->bindMesh(_mesh2, i);
+                Renderer::commandBuffer()->drawIndexed(_mesh2->indicesCount(i), 1);
+            }
             Renderer::commandBuffer()->endDebugLabel();
 
             // CHRLOG_DEBUG("{}", delta);
@@ -111,7 +122,11 @@ public:
 
     void cameraMovements(float delta)
     {
-        if (!_isMovingCamera && !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)
+        const ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse)
+            return;
+
+        if (!_isMovingCamera
             && (Platform::mouseButton(MouseButton::buttonLeft) == ButtonAction::press
                 || Platform::mouseButton(MouseButton::buttonRight) == ButtonAction::press
                 || Platform::mouseButton(MouseButton::buttonMiddle) == ButtonAction::press)) {
@@ -207,6 +222,7 @@ private:
     PipelineRef _pipeline;
     MeshAssetRef _mesh;
     TextureAssetRef _texture;
+    MeshRef _mesh2;
 
     UniformBufferObject _ubo {};
 
@@ -214,10 +230,6 @@ private:
     Camera _camera;
 
     std::pair<double, double> _lastMousePosition;
-
-    glm::vec3 _cameraPos = glm::vec3(2.0f, 2.0f, 2.0f);
-    glm::vec3 _cameraFront = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 _cameraUp = glm::vec3(0.0f, 0.0f, 1.0f);
 };
 
 int main()

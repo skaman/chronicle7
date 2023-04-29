@@ -39,6 +39,14 @@ public:
         static_cast<const T*>(this)->bindIndexBuffer(indexBuffer);
     }
 
+    /// @brief Bind a mesh to the command buffer.
+    /// @param mesh The mesh to be bound.
+    /// @param submeshIndex The submesh index.
+    void bindMesh(const MeshRef& mesh, uint32_t submeshIndex = 0) const
+    {
+        static_cast<const T*>(this)->bindMesh(mesh, submeshIndex);
+    }
+
     /// @brief Bind a descriptor set to the command buffer.
     /// @param descriptorSet The descriptor set to be bound.
     /// @param index The number of the descriptor to be bound.

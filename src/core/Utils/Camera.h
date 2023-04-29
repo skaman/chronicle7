@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "pch.h"
+
 namespace chronicle {
 
 class Camera {
@@ -40,11 +42,11 @@ private:
     float _zNear;
     float _zFar;
 
-    float _cameraSpeed = 2.0f;
+    float _cameraSpeed = 50.0f;
 
-    glm::vec3 _cameraPos = glm::vec3(2.0f, 2.0f, 2.0f);
+    glm::vec3 _cameraPos = glm::vec3(-1600.0f, 1600.0f, -500.0f);
     glm::vec3 _cameraFront = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 _cameraUp = glm::vec3(0.0f, 0.0f, 1.0f);
+    glm::vec3 _cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
     glm::mat4 _view;
     glm::mat4 _projection;

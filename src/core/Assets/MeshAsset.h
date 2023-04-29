@@ -22,9 +22,9 @@ struct Vertex {
         using enum chronicle::Format;
 
         return { .stride = sizeof(Vertex),
-            .attributeDescriptions = { { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, pos) },
-                { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, color) },
-                { .format = R32G32Sfloat, .offset = offsetof(Vertex, texCoord) } } };
+            .attributeDescriptions = { { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, pos), .location = 0 },
+                { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, color), .location = 1 },
+                { .format = R32G32Sfloat, .offset = offsetof(Vertex, texCoord), .location = 2 } } };
     }
 };
 
