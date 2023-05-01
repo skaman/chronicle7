@@ -8,7 +8,14 @@
 namespace chronicle {
 
 /// @brief The stage shere the shader should be executed.
-enum class ShaderStage { Fragment, Vertex };
+enum class ShaderStage {
+    none = 0x00,
+    fragment = 0x01,
+    vertex = 0x02,
+    compute = 0x04,
+
+    _entt_enum_as_bitmask
+};
 
 /// @brief The type used by indices.
 enum class IndexType {
@@ -90,6 +97,23 @@ enum class Format {
     D32SfloatS8Uint,
 
     D24UnormS8Uint
+};
+
+/// @brief Specifies the type of a descriptor in a descriptor set.
+enum class DescriptorType {
+    unknown,
+    sampler, ///< Specifies a sampler descriptor.
+    combinedImageSampler, ///< Specifies a combined image sampler descriptor.
+    sampledImage, ///< Specifies a sampled image descriptor.
+    storageImage, ///< Specifies a storage image descriptor.
+    uniformTexelBuffer, ///< Specifies a uniform texel buffer descriptor.
+    storageTexelBuffer, ///< Specifies a storage texel buffer descriptor.
+    uniformBuffer, ///< Specifies a uniform buffer descriptor.
+    storageBuffer, ///< Specifies a storage buffer descriptor.
+    uniformBufferDynamic, ///< Specifies a dynamic uniform buffer descriptor.
+    storageBufferDynamic, ///< Specifies a dynamic storage buffer descriptor.
+    inputAttachment, ///< Specifies an input attachment descriptor.
+    accelerationStructure ///< Specifies an acceleration structure.
 };
 
 } // namespace chronicle

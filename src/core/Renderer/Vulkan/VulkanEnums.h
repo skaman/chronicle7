@@ -11,15 +11,28 @@ namespace chronicle {
 
 class VulkanEnums {
 public:
+    static vk::ShaderStageFlags shaderStageFlagsToVulkan(ShaderStage stage)
+    {
+        vk::ShaderStageFlags result = {};
+        if (!!(stage & ShaderStage::fragment))
+            result |= vk::ShaderStageFlagBits::eFragment;
+        if (!!(stage & ShaderStage::vertex))
+            result |= vk::ShaderStageFlagBits::eVertex;
+        if (!!(stage & ShaderStage::compute))
+            result |= vk::ShaderStageFlagBits::eCompute;
+        return result;
+    }
     static vk::ShaderStageFlagBits shaderStageToVulkan(ShaderStage stage)
     {
         switch (stage) {
-        case ShaderStage::Fragment:
+        case chronicle::ShaderStage::fragment:
             return vk::ShaderStageFlagBits::eFragment;
-        case ShaderStage::Vertex:
+        case chronicle::ShaderStage::vertex:
             return vk::ShaderStageFlagBits::eVertex;
+        case chronicle::ShaderStage::compute:
+            return vk::ShaderStageFlagBits::eCompute;
         default:
-            throw RendererError("Unsupported shader stage");
+            throw RendererError("Unsupported stage flags");
         }
     }
 
@@ -250,6 +263,38 @@ public:
             return Format::D24UnormS8Uint;
         default:
             throw RendererError("Unsupported format");
+        }
+    }
+
+    static vk::DescriptorType descriptorTypeFromVulkan(DescriptorType descriptorType)
+    {
+        switch (descriptorType) {
+        case chronicle::DescriptorType::sampler:
+            return vk::DescriptorType::eSampler;
+        case chronicle::DescriptorType::combinedImageSampler:
+            return vk::DescriptorType::eCombinedImageSampler;
+        case chronicle::DescriptorType::sampledImage:
+            return vk::DescriptorType::eSampledImage;
+        case chronicle::DescriptorType::storageImage:
+            return vk::DescriptorType::eStorageImage;
+        case chronicle::DescriptorType::uniformTexelBuffer:
+            return vk::DescriptorType::eUniformTexelBuffer;
+        case chronicle::DescriptorType::storageTexelBuffer:
+            return vk::DescriptorType::eStorageTexelBuffer;
+        case chronicle::DescriptorType::uniformBuffer:
+            return vk::DescriptorType::eUniformBuffer;
+        case chronicle::DescriptorType::storageBuffer:
+            return vk::DescriptorType::eStorageBuffer;
+        case chronicle::DescriptorType::uniformBufferDynamic:
+            return vk::DescriptorType::eUniformBufferDynamic;
+        case chronicle::DescriptorType::storageBufferDynamic:
+            return vk::DescriptorType::eStorageBufferDynamic;
+        case chronicle::DescriptorType::inputAttachment:
+            return vk::DescriptorType::eInputAttachment;
+        case chronicle::DescriptorType::accelerationStructure:
+            return vk::DescriptorType::eAccelerationStructureKHR;
+        default:
+            throw RendererError("Unsupported descriptor type");
         }
     }
 };

@@ -3,58 +3,39 @@
 
 #include "VulkanPipeline.h"
 
-#include "Storage/File.h"
+#include "Storage/Storage.h"
 
 #include "VulkanEnums.h"
 #include "VulkanInstance.h"
+#include "VulkanShader.h"
 #include "VulkanUtils.h"
 
 #include <spirv-reflect/spirv_reflect.h>
 
 namespace chronicle {
 
-const int MAX_DESCRIPTOR_SETS = 4;
-
 CHR_CONCRETE(VulkanPipeline);
 
 VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const char* debugName)
-    : _vertexBuffers(pipelineInfo.vertexBuffers)
+    : _shader(pipelineInfo.shader)
+    , _vertexBuffers(pipelineInfo.vertexBuffers)
 {
     CHRZONE_RENDERER;
 
-    assert(pipelineInfo.shaders.size() > 0);
+    assert(pipelineInfo.shader);
     assert(pipelineInfo.vertexBuffers.size() > 0);
 
-    CHRLOG_DEBUG("Create pipeline: shaders count={}, vertex buffer descriptions count={}", pipelineInfo.shaders.size(),
-        pipelineInfo.vertexBuffers.size());
+    // CHRLOG_DEBUG("Create pipeline: shaders count={}, vertex buffer descriptions count={}",
+    // pipelineInfo.shaders.size(),
+    //     pipelineInfo.vertexBuffers.size());
 
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
     if (debugName != nullptr)
         _debugName = debugName;
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 
-    // reserve the required memory
-    _shaderStages.reserve(pipelineInfo.shaders.size());
-    _shaderModules.reserve(pipelineInfo.shaders.size());
-    std::vector<std::vector<char>> shadersCode = {};
-    shadersCode.reserve(pipelineInfo.shaders.size());
-
-    // prepare the shaders
-    auto shaderIndex = 0;
-    for (auto const& [shaderStage, filename] : pipelineInfo.shaders) {
-        shadersCode.push_back(File::readBytes(filename));
-        auto shaderModule = createShaderModule(shadersCode[shaderIndex]);
-        vk::PipelineShaderStageCreateInfo shaderStageCreateInfo = {};
-        shaderStageCreateInfo.setStage(VulkanEnums::shaderStageToVulkan(shaderStage));
-        shaderStageCreateInfo.setModule(shaderModule);
-        shaderStageCreateInfo.setPName("main");
-        _shaderStages.push_back(shaderStageCreateInfo);
-        _shaderModules.push_back(shaderModule);
-        shaderIndex++;
-    }
-
     // descriptor sets layout
-    _descriptorSetsLayout = getDescriptorSetsLayout(shadersCode);
+    _descriptorSetsLayout = getDescriptorSetsLayout();
 
     // create the pipeline
     create();
@@ -75,10 +56,6 @@ VulkanPipeline::~VulkanPipeline()
     // destroy the descriptor sets layout
     for (const auto& descriptorSetLayout : _descriptorSetsLayout)
         VulkanContext::device.destroyDescriptorSetLayout(descriptorSetLayout);
-
-    // destroy the shader modules
-    for (auto const& shaderModule : _shaderModules)
-        VulkanContext::device.destroyShaderModule(shaderModule);
 }
 
 PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo, const char* debugName)
@@ -90,6 +67,20 @@ PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo, const char*
 void VulkanPipeline::create()
 {
     CHRZONE_RENDERER;
+
+    const auto vulkanShader = static_cast<VulkanShader*>(_shader.get());
+
+    // prepare the shaders
+    const auto& stages = _shader->stages();
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = {};
+    shaderStages.reserve(stages.size());
+    for (auto const& shaderStage : stages) {
+        vk::PipelineShaderStageCreateInfo shaderStageCreateInfo = {};
+        shaderStageCreateInfo.setStage(VulkanEnums::shaderStageToVulkan(shaderStage));
+        shaderStageCreateInfo.setModule(vulkanShader->shaderModule(shaderStage));
+        shaderStageCreateInfo.setPName(vulkanShader->entryPoint(shaderStage).c_str());
+        shaderStages.push_back(shaderStageCreateInfo);
+    }
 
     // create binding and attribute descriptions for vertex input state
     auto attributeDescriptionsCount = 0;
@@ -187,7 +178,7 @@ void VulkanPipeline::create()
 
     // graphics pipeline
     vk::GraphicsPipelineCreateInfo graphicsPipelineInfo = {};
-    graphicsPipelineInfo.setStages(_shaderStages);
+    graphicsPipelineInfo.setStages(shaderStages);
     graphicsPipelineInfo.setPVertexInputState(&vertexInputInfo);
     graphicsPipelineInfo.setPInputAssemblyState(&inputAssembly);
     graphicsPipelineInfo.setPViewportState(&viewportState);
@@ -229,65 +220,35 @@ void VulkanPipeline::cleanup()
 
 void VulkanPipeline::debugShowLines([[maybe_unused]] const DebugShowLinesEvent& evn)
 {
-    CHRLOG_DEBUG("Recreate pipeline: shaders count={}, vertex buffer descriptions count={}", _shaderStages.size(),
-        _vertexBuffers.size());
+    //CHRLOG_DEBUG("Recreate pipeline: shaders count={}, vertex buffer descriptions count={}", _shaderStages.size(),
+    //    _vertexBuffers.size());
 
     // after a debug show line event, cleanup and recreate the pipeline
     cleanup();
     create();
 }
 
-vk::ShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code) const
+std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout() const
 {
     CHRZONE_RENDERER;
 
-    // create the shader module
-    return VulkanContext::device.createShaderModule(
-        { vk::ShaderModuleCreateFlags(), code.size(), std::bit_cast<const uint32_t*>(code.data()) });
-}
-
-std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout(
-    const std::vector<std::vector<char>>& shadersCode) const
-{
-    CHRZONE_RENDERER;
-
-    // prepare the sets map
-    // set number -> binding id -> layout binding
-    std::map<uint32_t, std::map<uint32_t, vk::DescriptorSetLayoutBinding>> sets = {};
-
-    // fill the set
-    for (auto const& code : shadersCode) {
-        auto descriptorSetsLayoutData = getDescriptorSetsLayout(code);
-        for (const auto& descriptorSetLayoutData : descriptorSetsLayoutData) {
-            // if set doesn't exist, create it
-            if (!sets.contains(descriptorSetLayoutData.setNumber))
-                sets[descriptorSetLayoutData.setNumber] = {};
-
-            for (const auto& descriptorSetLayoutBinding : descriptorSetLayoutData.bindings) {
-                // if binding doesn't exist, create it
-                if (!sets[descriptorSetLayoutData.setNumber].contains(descriptorSetLayoutBinding.binding)) {
-                    sets[descriptorSetLayoutData.setNumber][descriptorSetLayoutBinding.binding]
-                        = descriptorSetLayoutBinding;
-                } else {
-                    sets[descriptorSetLayoutData.setNumber][descriptorSetLayoutBinding.binding].stageFlags
-                        |= descriptorSetLayoutBinding.stageFlags;
-                }
-            }
-        }
-    }
+    const auto& shaderDescriptorSetLayouts = _shader->descriptorSetLayouts();
 
     // reserve descriptor sets layout memory
     std::vector<vk::DescriptorSetLayout> descriptorSetsLayout;
-    descriptorSetsLayout.resize(MAX_DESCRIPTOR_SETS);
+    descriptorSetsLayout.resize(shaderDescriptorSetLayouts.size());
 
     // create the descriptor set layouts
-    for (uint32_t i = 0; i < MAX_DESCRIPTOR_SETS; i++) {
+    for (uint32_t i = 0; i < shaderDescriptorSetLayouts.size(); i++) {
+        const auto& shaderDescriptorSetLayout = shaderDescriptorSetLayouts[i];
         std::vector<vk::DescriptorSetLayoutBinding> bindings = {};
-        if (sets.contains(i)) {
-            bindings.reserve(sets[i].size());
-            for (auto const& [bindingId, binding] : sets[i]) {
-                bindings.push_back(binding);
-            }
+        for (const auto& shaderBinding : shaderDescriptorSetLayout.bindings) {
+            vk::DescriptorSetLayoutBinding binding = {};
+            binding.setBinding(shaderBinding.binding);
+            binding.setDescriptorType(VulkanEnums::descriptorTypeFromVulkan(shaderBinding.descriptorType));
+            binding.setDescriptorCount(shaderBinding.descriptorCount);
+            binding.setStageFlags(VulkanEnums::shaderStageFlagsToVulkan(shaderBinding.stageFlags));
+            bindings.push_back(binding);
         }
 
         // create the descriptor set layout
@@ -298,56 +259,6 @@ std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout(
 
     // return descriptor set layouts
     return descriptorSetsLayout;
-}
-
-std::vector<DescriptorSetLayoutData> VulkanPipeline::getDescriptorSetsLayout(const std::vector<char>& code) const
-{
-    CHRZONE_RENDERER;
-
-    // create the spirv-reflect shader module
-    SpvReflectShaderModule shaderModule = {};
-    SpvReflectResult result = spvReflectCreateShaderModule(code.size(), code.data(), &shaderModule);
-    assert(result == SPV_REFLECT_RESULT_SUCCESS);
-
-    // count the descriptor sets
-    uint32_t count = 0;
-    result = spvReflectEnumerateDescriptorSets(&shaderModule, &count, nullptr);
-    assert(result == SPV_REFLECT_RESULT_SUCCESS);
-
-    // enumerate the descriptor sets
-    std::vector<SpvReflectDescriptorSet*> sets(count);
-    result = spvReflectEnumerateDescriptorSets(&shaderModule, &count, sets.data());
-    assert(result == SPV_REFLECT_RESULT_SUCCESS);
-
-    // parse the sets and prepare the descriptor set layout data
-    std::vector<DescriptorSetLayoutData> layoutSets(sets.size(), DescriptorSetLayoutData {});
-    for (size_t setIndex = 0; setIndex < sets.size(); ++setIndex) {
-        const SpvReflectDescriptorSet& setRefl = *(sets[setIndex]);
-        DescriptorSetLayoutData& layout = layoutSets[setIndex];
-        layout.bindings.resize(setRefl.binding_count);
-        for (uint32_t bindingIndex = 0; bindingIndex < setRefl.binding_count; ++bindingIndex) {
-            const SpvReflectDescriptorBinding& bindingRefl = *(setRefl.bindings[bindingIndex]);
-            vk::DescriptorSetLayoutBinding& layoutBinding = layout.bindings[bindingIndex];
-            layoutBinding.setBinding(bindingRefl.binding);
-            // TODO: how i should handle this?
-            if (bindingRefl.descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER
-                || bindingRefl.descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE) {
-                layoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-            } else {
-                layoutBinding.descriptorType = static_cast<vk::DescriptorType>(bindingRefl.descriptor_type);
-            }
-            layoutBinding.setDescriptorCount(1);
-            for (uint32_t dimensionIndex = 0; dimensionIndex < bindingRefl.array.dims_count; ++dimensionIndex) {
-                layoutBinding.setDescriptorCount(
-                    layoutBinding.descriptorCount * bindingRefl.array.dims[dimensionIndex]);
-            }
-            layoutBinding.stageFlags = static_cast<vk::ShaderStageFlagBits>(shaderModule.shader_stage);
-        }
-        layout.setNumber = setRefl.set;
-    }
-
-    // return the descriptor set layout data
-    return layoutSets;
 }
 
 } // namespace chronicle

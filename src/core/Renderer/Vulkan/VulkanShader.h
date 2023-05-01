@@ -1,0 +1,75 @@
+// Copyright (c) 2023 Sandro Cavazzoni
+// This code is licensed under MIT license (see LICENSE.txt for details)
+
+#pragma once
+
+#include "pch.h"
+
+#include "Renderer/ShaderI.h"
+
+#include <spirv-reflect/spirv_reflect.h>
+
+namespace chronicle {
+
+/// @brief Vulkan implementation for @ref ShaderI
+class VulkanShader : public ShaderI<VulkanShader>, private NonCopyable<VulkanShader> {
+protected:
+    /// @brief Default constructor.
+    /// @param codes Shaders data compiled with SPIR-V.
+    /// @param entryPoints Shaders entry points.
+    explicit VulkanShader(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
+        const std::unordered_map<ShaderStage, std::string>& entryPoints);
+
+public:
+    /// @brief Destructor.
+    ~VulkanShader();
+
+    /// @brief @see ShaderI#descriptorSetLayouts
+    [[nodiscard]] std::vector<DescriptorSetLayout> descriptorSetLayouts() const { return _descriptorSetsLayout; }
+
+    /// @brief @see ShaderI#stages
+    [[nodicard]] std::vector<ShaderStage> stages() const { return _stages; };
+
+    /// @brief @see ShaderI#entryPoint
+    [[nodiscard]] const std::string& entryPoint(ShaderStage stage) const { return _entryPoints.at(stage); }
+
+    /// @brief Get the vulkan handle for the shader module.
+    /// @param stage Shader stage.
+    /// @return Vulkan handle.
+    [[nodiscard]] const vk::ShaderModule& shaderModule(ShaderStage stage) const { return _shaderModules.at(stage); }
+
+    /// @brief Check if a vulan handle exists for a specific stage.
+    /// @param stage Shader stage.
+    /// @return True if the handle exists.
+    [[nodiscard]] bool shaderModuleExists(ShaderStage stage) const { return _shaderModules.contains(stage); }
+
+    /// @brief Factory for create a new shader from SPIR-V code.
+    /// @param codes Shaders data compiled with SPIR-V.
+    /// @param entryPoints Shaders entry points.
+    /// @return The shader.
+    [[nodiscard]] static ShaderRef create(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
+        const std::unordered_map<ShaderStage, std::string>& entryPoints);
+
+private:
+    std::unordered_map<ShaderStage, vk::ShaderModule> _shaderModules = {}; ///< Shader modules mapped for stages.
+    std::unordered_map<ShaderStage, std::string> _entryPoints = {}; ///< Shader entry points.
+    std::vector<DescriptorSetLayout> _descriptorSetsLayout = {}; ///< Descriptor sets layout.
+    std::vector<ShaderStage> _stages = {}; ///< Shader stages.
+
+    /// @brief Get the descriptor sets layout data from SPIR-V code of a single shader.
+    /// @param code Shaders SPIR-V code.
+    /// @return Descriptor sets layout data.
+    [[nodiscard]] static std::vector<DescriptorSetLayout> getDescriptorSetsLayout(const std::vector<uint8_t>& code);
+
+    /// @brief Get the descriptor type from a SPIR-V reflect type.
+    /// @param spvDescriptorType SPIR-V reflect type.
+    /// @return Descriptor type.
+    [[nodiscard]] static DescriptorType getDescriptorType(SpvReflectDescriptorType spvDescriptorType);
+
+    /// @brief Get the shader stage from a SPIR-V reflect type.
+    /// @param spvShaderStage SPIR-V reflect type.
+    /// @return Shader stage.
+    [[nodiscard]] static ShaderStage getShaderStage(SpvReflectShaderStageFlagBits spvShaderStage);
+};
+
+} // namespace chronicle

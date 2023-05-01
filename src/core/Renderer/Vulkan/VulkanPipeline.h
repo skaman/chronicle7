@@ -43,6 +43,7 @@ public:
 
 private:
     std::string _debugName; ///< Debug name.
+    ShaderRef _shader; ///< Shader.
 
     std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout; ///< Descriptor sets layout.
     vk::PipelineLayout _pipelineLayout; ///< Pipeline layout.
@@ -51,8 +52,8 @@ private:
     vk::DescriptorPool _descriptorPool; ///< Descriptor pool.
     std::vector<vk::DescriptorSet> _descriptorSets; ///< Descriptor sets.
 
-    std::vector<vk::PipelineShaderStageCreateInfo> _shaderStages; ///< Shader stages create informations.
-    std::vector<vk::ShaderModule> _shaderModules; ///< Shader modules.
+    //std::vector<vk::PipelineShaderStageCreateInfo> _shaderStages; ///< Shader stages create informations.
+    //std::vector<vk::ShaderModule> _shaderModules; ///< Shader modules.
     std::vector<VertexBufferInfo> _vertexBuffers; ///< Vertex buffers.
 
     /// @brief Create the pipeline.
@@ -64,21 +65,9 @@ private:
     /// @brief Callback for @ref DebugShowLinesEvent.
     void debugShowLines(const DebugShowLinesEvent& evn);
 
-    /// @brief Create the shader module from spir-v code.
-    /// @param code Spir-v code.
-    /// @return Shader module.
-    vk::ShaderModule createShaderModule(const std::vector<char>& code) const;
-
-    /// @brief Get the descriptor sets layout from spir-v code of multiple shaders.
-    /// @param shadersCode A vector of shaders spir-v code.
+    /// @brief Get the descriptor sets layout from shader.
     /// @return Descriptor sets layout.
-    std::vector<vk::DescriptorSetLayout> getDescriptorSetsLayout(
-        const std::vector<std::vector<char>>& shadersCode) const;
-
-    /// @brief Get the descriptor sets layout data from spir-v code of a single shader.
-    /// @param code Shaders spir-v code.
-    /// @return Descriptor sets layout data.
-    std::vector<DescriptorSetLayoutData> getDescriptorSetsLayout(const std::vector<char>& code) const;
+    std::vector<vk::DescriptorSetLayout> getDescriptorSetsLayout() const;
 };
 
 } // namespace chronicle

@@ -1,4 +1,4 @@
-find_package(Vulkan REQUIRED COMPONENTS glslc)
+find_package(Vulkan REQUIRED COMPONENTS glslc shaderc_combined)
 find_package(Python REQUIRED COMPONENTS Interpreter)
 find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
@@ -27,7 +27,7 @@ function(compile_shader target)
 endfunction()
 
 function(embed_asset target)
-    cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;FORMAT" "SOURCES")
+    cmake_parse_arguments(PARSE_ARGV 1 arg "" "" "SOURCES")
     foreach(source ${arg_SOURCES})
         # Get short filename
         string(REGEX MATCH "([^/]+)$" filename ${source})
@@ -75,8 +75,10 @@ add_library(chronicle-core
     "Renderer/PipelineI.h"
     "Renderer/PipelineInfo.h"
     "Renderer/Renderer.h"
-    "Renderer/RendererI.h"
     "Renderer/RendererError.h"
+    "Renderer/RendererI.h"
+    "Renderer/ShaderCompilerI.h"
+    "Renderer/ShaderI.h"
     "Renderer/TextureI.h"
     "Renderer/TextureInfo.h"
     "Renderer/VertexBufferI.h"
@@ -103,14 +105,18 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanPipeline.cc"
     "Renderer/Vulkan/VulkanRenderer.h"
     "Renderer/Vulkan/VulkanRenderer.cc"
+    "Renderer/Vulkan/VulkanShaderCompiler.h"
+    "Renderer/Vulkan/VulkanShaderCompiler.cc"
+    "Renderer/Vulkan/VulkanShader.h"
+    "Renderer/Vulkan/VulkanShader.cc"
     "Renderer/Vulkan/VulkanTexture.h"
     "Renderer/Vulkan/VulkanTexture.cc"
     "Renderer/Vulkan/VulkanUtils.h"
     "Renderer/Vulkan/VulkanUtils.cc"
     "Renderer/Vulkan/VulkanVertexBuffer.h"
     "Renderer/Vulkan/VulkanVertexBuffer.cc"
-    "Storage/File.h"
-    "Storage/File.cc"
+    "Storage/Storage.h"
+    "Storage/Storage.cc"
     "Utils/Camera.h"
     "Utils/Camera.cc"
 
@@ -155,6 +161,7 @@ target_precompile_headers(chronicle-core
 embed_asset(chronicle-core
     SOURCES
         "bfont.ttf"
+        "Shaders/MaterialPbr.hlsl"
 )
 
 if(WIN32)
@@ -170,6 +177,7 @@ target_link_libraries(chronicle-core
         glfw
         Vulkan::Headers
         Vulkan::Vulkan
+        Vulkan::shaderc_combined
         EnTT::EnTT
         spdlog::spdlog
         glm::glm

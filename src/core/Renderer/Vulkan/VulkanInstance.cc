@@ -651,7 +651,7 @@ void VulkanInstance::createDescriptorSets()
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 
         auto descriptorSet = DescriptorSet::create(debugName);
-        descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, ShaderStage::Vertex);
+        descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, ShaderStage::vertex);
         VulkanContext::framesData[i].descriptorSet = descriptorSet;
     }
 }

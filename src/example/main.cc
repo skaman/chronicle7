@@ -8,6 +8,7 @@
 #include <Assets/TextureAsset.h>
 #include <Platform/Platform.h>
 #include <Renderer/Renderer.h>
+#include <Storage/Storage.h>
 #include <Utils/Camera.h>
 
 using namespace entt::literals;
@@ -37,14 +38,15 @@ public:
         // descriptor sets
         for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
             const auto& descriptorSet = Renderer::descriptorSet(i);
-            descriptorSet->addSampler(ShaderStage::Fragment, _texture->texture());
+            descriptorSet->addSampler(ShaderStage::fragment, _texture->texture());
             descriptorSet->build();
         }
 
         // pipeline
+
+        //auto test2 = ShaderCompiler::compile(":/MaterialPbr.hlsl");
         PipelineInfo pipelineInfo = {};
-        pipelineInfo.shaders[ShaderStage::Vertex] = "Shaders/triangle.vert.bin";
-        pipelineInfo.shaders[ShaderStage::Fragment] = "Shaders/triangle.frag.bin";
+        pipelineInfo.shader = ShaderCompiler::compile(":/MaterialPbr.hlsl");
         pipelineInfo.vertexBuffers = _mesh2->vertexBuffersInfo(0);
         // pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
 

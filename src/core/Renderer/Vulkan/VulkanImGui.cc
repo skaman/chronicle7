@@ -4,6 +4,7 @@
 #include "VulkanImGui.h"
 
 #include "Platform/Platform.h"
+#include "Storage/Storage.h"
 #include "VulkanCommandBuffer.h"
 #include "VulkanCommon.h"
 #include "VulkanUtils.h"
@@ -14,9 +15,6 @@
 #endif
 
 #include <backends/imgui_impl_vulkan.h>
-
-extern const uint8_t bfont_ttf[];
-extern const size_t bfont_ttf_len;
 
 namespace chronicle {
 
@@ -69,9 +67,10 @@ void VulkanImGui::init()
     style.ScaleAllSizes(scaling);
 
     // setup the font
+    auto fontData = Storage::readBytes(":/bfont.ttf");
     ImFontConfig font_cfg;
     font_cfg.SizePixels = 11.0f * scaling;
-    io.Fonts->AddFontFromMemoryTTF((void*)(bfont_ttf), static_cast<int>(bfont_ttf_len), 11.0f * scaling);
+    io.Fonts->AddFontFromMemoryTTF((void*)(fontData.data()), static_cast<int>(fontData.size()), 11.0f * scaling);
 
     // initialize glfw backend for vulkan
     ImGui_ImplGlfw_InitForVulkan(GLFWContext::window, true);

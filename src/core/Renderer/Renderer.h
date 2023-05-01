@@ -14,6 +14,8 @@
 #include "Vulkan/VulkanMesh.h"
 #include "Vulkan/VulkanPipeline.h"
 #include "Vulkan/VulkanRenderer.h"
+#include "Vulkan/VulkanShader.h"
+#include "Vulkan/VulkanShaderCompiler.h"
 #include "Vulkan/VulkanTexture.h"
 #include "Vulkan/VulkanVertexBuffer.h"
 

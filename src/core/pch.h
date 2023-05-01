@@ -89,6 +89,7 @@
 #include <fstream>
 #include <iostream>
 #include <optional>
+#include <regex>
 #include <set>
 #include <string>
 #include <vector>

@@ -117,7 +117,7 @@ void VulkanCommandBuffer::bindMesh(const MeshRef& mesh, uint32_t submeshIndex) c
     _commandBuffer.bindIndexBuffer(bindingInfo.indexBuffer, bindingInfo.indexBufferOffset, bindingInfo.indexType);
 
     // bind the descriptor set
-    bindDescriptorSet(vulkanMesh->material(submeshIndex)->descriptorSet(), 1);
+    //bindDescriptorSet(vulkanMesh->material(submeshIndex)->descriptorSet(), 1);
 }
 
 void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const

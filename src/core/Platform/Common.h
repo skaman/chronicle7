@@ -85,7 +85,7 @@ enum class ButtonAction : uint8_t { release = 0, press = 1, repeat = 2 };
 enum class KeyModifier {
     shift = 0x01,
     control = 0x02,
-    alt = 0x08,
+    alt = 0x04,
     super = 0x08,
     capsLock = 0x10,
     numLock = 0x20,
