@@ -10,13 +10,12 @@
 #include "Vulkan/VulkanCommandBuffer.h"
 #include "Vulkan/VulkanDescriptorSet.h"
 #include "Vulkan/VulkanIndexBuffer.h"
-#include "Vulkan/VulkanMaterial.h"
-#include "Vulkan/VulkanMesh.h"
 #include "Vulkan/VulkanPipeline.h"
 #include "Vulkan/VulkanRenderer.h"
 #include "Vulkan/VulkanShader.h"
 #include "Vulkan/VulkanShaderCompiler.h"
 #include "Vulkan/VulkanTexture.h"
 #include "Vulkan/VulkanVertexBuffer.h"
+#include "Vulkan/VulkanVertexBuffers.h"
 
 #endif

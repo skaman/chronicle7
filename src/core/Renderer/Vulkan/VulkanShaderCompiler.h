@@ -15,24 +15,13 @@ namespace chronicle {
 class VulkanShaderCompiler : public ShaderCompilerI<VulkanShaderCompiler>, private NonCopyable<VulkanShaderCompiler> {
 public:
     /// @brief @see ShaderCompilerI#compile
-    [[nodiscard]] static ShaderRef compile(const std::string& filename, ShaderCompilerOptions options);
+    [[nodiscard]] static ShaderRef compile(const std::string& filename);
 
 private:
     /// @brief Get shaderc shader kind from shader stage.
     /// @param stage Shader stage.
     /// @return Shader kind.
     [[nodiscard]] static shaderc_shader_kind getSpirvShader(ShaderStage stage);
-
-    /// @brief Get shaderc source language from shader source language.
-    /// @param language Shader source language.
-    /// @return Shaderc source language.
-    [[nodiscard]] static shaderc_source_language getSpirvLanguage(ShaderSourceLanguage language);
-
-    /// @brief Get shaderc optimization level from shader optimization level.
-    /// @param optimizationLevel Shader optimization level.
-    /// @return Shaderc optimization level.
-    [[nodiscard]] static shaderc_optimization_level getSpirvOptimizationLevel(
-        ShaderOptimizationLevel optimizationLevel);
 
     /// @brief Get entry point from code for a specific shader stage.
     /// @param sourceCode Source code.
@@ -48,7 +37,7 @@ private:
     /// @param options Compiler options.
     /// @return Compiled code.
     [[nodiscard]] static std::vector<uint8_t> compile(const std::string_view& sourceCode, const std::string& filename,
-        ShaderStage shaderStage, const std::string& entryPoint, ShaderCompilerOptions options);
+        ShaderStage shaderStage, const std::string& entryPoint);
 };
 
 } // namespace chronicle

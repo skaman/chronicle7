@@ -1,19 +1,17 @@
 // Copyright (c) 2023 Sandro Cavazzoni
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
-#include "VulkanMaterial.h"
-
-#include "VulkanDescriptorSet.h"
+#include "Material.h"
 
 using namespace entt::literals;
 
 namespace chronicle {
 
-CHR_CONCRETE(VulkanMaterial);
+CHR_CONCRETE(Material);
 
-VulkanMaterial::VulkanMaterial(const char* debugName) { }
+Material::Material(const char* debugName) { }
 
-void VulkanMaterial::build()
+void Material::build()
 {
     CHRZONE_RENDERER;
 
@@ -46,9 +44,6 @@ void VulkanMaterial::build()
     _descriptorSet->build();
 }
 
-MaterialRef VulkanMaterial::create(const char* debugName)
-{
-    return std::make_shared<ConcreteVulkanMaterial>(debugName);
-}
+MaterialRef Material::create(const char* debugName) { return std::make_shared<ConcreteMaterial>(debugName); }
 
 } // namespace chronicle

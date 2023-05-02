@@ -2,7 +2,9 @@
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
 #include "AssetLoader.h"
-#include "Renderer/Renderer.h"
+
+#include "PipelineLoader.h"
+#include "ShaderLoader.h"
 
 namespace chronicle {
 
@@ -141,10 +143,17 @@ AssetResult AssetLoader::load(const std::string& filename)
                         .location = getLocationFromAttributeType(attributeType) });
             }
 
+            std::vector<VertexBufferRef> tmpVertexBuffers = {};
+            std::vector<uint32_t> tmpVertexBuffersOffsets = {};
+            tmpVertexBuffers.reserve(vertexBuffers.size());
+            tmpVertexBuffersOffsets.reserve(vertexBuffers.size());
+
             for (const auto& [id, buffer] : vertexBuffers) {
-                submesh.vertexBuffers.push_back(buffer);
+                tmpVertexBuffers.push_back(buffer);
+                tmpVertexBuffersOffsets.push_back(0);
                 submesh.vertexBuffersInfo.push_back(vertexBuffersInfo[id]);
             }
+            submesh.vertexBuffers = VertexBuffers::create(tmpVertexBuffers, tmpVertexBuffersOffsets);
 
             if (primitive.indices >= 0) {
                 const auto& accessor = model.accessors[primitive.indices];
@@ -182,6 +191,12 @@ AssetResult AssetLoader::load(const std::string& filename)
                 assert(materials.size() > primitive.material);
                 submesh.material = materials[primitive.material];
             }
+
+            // create pipeline
+            PipelineInfo pipelineInfo = {};
+            pipelineInfo.shader = ShaderLoader::load(":/MaterialPbr.hlsl");
+            pipelineInfo.vertexBuffers = submesh.vertexBuffersInfo;
+            submesh.pipeline = PipelineLoader::load(pipelineInfo, "test"); // TODO: handle debug name
 
             submeshes.push_back(std::move(submesh));
         }

@@ -12,8 +12,9 @@ const int MAX_DESCRIPTOR_SETS = 4;
 CHR_CONCRETE(VulkanShader);
 
 VulkanShader::VulkanShader(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
-    const std::unordered_map<ShaderStage, std::string>& entryPoints)
+    const std::unordered_map<ShaderStage, std::string>& entryPoints, size_t hash)
     : _entryPoints(entryPoints)
+    , _hash(hash)
 {
     assert(codes.size() > 0);
     assert(codes.size() == entryPoints.size());
@@ -87,10 +88,10 @@ VulkanShader::~VulkanShader()
 }
 
 ShaderRef VulkanShader::create(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
-    const std::unordered_map<ShaderStage, std::string>& entryPoints)
+    const std::unordered_map<ShaderStage, std::string>& entryPoints, size_t hash)
 {
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanShader>(codes, entryPoints);
+    return std::make_shared<ConcreteVulkanShader>(codes, entryPoints, hash);
 }
 
 std::vector<DescriptorSetLayout> VulkanShader::getDescriptorSetsLayout(const std::vector<uint8_t>& code)

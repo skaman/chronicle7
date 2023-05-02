@@ -125,8 +125,10 @@ constexpr void log(
     spdlog::source_loc source, spdlog::level::level_enum lvl, spdlog::format_string_t<Args...> fmt, Args&&... args)
 {
     spdlog::log(source, lvl, fmt, std::forward<Args>(args)...);
+#ifdef TRACY_ENABLE
     std::string message = fmt::format(fmt, std::forward<Args>(args)...);
     tracy::Profiler::MessageColor(message.c_str(), message.size(), colorFromErrorLevel(lvl), 0);
+#endif
 }
 } // namespace chronicle
 
@@ -190,3 +192,19 @@ protected:
 };
 
 } // namespace chronicle
+
+// hashable
+// https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
+namespace std {
+inline void hash_combine([[maybe_unused]] const std::size_t& seed)
+{
+    // nothing to do, this is just the end of life for the hash_combine template.
+}
+
+template <typename T, typename... Rest> inline void hash_combine(std::size_t& seed, const T& v, Rest... rest)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    std::hash_combine(seed, rest...);
+}
+} // namespace std

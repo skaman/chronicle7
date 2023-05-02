@@ -30,7 +30,7 @@ add_subdirectory(magic_enum EXCLUDE_FROM_ALL)
 
 # Add Tracy Profiler
 # available options: TRACY_ENABLE , TRACY_ON_DEMAND , TRACY_NO_BROADCAST , TRACY_NO_CODE_TRANSFER , ...
-option(TRACY_ENABLE "" ON)
+option(TRACY_ENABLE "" OFF)
 #option(TRACY_ON_DEMAND "" ON)
 add_subdirectory(tracy)
 

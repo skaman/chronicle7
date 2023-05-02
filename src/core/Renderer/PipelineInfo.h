@@ -8,6 +8,10 @@
 #include "Common.h"
 #include "VertexBufferInfo.h"
 
+#ifdef VULKAN_RENDERER
+#include "Vulkan/VulkanShader.h"
+#endif
+
 namespace chronicle {
 
 /// @brief Informations used to create a new pipeline.
@@ -20,3 +24,14 @@ struct PipelineInfo {
 };
 
 } // namespace chronicle
+
+template <> struct std::hash<chronicle::PipelineInfo> {
+    std::size_t operator()(const chronicle::PipelineInfo& data) const noexcept
+    {
+        std::size_t h = data.shader->hash();
+        for (const auto& vertexBuffer : data.vertexBuffers) {
+            std::hash_combine(h, vertexBuffer);
+        }
+        return h;
+    }
+};

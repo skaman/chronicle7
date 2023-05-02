@@ -5,9 +5,16 @@
 
 #include "pch.h"
 
-#include "Renderer/MaterialI.h"
+#include "Renderer/Renderer.h"
 
 namespace chronicle {
+
+/// @brief Alpha mode.
+enum class AlphaMode {
+    opaque, ///< alpha value is ignored
+    mask, ///< either full opaque of fully transparent
+    blend ///< output is combined with the background
+};
 
 /// @brief Material UBO for descriptor set.
 struct MaterialUBO {
@@ -20,99 +27,129 @@ struct MaterialUBO {
     bool doubleSided = false; ///< Specifies whether the material is double sided.
 };
 
-/// @brief Vulkan implementation for @ref MaterialI
-class VulkanMaterial : public MaterialI<VulkanMaterial>, private NonCopyable<VulkanMaterial> {
+class Material;
+using MaterialRef = std::shared_ptr<Material>;
+
+/// @brief Object used to define a material.
+class Material : private NonCopyable<Material> {
 protected:
     /// @brief Default constructor.
     /// @param debugName Debug name.
-    explicit VulkanMaterial(const char* debugName);
+    explicit Material(const char* debugName);
 
 public:
     /// @brief Destructor.
-    ~VulkanMaterial() = default;
+    ~Material() = default;
 
-    /// @brief @see MaterialI#baseColorFactor
+    /// @brief The base color of the material.
+    /// @return The base color.
     [[nodiscard]] glm::vec4 baseColorFactor() const { return _ubo.baseColorFactor; }
 
-    /// @brief @see MaterialI#setBaseColorFactor
+    /// @brief Set the base color of the material.
+    /// @param baseColorFactor The base color.
     void setBaseColorFactor(glm::vec4 baseColorFactor) { _ubo.baseColorFactor = baseColorFactor; }
 
-    /// @brief @see MaterialI#metallicFactor
+    /// @brief The metalness of the material. Values range from 0.0 (non-metal) to 1.0 (metal).
+    /// @return The metalness value.
     [[nodiscard]] float metallicFactor() const { return _ubo.metallicFactor; }
 
-    /// @brief @see MaterialI#setMetallicFactor
+    /// @brief Set the metalness of the material. Values range from 0.0 (non-metal) to 1.0 (metal).
+    /// @param metallicFactor The metalness value.
     void setMetallicFactor(float metallicFactor) { _ubo.metallicFactor = metallicFactor; }
 
-    /// @brief @see MaterialI#roughnessFactor
+    /// @brief The roughness of the material. Values range from 0.0 (smooth) to 1.0 (rough).
+    /// @return The roughness value.
     [[nodiscard]] float roughnessFactor() const { return _ubo.roughnessFactor; }
 
-    /// @brief @see MaterialI#setRoughnessFactor
+    /// @brief Set the roughness of the material. Values range from 0.0 (smooth) to 1.0 (rough).
+    /// @param roughnessFactor The roughness value.
     void setRoughnessFactor(float roughnessFactor) { _ubo.roughnessFactor = roughnessFactor; }
 
-    /// @brief @see MaterialI#emissiveFactor
+    /// @brief The factors for the emissive color of the material.
+    /// @return Emissive factor value.
     [[nodiscard]] glm::vec3 emissiveFactor() const { return _ubo.emissiveFactor; }
 
-    /// @brief @see MaterialI#setEmissiveFactor
+    /// @brief Set the factors for the emissive color of the material.
+    /// @param emissiveFactor Emissive factor value.
     void setEmissiveFactor(glm::vec3 emissiveFactor) { _ubo.emissiveFactor = emissiveFactor; }
 
-    /// @brief @see MaterialI#alphaMode
+    /// @brief The alpha rendering mode of the material.
+    /// @return The alpha rendering mode value.
     [[nodiscard]] AlphaMode alphaMode() const { return _ubo.alphaMode; }
 
-    /// @brief @see MaterialI#setAlphaMode
+    /// @brief Set the alpha rendering mode of the material.
+    /// @param alphaMode The alpha rendering mode value.
     void setAlphaMode(AlphaMode alphaMode) { _ubo.alphaMode = alphaMode; }
 
-    /// @brief @see MaterialI#alphaCutoff
+    /// @brief The alpha cutoff value of the material.
+    /// @return The alpha cutoff value.
     [[nodiscard]] float alphaCutoff() const { return _ubo.alphaCutoff; }
 
-    /// @brief @see MaterialI#setAlphaCutoff
+    /// @brief Set the alpha cutoff value of the material.
+    /// @param alphaCutoff The alpha cutoff value.
     void setAlphaCutoff(float alphaCutoff) { _ubo.alphaCutoff = alphaCutoff; }
 
-    /// @brief @see MaterialI#doubleSided
+    /// @brief Specifies whether the material is double sided.
+    /// @return Double sided value.
     [[nodiscard]] bool doubleSided() const { return _ubo.doubleSided; }
 
-    /// @brief @see MaterialI#setDoubleSided
+    /// @brief Set whether the material is double sided.
+    /// @param doubleSided Double sided value.
     void setDoubleSided(bool doubleSided) { _ubo.doubleSided = doubleSided; }
 
-    /// @brief @see MaterialI#baseColorTexture
+    /// @brief The base color texture.
+    /// @return The texture.
     [[nodiscard]] const TextureRef& baseColorTexture() const { return _baseColorTexture; }
 
-    /// @brief @see MaterialI#setBaseColorTexture
+    /// @brief Set the base color texture.
+    /// @param baseColorTexture The texture.
     void setBaseColorTexture(const TextureRef& baseColorTexture) { _baseColorTexture = baseColorTexture; }
 
-    /// @brief @see MaterialI#metallicRoughnessTexture
+    /// @brief The metallic-roughness texture.
+    /// @return The texture.
     [[nodiscard]] const TextureRef& metallicRoughnessTexture() const { return _metallicRoughnessTexture; }
 
-    /// @brief @see MaterialI#setMetallicRoughnessTexture
+    /// @brief Set the metallic-roughness texture.
+    /// @param metallicRoughnessTexture The texture.
     void setMetallicRoughnessTexture(const TextureRef& metallicRoughnessTexture)
     {
         _metallicRoughnessTexture = metallicRoughnessTexture;
     }
 
-    /// @brief @see MaterialI#normalTexture
+    /// @brief The tangent space normal texture.
+    /// @return The texture.
     [[nodiscard]] const TextureRef& normalTexture() const { return _normalTexture; }
 
-    /// @brief @see MaterialI#setNormalTexture
+    /// @brief Set the tangent space normal texture.
+    /// @param normalTexture The texture.
     void setNormalTexture(const TextureRef& normalTexture) { _normalTexture = normalTexture; }
 
-    /// @brief @see MaterialI#occlusionTexture
+    /// @brief The occlusion texture.
+    /// @return The texture.
     [[nodiscard]] const TextureRef& occlusionTexture() const { return _occlusionTexture; }
 
-    /// @brief @see MaterialI#setOcclusionTexture
+    /// @brief Set the occlusion texture.
+    /// @param occlusionTexture The texture.
     void setOcclusionTexture(const TextureRef& occlusionTexture) { _occlusionTexture = occlusionTexture; }
 
-    /// @brief @see MaterialI#emissiveTexture
+    /// @brief The emissive texture.
+    /// @return The texture.
     [[nodiscard]] const TextureRef& emissiveTexture() const { return _emissiveTexture; }
 
-    /// @brief @see MaterialI#setEmissiveTexture
+    /// @brief Set the emissive texture.
+    /// @param emissiveTexture The texture.
     void setEmissiveTexture(const TextureRef& emissiveTexture) { _emissiveTexture = emissiveTexture; }
 
-    /// @brief @see MaterialI#build
+    /// @brief Build the material.
     void build();
 
-    /// @brief @see MaterialI#descriptorSet
+    /// @brief Get the descriptor set for the material.
+    /// @return The descriptor set.
     DescriptorSetRef descriptorSet() const { return _descriptorSet; }
 
-    /// @brief @see MaterialI#create
+    /// @brief Factory for create a new material.
+    /// @param debugName Debug name.
+    /// @return The material.
     [[nodiscard]] static MaterialRef create(const char* debugName);
 
 private:

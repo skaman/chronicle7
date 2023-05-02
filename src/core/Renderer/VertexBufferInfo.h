@@ -22,8 +22,6 @@ struct AttributeDescriptionInfo {
 
     /// @brief Attribute location.
     uint32_t location = 0;
-
-    //AttributeType type = AttributeType::undefined;
 };
 
 /// @brief Information used to describe a vertext buffer layout.
@@ -36,3 +34,24 @@ struct VertexBufferInfo {
 };
 
 } // namespace chronicle
+
+template <> struct std::hash<chronicle::AttributeDescriptionInfo> {
+    std::size_t operator()(const chronicle::AttributeDescriptionInfo& data) const noexcept
+    {
+        std::size_t h = 0;
+        std::hash_combine(h, data.format, data.offset, data.location);
+        return h;
+    }
+};
+
+template <> struct std::hash<chronicle::VertexBufferInfo> {
+    std::size_t operator()(const chronicle::VertexBufferInfo& data) const noexcept
+    {
+        std::size_t h = 0;
+        std::hash_combine(h, data.stride);
+        for (const auto& attributeDescription : data.attributeDescriptions) {
+            std::hash_combine(h, attributeDescription);
+        }
+        return h;
+    }
+};

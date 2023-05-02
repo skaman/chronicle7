@@ -106,7 +106,7 @@ public:
     /// @brief @see DescriptorSetI#setUniform
     template <class T> void setUniform(entt::hashed_string::hash_type id, const T& data)
     {
-        memcpy(_buffersMapped[id], &data, sizeof(T));
+        std::memcpy(_buffersMapped[id], &data, sizeof(T));
     }
 
     /// @brief @see DescriptorSetI#build

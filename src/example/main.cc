@@ -3,9 +3,9 @@
 
 #include "pch.h"
 
-#include <Assets/AssetLoader.h>
-#include <Assets/MeshAsset.h>
-#include <Assets/TextureAsset.h>
+#include <Assets/old/MeshAsset.h>
+#include <Assets/old/TextureAsset.h>
+#include <Loaders/AssetLoader.h>
 #include <Platform/Platform.h>
 #include <Renderer/Renderer.h>
 #include <Storage/Storage.h>
@@ -28,7 +28,7 @@ public:
         CHRLOG_INFO("Start");
 
         // assets
-        _mesh = MeshAsset::load("D:\\viking_room.obj");
+        //_mesh = MeshAsset::load("D:\\viking_room.obj");
         _texture = TextureAsset::load("D:\\viking_room.png");
 
         auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
@@ -42,15 +42,15 @@ public:
             descriptorSet->build();
         }
 
-        // pipeline
-
-        //auto test2 = ShaderCompiler::compile(":/MaterialPbr.hlsl");
-        PipelineInfo pipelineInfo = {};
-        pipelineInfo.shader = ShaderCompiler::compile(":/MaterialPbr.hlsl");
-        pipelineInfo.vertexBuffers = _mesh2->vertexBuffersInfo(0);
-        // pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
-
-        _pipeline = Pipeline::create(pipelineInfo, "Test pipeline");
+        //// pipeline
+        //
+        ////auto test2 = ShaderCompiler::compile(":/MaterialPbr.hlsl");
+        // PipelineInfo pipelineInfo = {};
+        // pipelineInfo.shader = ShaderCompiler::compile(":/MaterialPbr.hlsl");
+        // pipelineInfo.vertexBuffers = _mesh2->vertexBuffersInfo(0);
+        //// pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
+        //
+        //_pipeline = Pipeline::create(pipelineInfo, "Test pipeline");
     }
 
     void onCursorPosition(const CursorPositionEvent& evn) { }
@@ -67,10 +67,10 @@ public:
 
         Renderer::waitIdle();
 
-        _mesh.reset();
+        //_mesh.reset();
         _mesh2.reset();
         _texture.reset();
-        _pipeline.reset();
+        //_pipeline.reset();
 
         Renderer::deinit();
         Platform::deinit();
@@ -96,13 +96,11 @@ public:
             // drawCamera();
 
             Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
-            Renderer::commandBuffer()->bindPipeline(_pipeline);
-            // Renderer::commandBuffer()->bindVertexBuffer(_mesh->vertexBuffer(0));
-            // Renderer::commandBuffer()->bindIndexBuffer(_mesh->indexBuffer(0));
-            // Renderer::commandBuffer()->drawIndexed(_mesh->indicesCount(0), 1);
-            Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
             for (auto i = 0; i < _mesh2->submeshCount(); i++) {
-                Renderer::commandBuffer()->bindMesh(_mesh2, i);
+                Renderer::commandBuffer()->bindPipeline(_mesh2->pipeline(i));
+                Renderer::commandBuffer()->bindVertexBuffers(_mesh2->vertexBuffers(i));
+                Renderer::commandBuffer()->bindIndexBuffer(_mesh2->indexBuffer(i), _mesh2->indexType(i));
+                Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
                 Renderer::commandBuffer()->drawIndexed(_mesh2->indicesCount(i), 1);
             }
             Renderer::commandBuffer()->endDebugLabel();
@@ -221,8 +219,8 @@ public:
     // }
 
 private:
-    PipelineRef _pipeline;
-    MeshAssetRef _mesh;
+    // PipelineRef _pipeline;
+    // MeshAssetRef _mesh;
     TextureAssetRef _texture;
     MeshRef _mesh2;
 

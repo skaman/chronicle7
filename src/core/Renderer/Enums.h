@@ -25,13 +25,6 @@ enum class IndexType {
     uint32
 };
 
-/// @brief Alpha mode.
-enum class AlphaMode {
-    opaque, ///< alpha value is ignored
-    mask, ///< either full opaque of fully transparent
-    blend ///< output is combined with the background
-};
-
 /// @brief Data format for surface, texture or data structures.
 enum class Format {
     undefined,

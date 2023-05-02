@@ -9,14 +9,14 @@
 
 namespace chronicle {
 
-ShaderRef VulkanShaderCompiler::compile(const std::string& filename, ShaderCompilerOptions options)
+ShaderRef VulkanShaderCompiler::compile(const std::string& filename)
 {
     auto sourceCode = Storage::readString(filename);
 
     std::unordered_map<ShaderStage, std::vector<uint8_t>> codes;
     std::unordered_map<ShaderStage, std::string> entryPoints;
 
-    magic_enum::enum_for_each<ShaderStage>([&codes, &entryPoints, &options, &filename, &sourceCode](auto val) {
+    magic_enum::enum_for_each<ShaderStage>([&codes, &entryPoints, &filename, &sourceCode](auto val) {
         constexpr ShaderStage shaderStage = val;
 
         if (shaderStage == ShaderStage::none || shaderStage == ShaderStage::_entt_enum_as_bitmask) {
@@ -28,11 +28,11 @@ ShaderRef VulkanShaderCompiler::compile(const std::string& filename, ShaderCompi
             return;
         }
 
-        codes[shaderStage] = compile(sourceCode, filename, shaderStage, entryPoint, options);
+        codes[shaderStage] = compile(sourceCode, filename, shaderStage, entryPoint);
         entryPoints[shaderStage] = entryPoint;
     });
 
-    return VulkanShader::create(codes, entryPoints);
+    return VulkanShader::create(codes, entryPoints, std::hash<std::string>()(filename));
 }
 
 shaderc_shader_kind VulkanShaderCompiler::getSpirvShader(ShaderStage stage)
@@ -46,32 +46,6 @@ shaderc_shader_kind VulkanShaderCompiler::getSpirvShader(ShaderStage stage)
         return shaderc_compute_shader;
     default:
         throw RendererError("Unsupported shader stage");
-    }
-}
-
-shaderc_source_language VulkanShaderCompiler::getSpirvLanguage(ShaderSourceLanguage language)
-{
-    switch (language) {
-    case ShaderSourceLanguage::glsl:
-        return shaderc_source_language_glsl;
-    case ShaderSourceLanguage::hlsl:
-        return shaderc_source_language_hlsl;
-    default:
-        throw RendererError("Unsupported language type");
-    }
-}
-
-shaderc_optimization_level VulkanShaderCompiler::getSpirvOptimizationLevel(ShaderOptimizationLevel optimizationLevel)
-{
-    switch (optimizationLevel) {
-    case ShaderOptimizationLevel::none:
-        return shaderc_optimization_level_zero;
-    case ShaderOptimizationLevel::size:
-        return shaderc_optimization_level_size;
-    case ShaderOptimizationLevel::performance:
-        return shaderc_optimization_level_performance;
-    default:
-        throw RendererError("Unsupported optimization level");
     }
 }
 
@@ -106,18 +80,18 @@ std::string VulkanShaderCompiler::getEntryPoint(const std::string& sourceCode, S
 }
 
 std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourceCode, const std::string& filename,
-    ShaderStage shaderStage, const std::string& entryPoint, ShaderCompilerOptions options)
+    ShaderStage shaderStage, const std::string& entryPoint)
 {
     shaderc::Compiler spirvCompiler = {};
     shaderc::CompileOptions spirvOptions = {};
 
     spirvOptions.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_1);
-    spirvOptions.SetOptimizationLevel(getSpirvOptimizationLevel(options.optimization));
-    spirvOptions.SetSourceLanguage(getSpirvLanguage(options.language));
-
-    if (options.warningAsErrors) {
-        spirvOptions.SetWarningsAsErrors();
-    }
+#ifdef NDEBUG
+    spirvOptions.SetOptimizationLevel(shaderc_optimization_level_performance);
+#else
+    spirvOptions.SetOptimizationLevel(shaderc_optimization_level_zero);
+#endif
+    spirvOptions.SetSourceLanguage(shaderc_source_language_hlsl);
 
     switch (shaderStage) {
     case ShaderStage::fragment:

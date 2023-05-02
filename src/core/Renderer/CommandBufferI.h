@@ -32,19 +32,19 @@ public:
         static_cast<const T*>(this)->bindVertexBuffer(vertexBuffer);
     }
 
-    /// @brief Bind an index buffer to the command buffer.
-    /// @param indexBuffer The index buffer to be bound.
-    void bindIndexBuffer(const IndexBufferRef& indexBuffer) const
+    /// @brief Bind a group of vertex buffers to the command buffer.
+    /// @param vertexBuffer The vertex buffers to be bound.
+    void bindVertexBuffers(const VertexBuffersRef& vertexBuffers) const
     {
-        static_cast<const T*>(this)->bindIndexBuffer(indexBuffer);
+        static_cast<const T*>(this)->bindVertexBuffers(vertexBuffers);
     }
 
-    /// @brief Bind a mesh to the command buffer.
-    /// @param mesh The mesh to be bound.
-    /// @param submeshIndex The submesh index.
-    void bindMesh(const MeshRef& mesh, uint32_t submeshIndex = 0) const
+    /// @brief Bind an index buffer to the command buffer.
+    /// @param indexBuffer The index buffer to be bound.
+    /// @param indexType Specify the size of the index.
+    void bindIndexBuffer(const IndexBufferRef& indexBuffer, IndexType indexType) const
     {
-        static_cast<const T*>(this)->bindMesh(mesh, submeshIndex);
+        static_cast<const T*>(this)->bindIndexBuffer(indexBuffer, indexType);
     }
 
     /// @brief Bind a descriptor set to the command buffer.
@@ -58,7 +58,7 @@ public:
     /// @brief Begin a debug label.
     /// @param name Label name.
     /// @param color Label color.
-    void beginDebugLabel(const char* name, glm::vec4 color) const
+    void beginDebugLabel(const char* name, glm::vec4 color)
     {
         static_cast<const T*>(this)->beginDebugLabel(name, color);
     }

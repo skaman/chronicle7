@@ -6,10 +6,10 @@
 #include "VulkanDescriptorSet.h"
 #include "VulkanIndexBuffer.h"
 #include "VulkanInstance.h"
-#include "VulkanMaterial.h"
-#include "VulkanMesh.h"
 #include "VulkanPipeline.h"
+#include "VulkanRenderer.h"
 #include "VulkanVertexBuffer.h"
+#include "VulkanVertexBuffers.h"
 
 namespace chronicle {
 
@@ -80,7 +80,22 @@ void VulkanCommandBuffer::bindVertexBuffer(const VertexBufferRef& vertexBuffer) 
     _commandBuffer.bindVertexBuffers(0, vulkanVertexBuffer->buffer(), vk::DeviceSize(0));
 }
 
-void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer) const
+void VulkanCommandBuffer::bindVertexBuffers(const VertexBuffersRef& vertexBuffers) const
+{
+    CHRZONE_RENDERER;
+
+    assert(vertexBuffers);
+
+    CHRLOG_TRACE("Bind vertex buffers");
+
+    // cast the vertex buffer to vulkan vertex buffer
+    const auto vulkanVertexBuffers = static_cast<VulkanVertexBuffers*>(vertexBuffers.get());
+
+    // bind the vertex buffer
+    _commandBuffer.bindVertexBuffers(0, vulkanVertexBuffers->buffers(), vulkanVertexBuffers->offsets());
+}
+
+void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer, IndexType indexType) const
 {
     CHRZONE_RENDERER;
 
@@ -92,32 +107,8 @@ void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer) con
     const auto vulkanIndexBuffer = static_cast<VulkanIndexBuffer*>(indexBuffer.get());
 
     // bind the index buffer
-    _commandBuffer.bindIndexBuffer(vulkanIndexBuffer->buffer(), vk::DeviceSize(0), vk::IndexType::eUint32);
-}
-
-void VulkanCommandBuffer::bindMesh(const MeshRef& mesh, uint32_t submeshIndex) const
-{
-    CHRZONE_RENDERER;
-
-    assert(mesh);
-    assert(mesh->submeshCount() > submeshIndex);
-
-    CHRLOG_TRACE("Bind mesh");
-
-    // cast the mesh to vulkan mesh
-    const auto vulkanMesh = static_cast<VulkanMesh*>(mesh.get());
-
-    // get the binding informations
-    const auto& bindingInfo = vulkanMesh->bindingInfo(submeshIndex);
-
-    // bind the vertex buffers
-    _commandBuffer.bindVertexBuffers(0, bindingInfo.vertexBuffers, bindingInfo.vertexBuffersOffsets);
-
-    // bind the index buffer
-    _commandBuffer.bindIndexBuffer(bindingInfo.indexBuffer, bindingInfo.indexBufferOffset, bindingInfo.indexType);
-
-    // bind the descriptor set
-    //bindDescriptorSet(vulkanMesh->material(submeshIndex)->descriptorSet(), 1);
+    _commandBuffer.bindIndexBuffer(
+        vulkanIndexBuffer->buffer(), vk::DeviceSize(0), VulkanEnums::indexTypeToVulkan(indexType));
 }
 
 void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const

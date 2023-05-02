@@ -29,11 +29,11 @@ public:
     /// @brief @see CommandBufferI#bindVertexBuffer
     void bindVertexBuffer(const VertexBufferRef& vertexBuffer) const;
 
-    /// @brief @see CommandBufferI#bindIndexBuffer
-    void bindIndexBuffer(const IndexBufferRef& indexBuffer) const;
+    /// @brief @see CommandBufferI#bindVertexBuffers
+    void bindVertexBuffers(const VertexBuffersRef& vertexBuffers) const;
 
-    /// @brief @see CommandBufferI#bindMesh
-    void bindMesh(const MeshRef& mesh, uint32_t submeshIndex) const;
+    /// @brief @see CommandBufferI#bindIndexBuffer
+    void bindIndexBuffer(const IndexBufferRef& indexBuffer, IndexType indexType) const;
 
     /// @brief @see CommandBufferI#bindDescriptorSet
     void bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const;

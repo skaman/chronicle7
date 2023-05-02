@@ -5,7 +5,8 @@
 
 #include "pch.h"
 
-#include "Renderer/Renderer.h"
+#include "Assets/Material.h"
+#include "Assets/Mesh.h"
 
 namespace chronicle {
 

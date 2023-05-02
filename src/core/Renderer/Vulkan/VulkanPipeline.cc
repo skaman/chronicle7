@@ -22,8 +22,8 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const char* deb
 {
     CHRZONE_RENDERER;
 
-    assert(pipelineInfo.shader);
-    assert(pipelineInfo.vertexBuffers.size() > 0);
+    assert(_shader);
+    assert(_vertexBuffers.size() > 0);
 
     // CHRLOG_DEBUG("Create pipeline: shaders count={}, vertex buffer descriptions count={}",
     // pipelineInfo.shaders.size(),
@@ -220,8 +220,8 @@ void VulkanPipeline::cleanup()
 
 void VulkanPipeline::debugShowLines([[maybe_unused]] const DebugShowLinesEvent& evn)
 {
-    //CHRLOG_DEBUG("Recreate pipeline: shaders count={}, vertex buffer descriptions count={}", _shaderStages.size(),
-    //    _vertexBuffers.size());
+    // CHRLOG_DEBUG("Recreate pipeline: shaders count={}, vertex buffer descriptions count={}", _shaderStages.size(),
+    //     _vertexBuffers.size());
 
     // after a debug show line event, cleanup and recreate the pipeline
     cleanup();

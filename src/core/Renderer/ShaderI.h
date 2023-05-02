@@ -22,7 +22,11 @@ public:
 
     /// @brief Get the available shader stages.
     /// @return Shader stages.
-    [[nodicard]] std::vector<ShaderStage> stages() const { return static_cast<const T*>(this)->stages(); };
+    [[nodiscard]] std::vector<ShaderStage> stages() const { return static_cast<const T*>(this)->stages(); };
+
+    /// @brief Get the hash of the configuration used to create the shader.
+    /// @return Shaders hash.
+    [[nodiscard]] size_t hash() const { return static_cast<const T*>(this)->hash(); };
 
     /// @brief Get the entry point for a specific shader stage.
     /// @param stage Shader stage.

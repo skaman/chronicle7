@@ -17,8 +17,9 @@ protected:
     /// @brief Default constructor.
     /// @param codes Shaders data compiled with SPIR-V.
     /// @param entryPoints Shaders entry points.
+    /// @param hash Hash of the configuration used to create the shader.
     explicit VulkanShader(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
-        const std::unordered_map<ShaderStage, std::string>& entryPoints);
+        const std::unordered_map<ShaderStage, std::string>& entryPoints, size_t hash);
 
 public:
     /// @brief Destructor.
@@ -28,7 +29,10 @@ public:
     [[nodiscard]] std::vector<DescriptorSetLayout> descriptorSetLayouts() const { return _descriptorSetsLayout; }
 
     /// @brief @see ShaderI#stages
-    [[nodicard]] std::vector<ShaderStage> stages() const { return _stages; };
+    [[nodiscard]] std::vector<ShaderStage> stages() const { return _stages; };
+
+    /// @brief @see ShaderI#hash
+    [[nodiscard]] size_t hash() const { return _hash; };
 
     /// @brief @see ShaderI#entryPoint
     [[nodiscard]] const std::string& entryPoint(ShaderStage stage) const { return _entryPoints.at(stage); }
@@ -46,15 +50,17 @@ public:
     /// @brief Factory for create a new shader from SPIR-V code.
     /// @param codes Shaders data compiled with SPIR-V.
     /// @param entryPoints Shaders entry points.
+    /// @param hash Hash of the configuration used to create the shader.
     /// @return The shader.
     [[nodiscard]] static ShaderRef create(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
-        const std::unordered_map<ShaderStage, std::string>& entryPoints);
+        const std::unordered_map<ShaderStage, std::string>& entryPoints, size_t hash);
 
 private:
     std::unordered_map<ShaderStage, vk::ShaderModule> _shaderModules = {}; ///< Shader modules mapped for stages.
     std::unordered_map<ShaderStage, std::string> _entryPoints = {}; ///< Shader entry points.
     std::vector<DescriptorSetLayout> _descriptorSetsLayout = {}; ///< Descriptor sets layout.
     std::vector<ShaderStage> _stages = {}; ///< Shader stages.
+    size_t _hash; ///< Hash of the configuration used to create the shader.
 
     /// @brief Get the descriptor sets layout data from SPIR-V code of a single shader.
     /// @param code Shaders SPIR-V code.
