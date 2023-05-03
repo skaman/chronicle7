@@ -14,7 +14,7 @@ VulkanIndexBuffer::~VulkanIndexBuffer()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Destroy index buffer");
+    CHRLOG_TRACE("Destroy index buffer");
 
     // clean resources if needed
     if (_buffer)
@@ -28,7 +28,7 @@ void VulkanIndexBuffer::set(void* src, size_t size, const char* debugName)
     assert(src != nullptr);
     assert(size > 0);
 
-    CHRLOG_DEBUG("Set index buffer data: size={}", size);
+    CHRLOG_TRACE("Set index buffer data: size={}", size);
 
     // clean resources if needed
     if (_buffer)

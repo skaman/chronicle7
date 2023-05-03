@@ -21,7 +21,7 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Destroy descriptor set");
+    CHRLOG_TRACE("Destroy descriptor set");
 
     // get garbage collector
     auto& garbageCollector = VulkanContext::framesData[VulkanContext::currentFrame].garbageCollector;
@@ -43,7 +43,7 @@ void VulkanDescriptorSet::build()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Build descriptor set");
+    CHRLOG_TRACE("Build descriptor set");
 
     assert(!_descriptorSet);
 

@@ -14,7 +14,7 @@ VulkanVertexBuffer::~VulkanVertexBuffer()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Destroy vertex buffer");
+    CHRLOG_TRACE("Destroy vertex buffer");
 
     // clean resources if needed
     if (_buffer)
@@ -28,7 +28,7 @@ void VulkanVertexBuffer::set(void* src, size_t size, const char* debugName)
     assert(src != nullptr);
     assert(size > 0);
 
-    CHRLOG_DEBUG("Set vertex buffer data: size={}", size);
+    CHRLOG_TRACE("Set vertex buffer data: size={}", size);
 
     // clean resources if needed
     if (_buffer)

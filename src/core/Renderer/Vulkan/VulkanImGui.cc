@@ -31,7 +31,7 @@ void VulkanImGui::init()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("ImGui init");
+    CHRLOG_TRACE("ImGui init");
 
     // create descriptor pool
     std::vector<vk::DescriptorPoolSize> sizes = { { vk::DescriptorType::eSampler, 1000 },
@@ -103,7 +103,7 @@ void VulkanImGui::deinit()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("ImGui deinit");
+    CHRLOG_TRACE("ImGui deinit");
 
     // deinitialize vulkan backend
     ImGui_ImplVulkan_Shutdown();

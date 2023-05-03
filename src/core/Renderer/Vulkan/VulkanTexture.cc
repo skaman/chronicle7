@@ -14,7 +14,7 @@ VulkanTexture::~VulkanTexture()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Destroy texture");
+    CHRLOG_TRACE("Destroy texture");
 
     // cleanup resources
     cleanup();
@@ -29,7 +29,7 @@ void VulkanTexture::set(void* src, size_t size, uint32_t width, uint32_t height)
     assert(width > 0);
     assert(height > 0);
 
-    CHRLOG_DEBUG("Set texture data: size={}, width={}, height={}", size, width, height);
+    CHRLOG_TRACE("Set texture data: size={}, width={}, height={}", size, width, height);
 
     // create a buffer visible to the host
     auto [stagingBufferMemory, stagingBuffer] = VulkanUtils::createBuffer(size, vk::BufferUsageFlagBits::eTransferSrc,
@@ -84,7 +84,7 @@ TextureRef VulkanTexture::create(const TextureInfo& textureInfo)
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create texture: generate mipmaps={}", textureInfo.generateMipmaps);
+    CHRLOG_TRACE("Create texture: generate mipmaps={}", textureInfo.generateMipmaps);
 
     // create an instance of the class
     auto result = std::make_shared<ConcreteVulkanTexture>();

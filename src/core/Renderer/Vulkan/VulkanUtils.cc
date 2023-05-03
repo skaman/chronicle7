@@ -512,9 +512,9 @@ bool VulkanUtils::checkDeviceExtensionSupport(
     // auto properties = physicalDevice.getProperties();
     //
     //// log all available extensions
-    // CHRLOG_DEBUG("Available device extensions on {}:", properties.deviceName);
+    // CHRLOG_TRACE("Available device extensions on {}:", properties.deviceName);
     // for (const auto& extension : deviceExtensions) {
-    //     CHRLOG_DEBUG("- {}", extension.extensionName);
+    //     CHRLOG_TRACE("- {}", extension.extensionName);
     // }
 
     // enumerate all the device extensions and remove from the set

@@ -19,7 +19,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(const char* debugName)
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create command buffer");
+    CHRLOG_TRACE("Create command buffer");
 
     // create the command buffer
     vk::CommandBufferAllocateInfo allocInfo = {};

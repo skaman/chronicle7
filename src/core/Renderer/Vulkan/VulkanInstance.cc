@@ -54,7 +54,7 @@ void VulkanInstance::init()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Vulkan instance init");
+    CHRLOG_TRACE("Vulkan instance init");
 
     // allocate data for frame in flights
     VulkanContext::framesData.resize(VulkanContext::maxFramesInFlight);
@@ -81,7 +81,7 @@ void VulkanInstance::deinit()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Vulkan instance deinit");
+    CHRLOG_TRACE("Vulkan instance deinit");
 
     // reset descriptor sets references
     // this must be happen before to clean the garbage collector
@@ -139,7 +139,7 @@ void VulkanInstance::recreateSwapChain()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Recreate swapchain");
+    CHRLOG_TRACE("Recreate swapchain");
 
     int width = 0;
     int height = 0;
@@ -203,7 +203,7 @@ void VulkanInstance::createInstance()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create instance");
+    CHRLOG_TRACE("Create instance");
 
     // check validation layers support
     if (VulkanContext::enabledValidationLayer && !VulkanUtils::checkValidationLayerSupport(VALIDATION_LAYERS))
@@ -269,7 +269,7 @@ void VulkanInstance::createSurface()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create surface");
+    CHRLOG_TRACE("Create surface");
 
 #ifdef GLFW_PLATFORM
     // create the surface
@@ -309,7 +309,7 @@ void VulkanInstance::createLogicalDevice()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create logical device");
+    CHRLOG_TRACE("Create logical device");
 
     // find device queue families
     VulkanQueueFamilyIndices indices = VulkanUtils::findQueueFamilies(VulkanContext::physicalDevice);
@@ -351,7 +351,7 @@ void VulkanInstance::createSwapChain()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create swapchain");
+    CHRLOG_TRACE("Create swapchain");
 
     // get all the informations required for create the swapchain
     auto swapChainSupport = VulkanUtils::querySwapChainSupport(VulkanContext::physicalDevice);
@@ -425,7 +425,7 @@ void VulkanInstance::createCommandPool()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create command pool");
+    CHRLOG_TRACE("Create command pool");
 
     // get the queue families
     auto queueFamilyIndices = VulkanUtils::findQueueFamilies(VulkanContext::physicalDevice);
@@ -441,7 +441,7 @@ void VulkanInstance::createRenderPass()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create main render pass");
+    CHRLOG_TRACE("Create main render pass");
 
     // color attachment
     vk::AttachmentDescription colorAttachment = {};
@@ -522,7 +522,7 @@ void VulkanInstance::createDebugRenderPass()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create ImGui render pass");
+    CHRLOG_TRACE("Create ImGui render pass");
 
     // color attachment
     vk::AttachmentDescription colorAttachment = {};
@@ -566,7 +566,7 @@ void VulkanInstance::createFramebuffers()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create framebuffers");
+    CHRLOG_TRACE("Create framebuffers");
 
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
@@ -586,7 +586,7 @@ void VulkanInstance::createDebugFramebuffers()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create ImGui framebuffers");
+    CHRLOG_TRACE("Create ImGui framebuffers");
 
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
@@ -605,7 +605,7 @@ void VulkanInstance::createSyncObjects()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create sync objects");
+    CHRLOG_TRACE("Create sync objects");
 
     // create synchronization objects
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
@@ -620,7 +620,7 @@ void VulkanInstance::createCommandBuffers()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create command buffers");
+    CHRLOG_TRACE("Create command buffers");
 
     // create the command buffers
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
@@ -639,7 +639,7 @@ void VulkanInstance::createDescriptorSets()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create descriptor sets");
+    CHRLOG_TRACE("Create descriptor sets");
 
     // create the descriptor sets
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
@@ -660,7 +660,7 @@ void VulkanInstance::createDescriptorPool()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_DEBUG("Create descriptor pool");
+    CHRLOG_TRACE("Create descriptor pool");
 
     // some default sizes for the pool
     std::vector<vk::DescriptorPoolSize> sizes
