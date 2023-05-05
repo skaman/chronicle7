@@ -10,7 +10,7 @@
 namespace chronicle {
 
 /// @brief Alpha mode.
-enum class AlphaMode {
+enum class AlphaMode : uint32_t {
     opaque, ///< alpha value is ignored
     mask, ///< either full opaque of fully transparent
     blend ///< output is combined with the background
@@ -105,6 +105,10 @@ public:
     /// @param baseColorTexture The texture.
     void setBaseColorTexture(const TextureRef& baseColorTexture) { _baseColorTexture = baseColorTexture; }
 
+    /// @brief Check if the base color texture is available.
+    /// @return True if available.
+    bool haveBaseColorTexture() { return _baseColorTexture != nullptr; }
+
     /// @brief The metallic-roughness texture.
     /// @return The texture.
     [[nodiscard]] const TextureRef& metallicRoughnessTexture() const { return _metallicRoughnessTexture; }
@@ -116,6 +120,10 @@ public:
         _metallicRoughnessTexture = metallicRoughnessTexture;
     }
 
+    /// @brief Check if the metallic-roughness texture is available.
+    /// @return True if available.
+    bool haveMetallicRoughnessTexture() { return _metallicRoughnessTexture != nullptr; }
+
     /// @brief The tangent space normal texture.
     /// @return The texture.
     [[nodiscard]] const TextureRef& normalTexture() const { return _normalTexture; }
@@ -123,6 +131,10 @@ public:
     /// @brief Set the tangent space normal texture.
     /// @param normalTexture The texture.
     void setNormalTexture(const TextureRef& normalTexture) { _normalTexture = normalTexture; }
+
+    /// @brief Check if the normal texture is available.
+    /// @return True if available.
+    bool haveNormalTexture() { return _normalTexture != nullptr; }
 
     /// @brief The occlusion texture.
     /// @return The texture.
@@ -132,6 +144,10 @@ public:
     /// @param occlusionTexture The texture.
     void setOcclusionTexture(const TextureRef& occlusionTexture) { _occlusionTexture = occlusionTexture; }
 
+    /// @brief Check if the occlusion texture is available.
+    /// @return True if available.
+    bool haveOcclusionTexture() { return _occlusionTexture != nullptr; }
+
     /// @brief The emissive texture.
     /// @return The texture.
     [[nodiscard]] const TextureRef& emissiveTexture() const { return _emissiveTexture; }
@@ -139,6 +155,10 @@ public:
     /// @brief Set the emissive texture.
     /// @param emissiveTexture The texture.
     void setEmissiveTexture(const TextureRef& emissiveTexture) { _emissiveTexture = emissiveTexture; }
+
+    /// @brief Check if the emissive texture is available.
+    /// @return True if available.
+    bool haveEmissiveTexture() { return _emissiveTexture != nullptr; }
 
     /// @brief Build the material.
     void build();

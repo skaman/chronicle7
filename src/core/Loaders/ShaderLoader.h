@@ -11,7 +11,7 @@ namespace chronicle {
 
 class ShaderLoader {
 public:
-    [[nodiscard]] static ShaderRef load(const std::string& filename);
+    [[nodiscard]] static ShaderRef load(const ShaderCompilerOptions& options);
 };
 
 } // namespace chronicle

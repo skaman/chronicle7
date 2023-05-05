@@ -29,7 +29,7 @@ public:
 
         // assets
         //_mesh = MeshAsset::load("D:\\viking_room.obj");
-        _texture = TextureAsset::load("D:\\viking_room.png");
+        //_texture = TextureAsset::load("D:\\viking_room.png");
 
         auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
         // auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Box\\glTF\\Box.gltf");
@@ -38,7 +38,7 @@ public:
         // descriptor sets
         for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
             const auto& descriptorSet = Renderer::descriptorSet(i);
-            descriptorSet->addSampler(ShaderStage::fragment, _texture->texture());
+            //descriptorSet->addSampler(ShaderStage::fragment, _texture->texture());
             descriptorSet->build();
         }
 
@@ -69,7 +69,7 @@ public:
 
         //_mesh.reset();
         _mesh2.reset();
-        _texture.reset();
+        //_texture.reset();
         //_pipeline.reset();
 
         Renderer::deinit();
@@ -101,6 +101,7 @@ public:
                 Renderer::commandBuffer()->bindVertexBuffers(_mesh2->vertexBuffers(i));
                 Renderer::commandBuffer()->bindIndexBuffer(_mesh2->indexBuffer(i), _mesh2->indexType(i));
                 Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
+                Renderer::commandBuffer()->bindDescriptorSet(_mesh2->material(i)->descriptorSet(), 1);
                 Renderer::commandBuffer()->drawIndexed(_mesh2->indicesCount(i), 1);
             }
             Renderer::commandBuffer()->endDebugLabel();
@@ -221,7 +222,7 @@ public:
 private:
     // PipelineRef _pipeline;
     // MeshAssetRef _mesh;
-    TextureAssetRef _texture;
+    //TextureAssetRef _texture;
     MeshRef _mesh2;
 
     UniformBufferObject _ubo {};

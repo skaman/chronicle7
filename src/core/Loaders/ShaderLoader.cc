@@ -9,14 +9,14 @@ struct ShaderLoaderContext {
     static inline std::unordered_map<size_t, std::weak_ptr<Shader>> cache = {};
 };
 
-ShaderRef ShaderLoader::load(const std::string& filename)
+ShaderRef ShaderLoader::load(const ShaderCompilerOptions& options)
 {
-    auto hash = std::hash<std::string>()(filename);
+    auto hash = std::hash<ShaderCompilerOptions>()(options);
     if (auto shader = ShaderLoaderContext::cache[hash].lock()) {
         return shader;
     }
 
-    auto shader = ShaderCompiler::compile(filename);
+    auto shader = ShaderCompiler::compile(options);
     ShaderLoaderContext::cache[hash] = shader;
     return shader;
 }

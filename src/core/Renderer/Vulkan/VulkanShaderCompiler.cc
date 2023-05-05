@@ -9,14 +9,14 @@
 
 namespace chronicle {
 
-ShaderRef VulkanShaderCompiler::compile(const std::string& filename)
+ShaderRef VulkanShaderCompiler::compile(const ShaderCompilerOptions& options)
 {
-    auto sourceCode = Storage::readString(filename);
+    auto sourceCode = Storage::readString(options.filename);
 
     std::unordered_map<ShaderStage, std::vector<uint8_t>> codes;
     std::unordered_map<ShaderStage, std::string> entryPoints;
 
-    magic_enum::enum_for_each<ShaderStage>([&codes, &entryPoints, &filename, &sourceCode](auto val) {
+    magic_enum::enum_for_each<ShaderStage>([&codes, &entryPoints, &options, &sourceCode](auto val) {
         constexpr ShaderStage shaderStage = val;
 
         if (shaderStage == ShaderStage::none || shaderStage == ShaderStage::_entt_enum_as_bitmask) {
@@ -28,11 +28,11 @@ ShaderRef VulkanShaderCompiler::compile(const std::string& filename)
             return;
         }
 
-        codes[shaderStage] = compile(sourceCode, filename, shaderStage, entryPoint);
+        codes[shaderStage] = compile(sourceCode, options, shaderStage, entryPoint);
         entryPoints[shaderStage] = entryPoint;
     });
 
-    return VulkanShader::create(codes, entryPoints, std::hash<std::string>()(filename));
+    return VulkanShader::create(codes, entryPoints, std::hash<ShaderCompilerOptions>()(options));
 }
 
 shaderc_shader_kind VulkanShaderCompiler::getSpirvShader(ShaderStage stage)
@@ -79,8 +79,8 @@ std::string VulkanShaderCompiler::getEntryPoint(const std::string& sourceCode, S
     return {};
 }
 
-std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourceCode, const std::string& filename,
-    ShaderStage shaderStage, const std::string& entryPoint)
+std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourceCode,
+    const ShaderCompilerOptions& options, ShaderStage shaderStage, const std::string& entryPoint)
 {
     shaderc::Compiler spirvCompiler = {};
     shaderc::CompileOptions spirvOptions = {};
@@ -92,6 +92,7 @@ std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourc
     spirvOptions.SetOptimizationLevel(shaderc_optimization_level_zero);
 #endif
     spirvOptions.SetSourceLanguage(shaderc_source_language_hlsl);
+    spirvOptions.SetGenerateDebugInfo();
 
     switch (shaderStage) {
     case ShaderStage::fragment:
@@ -107,9 +108,12 @@ std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourc
         break;
     }
 
-    // sprivCompiler.PreprocessGlsl
+    for (const auto& macrodDefition : options.macroDefinitions) {
+        spirvOptions.AddMacroDefinition(macrodDefition);
+    }
+
     auto spirvCompilerResult = spirvCompiler.CompileGlslToSpv(sourceCode.data(), sourceCode.size(),
-        getSpirvShader(shaderStage), filename.c_str(), entryPoint.c_str(), spirvOptions);
+        getSpirvShader(shaderStage), options.filename.c_str(), entryPoint.c_str(), spirvOptions);
 
     std::stringstream streamMessage(spirvCompilerResult.GetErrorMessage());
     std::string segment;
@@ -128,7 +132,7 @@ std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourc
 
     if (spirvCompilerResult.GetCompilationStatus() != shaderc_compilation_status_success)
         throw RendererError(
-            fmt::format("Can't compile shader {} for stage {}", filename, magic_enum::enum_name(shaderStage)));
+            fmt::format("Can't compile shader {} for stage {}", options.filename, magic_enum::enum_name(shaderStage)));
 
     auto data = std::vector<uint8_t>(((spirvCompilerResult.end() - spirvCompilerResult.begin()) * sizeof(uint32_t)));
     std::memcpy(data.data(), spirvCompilerResult.begin(), data.size());

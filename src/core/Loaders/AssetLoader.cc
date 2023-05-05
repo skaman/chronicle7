@@ -193,8 +193,26 @@ AssetResult AssetLoader::load(const std::string& filename)
             }
 
             // create pipeline
+            ShaderCompilerOptions shaderCompilerOptions = {};
+            shaderCompilerOptions.filename = ":/MaterialPbr.hlsl";
+            if (submesh.material->haveBaseColorTexture()) {
+                shaderCompilerOptions.macroDefinitions.emplace_back("HAS_BASE_COLOR_TEXTURE");
+            }
+            if (submesh.material->haveMetallicRoughnessTexture()) {
+                shaderCompilerOptions.macroDefinitions.emplace_back("HAS_METALLIC_ROUGHNESS_TEXTURE");
+            }
+            if (submesh.material->haveNormalTexture()) {
+                shaderCompilerOptions.macroDefinitions.emplace_back("HAS_NORMAL_TEXTURE");
+            }
+            if (submesh.material->haveOcclusionTexture()) {
+                shaderCompilerOptions.macroDefinitions.emplace_back("HAS_OCCLUSION_TEXTURE");
+            }
+            if (submesh.material->haveEmissiveTexture()) {
+                shaderCompilerOptions.macroDefinitions.emplace_back("HAS_EMISSIVE_TEXTURE");
+            }
+
             PipelineInfo pipelineInfo = {};
-            pipelineInfo.shader = ShaderLoader::load(":/MaterialPbr.hlsl");
+            pipelineInfo.shader = ShaderLoader::load(shaderCompilerOptions);
             pipelineInfo.vertexBuffers = submesh.vertexBuffersInfo;
             submesh.pipeline = PipelineLoader::load(pipelineInfo, "test"); // TODO: handle debug name
 
@@ -309,12 +327,12 @@ uint32_t AssetLoader::getLocationFromAttributeType(AttributeType attributeType)
     switch (attributeType) {
     case chronicle::AttributeType::position:
         return 0;
-    case chronicle::AttributeType::normal:
-        return 3;
-    case chronicle::AttributeType::textcoord0:
-        return 2;
     case chronicle::AttributeType::color0:
         return 1;
+    case chronicle::AttributeType::textcoord0:
+        return 2;
+    case chronicle::AttributeType::normal:
+        return 3;
     case chronicle::AttributeType::tangent:
         return 4;
     case chronicle::AttributeType::joints0:

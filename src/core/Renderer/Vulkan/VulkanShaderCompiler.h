@@ -15,7 +15,7 @@ namespace chronicle {
 class VulkanShaderCompiler : public ShaderCompilerI<VulkanShaderCompiler>, private NonCopyable<VulkanShaderCompiler> {
 public:
     /// @brief @see ShaderCompilerI#compile
-    [[nodiscard]] static ShaderRef compile(const std::string& filename);
+    [[nodiscard]] static ShaderRef compile(const ShaderCompilerOptions& options);
 
 private:
     /// @brief Get shaderc shader kind from shader stage.
@@ -31,13 +31,13 @@ private:
 
     /// @brief Compile a shader.
     /// @param sourceCode Source code to compile.
-    /// @param filename File name.
+    /// @param options Shader compiler options.
     /// @param shaderStage Shader stage.
     /// @param entryPoint Entry point.
     /// @param options Compiler options.
     /// @return Compiled code.
-    [[nodiscard]] static std::vector<uint8_t> compile(const std::string_view& sourceCode, const std::string& filename,
-        ShaderStage shaderStage, const std::string& entryPoint);
+    [[nodiscard]] static std::vector<uint8_t> compile(const std::string_view& sourceCode,
+        const ShaderCompilerOptions& options, ShaderStage shaderStage, const std::string& entryPoint);
 };
 
 } // namespace chronicle
