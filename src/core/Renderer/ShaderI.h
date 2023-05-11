@@ -6,6 +6,7 @@
 #include "pch.h"
 
 #include "Common.h"
+#include "DescriptorSetLayout.h"
 
 namespace chronicle {
 

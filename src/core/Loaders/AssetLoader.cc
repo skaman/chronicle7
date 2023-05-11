@@ -192,28 +192,58 @@ AssetResult AssetLoader::load(const std::string& filename)
                 submesh.material = materials[primitive.material];
             }
 
+            // create descriptor set layout
+            DescriptorSetLayout descriptorLayout = {};
+            descriptorLayout.setNumber = 1;
+            descriptorLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 0,
+                .descriptorType = DescriptorType::uniformBuffer,
+                .descriptorCount = 1,
+                .stageFlags = ShaderStage::fragment });
+
             // create pipeline
             ShaderCompilerOptions shaderCompilerOptions = {};
             shaderCompilerOptions.filename = ":/MaterialPbr.hlsl";
             if (submesh.material->haveBaseColorTexture()) {
                 shaderCompilerOptions.macroDefinitions.emplace_back("HAS_BASE_COLOR_TEXTURE");
+                descriptorLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 1,
+                    .descriptorType = DescriptorType::combinedImageSampler,
+                    .descriptorCount = 1,
+                    .stageFlags = ShaderStage::fragment });
             }
             if (submesh.material->haveMetallicRoughnessTexture()) {
                 shaderCompilerOptions.macroDefinitions.emplace_back("HAS_METALLIC_ROUGHNESS_TEXTURE");
+                descriptorLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 2,
+                    .descriptorType = DescriptorType::combinedImageSampler,
+                    .descriptorCount = 1,
+                    .stageFlags = ShaderStage::fragment });
             }
             if (submesh.material->haveNormalTexture()) {
                 shaderCompilerOptions.macroDefinitions.emplace_back("HAS_NORMAL_TEXTURE");
+                descriptorLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 3,
+                    .descriptorType = DescriptorType::combinedImageSampler,
+                    .descriptorCount = 1,
+                    .stageFlags = ShaderStage::fragment });
             }
             if (submesh.material->haveOcclusionTexture()) {
                 shaderCompilerOptions.macroDefinitions.emplace_back("HAS_OCCLUSION_TEXTURE");
+                descriptorLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 4,
+                    .descriptorType = DescriptorType::combinedImageSampler,
+                    .descriptorCount = 1,
+                    .stageFlags = ShaderStage::fragment });
             }
             if (submesh.material->haveEmissiveTexture()) {
                 shaderCompilerOptions.macroDefinitions.emplace_back("HAS_EMISSIVE_TEXTURE");
+                descriptorLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 5,
+                    .descriptorType = DescriptorType::combinedImageSampler,
+                    .descriptorCount = 1,
+                    .stageFlags = ShaderStage::fragment });
             }
 
             PipelineInfo pipelineInfo = {};
             pipelineInfo.shader = ShaderLoader::load(shaderCompilerOptions);
             pipelineInfo.vertexBuffers = submesh.vertexBuffersInfo;
+            pipelineInfo.descriptorSetsLayout.push_back(Renderer::descriptorSetLayout());
+            pipelineInfo.descriptorSetsLayout.push_back(descriptorLayout);
             submesh.pipeline = PipelineLoader::load(pipelineInfo, "test"); // TODO: handle debug name
 
             submeshes.push_back(std::move(submesh));

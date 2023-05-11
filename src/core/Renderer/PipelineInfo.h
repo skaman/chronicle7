@@ -21,6 +21,9 @@ struct PipelineInfo {
 
     /// @brief Informations about the layout of the vertex buffers will be attached to the pipeline.
     std::vector<VertexBufferInfo> vertexBuffers = {};
+
+    /// @brief Informations about the descriptor sets that will be attached to the pipeline.
+    std::vector<DescriptorSetLayout> descriptorSetsLayout = {};
 };
 
 } // namespace chronicle
@@ -31,6 +34,9 @@ template <> struct std::hash<chronicle::PipelineInfo> {
         std::size_t h = data.shader->hash();
         for (const auto& vertexBuffer : data.vertexBuffers) {
             std::hash_combine(h, vertexBuffer);
+        }
+        for (const auto& descriptorSetLayout : data.descriptorSetsLayout) {
+            std::hash_combine(h, descriptorSetLayout);
         }
         return h;
     }

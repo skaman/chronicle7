@@ -71,6 +71,10 @@ public:
     /// @return Max frames in flight.
     [[nodiscard]] static uint32_t maxFramesInFlight() { return T::maxFramesInFlight(); }
 
+    /// @brief Get the descriptor set layout 0 (frame descriptor set)
+    /// @return Descriptor set layout.
+    [[nodiscard]] static DescriptorSetLayout descriptorSetLayout() { return T::descriptorSetLayout(); }
+
 private:
     RendererI() = default;
     friend T;

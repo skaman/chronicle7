@@ -35,7 +35,7 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const char* deb
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 
     // descriptor sets layout
-    _descriptorSetsLayout = getDescriptorSetsLayout();
+    _descriptorSetsLayout = getVulkanDescriptorSetsLayout(pipelineInfo.descriptorSetsLayout);
 
     // create the pipeline
     create();
@@ -228,19 +228,18 @@ void VulkanPipeline::debugShowLines([[maybe_unused]] const DebugShowLinesEvent& 
     create();
 }
 
-std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout() const
+std::vector<vk::DescriptorSetLayout> VulkanPipeline::getVulkanDescriptorSetsLayout(
+    const std::vector<DescriptorSetLayout>& descriptorSetsLayout) const
 {
     CHRZONE_RENDERER;
 
-    const auto& shaderDescriptorSetLayouts = _shader->descriptorSetLayouts();
-
     // reserve descriptor sets layout memory
-    std::vector<vk::DescriptorSetLayout> descriptorSetsLayout;
-    descriptorSetsLayout.resize(shaderDescriptorSetLayouts.size());
+    std::vector<vk::DescriptorSetLayout> vulkanDescriptorSetsLayout;
+    vulkanDescriptorSetsLayout.resize(descriptorSetsLayout.size());
 
     // create the descriptor set layouts
-    for (uint32_t i = 0; i < shaderDescriptorSetLayouts.size(); i++) {
-        const auto& shaderDescriptorSetLayout = shaderDescriptorSetLayouts[i];
+    for (uint32_t i = 0; i < descriptorSetsLayout.size(); i++) {
+        const auto& shaderDescriptorSetLayout = descriptorSetsLayout[i];
         std::vector<vk::DescriptorSetLayoutBinding> bindings = {};
         for (const auto& shaderBinding : shaderDescriptorSetLayout.bindings) {
             vk::DescriptorSetLayoutBinding binding = {};
@@ -254,11 +253,11 @@ std::vector<vk::DescriptorSetLayout> VulkanPipeline::getDescriptorSetsLayout() c
         // create the descriptor set layout
         vk::DescriptorSetLayoutCreateInfo createInfo = {};
         createInfo.setBindings(bindings);
-        descriptorSetsLayout[i] = VulkanContext::device.createDescriptorSetLayout(createInfo);
+        vulkanDescriptorSetsLayout[i] = VulkanContext::device.createDescriptorSetLayout(createInfo);
     }
 
     // return descriptor set layouts
-    return descriptorSetsLayout;
+    return vulkanDescriptorSetsLayout;
 }
 
 } // namespace chronicle

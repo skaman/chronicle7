@@ -196,4 +196,15 @@ void VulkanRenderer::setDebugShowLines(bool enabled)
     }
 }
 
+DescriptorSetLayout VulkanRenderer::descriptorSetLayout()
+{
+    DescriptorSetLayout descriptorSetLayout = {};
+    descriptorSetLayout.setNumber = 0;
+    descriptorSetLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 0,
+        .descriptorType = DescriptorType::uniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = ShaderStage::vertex });
+    return descriptorSetLayout;
+}
+
 } // namespace chronicle

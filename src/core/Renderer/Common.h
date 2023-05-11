@@ -9,29 +9,6 @@
 
 namespace chronicle {
 
-/// @brief Structure specifying a descriptor set layout binding.
-struct DescriptorSetLayoutBinding {
-    /// @brief The binding number of this entry and corresponds to a resource of the same binding number in the shader
-    ///        stages.
-    uint32_t binding = 0;
-
-    /// @brief Specify the binding number of this entry and corresponds to a resource of the same binding number in the
-    ///        shader stages.
-    DescriptorType descriptorType = DescriptorType::unknown;
-
-    /// @brief The number of descriptors contained in the binding, accessed in a shader as an array.
-    uint32_t descriptorCount = 0;
-
-    /// @brief Specify which pipeline shader stages can access a resource for this binding.
-    ShaderStage stageFlags = ShaderStage::none;
-};
-
-/// @brief Data structure that contain descriptor set informations read from the shader itself with spirv-reflect.
-struct DescriptorSetLayout {
-    uint32_t setNumber = 0; ///< Set number.
-    std::vector<DescriptorSetLayoutBinding> bindings = {}; ///< Descriptor set layout bindings
-};
-
 template <class T> class CommandBufferI;
 template <class T> class DescriptorSetI;
 template <class T> class VertexBufferI;

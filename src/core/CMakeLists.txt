@@ -76,6 +76,7 @@ add_library(chronicle-core
     "Renderer/CommandBufferI.h"
     "Renderer/Common.h"
     "Renderer/DescriptorSetI.h"
+    "Renderer/DescriptorSetLayout.h"
     "Renderer/Enums.h"
     "Renderer/IndexBufferI.h"
     "Renderer/PipelineI.h"

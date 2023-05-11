@@ -52,8 +52,8 @@ private:
     vk::DescriptorPool _descriptorPool; ///< Descriptor pool.
     std::vector<vk::DescriptorSet> _descriptorSets; ///< Descriptor sets.
 
-    //std::vector<vk::PipelineShaderStageCreateInfo> _shaderStages; ///< Shader stages create informations.
-    //std::vector<vk::ShaderModule> _shaderModules; ///< Shader modules.
+    // std::vector<vk::PipelineShaderStageCreateInfo> _shaderStages; ///< Shader stages create informations.
+    // std::vector<vk::ShaderModule> _shaderModules; ///< Shader modules.
     std::vector<VertexBufferInfo> _vertexBuffers; ///< Vertex buffers.
 
     /// @brief Create the pipeline.
@@ -66,8 +66,10 @@ private:
     void debugShowLines(const DebugShowLinesEvent& evn);
 
     /// @brief Get the descriptor sets layout from shader.
-    /// @return Descriptor sets layout.
-    std::vector<vk::DescriptorSetLayout> getDescriptorSetsLayout() const;
+    /// @param descriptorSetsLayouts Descriptor sets layout.
+    /// @return Vulkan descriptor sets layout.
+    std::vector<vk::DescriptorSetLayout> getVulkanDescriptorSetsLayout(
+        const std::vector<DescriptorSetLayout>& descriptorSetsLayout) const;
 };
 
 } // namespace chronicle

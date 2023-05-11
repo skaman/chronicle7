@@ -66,6 +66,9 @@ public:
 
     /// @brief @see RendererI#maxFramesInFlight
     [[nodiscard]] static uint32_t maxFramesInFlight() { return VulkanContext::maxFramesInFlight; }
+
+    /// @brief @see RendererI#descriptorSetLayout
+    [[nodiscard]] static DescriptorSetLayout descriptorSetLayout();
 };
 
 } // namespace chronicle
