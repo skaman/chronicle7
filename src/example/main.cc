@@ -32,13 +32,16 @@ public:
         //_texture = TextureAsset::load("D:\\viking_room.png");
 
         auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
+        // auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Buggy\\glTF\\Buggy.gltf");
         // auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Box\\glTF\\Box.gltf");
+        // auto test =
+        // AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf");
         _mesh2 = test.meshes[0];
 
         // descriptor sets
         for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
             const auto& descriptorSet = Renderer::descriptorSet(i);
-            //descriptorSet->addSampler(ShaderStage::fragment, _texture->texture());
+            // descriptorSet->addSampler(ShaderStage::fragment, _texture->texture());
             descriptorSet->build();
         }
 
@@ -222,7 +225,7 @@ public:
 private:
     // PipelineRef _pipeline;
     // MeshAssetRef _mesh;
-    //TextureAssetRef _texture;
+    // TextureAssetRef _texture;
     MeshRef _mesh2;
 
     UniformBufferObject _ubo {};

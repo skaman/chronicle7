@@ -23,6 +23,15 @@ public:
         return T::create(vertexBuffers, offsets);
     }
 
+    /// @brief Factory for create a new group of vertex buffers.
+    /// @param vertexBuffer Vertex buffer.
+    /// @param offsetsVertex buffer offset.
+    /// @return The vertex buffers.
+    [[nodiscard]] static VertexBuffersRef create(const VertexBufferRef& vertexBuffer, uint32_t offset)
+    {
+        return T::create(vertexBuffer, offset);
+    }
+
 private:
     VertexBuffersI() = default;
     friend T;

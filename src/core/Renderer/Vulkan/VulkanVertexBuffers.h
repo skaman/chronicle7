@@ -32,6 +32,9 @@ public:
     [[nodiscard]] static VertexBuffersRef create(
         const std::vector<VertexBufferRef>& vertexBuffers, const std::vector<uint32_t>& offsets);
 
+    /// @brief @see VertexBuffersI#create
+    [[nodiscard]] static VertexBuffersRef create(const VertexBufferRef& vertexBuffer, uint32_t offset);
+
 private:
     std::vector<VertexBufferRef> _vertexBuffers = {}; ///< Vertex buffers.
     std::vector<vk::Buffer> _buffers = {}; ///< Vulkan buffers.

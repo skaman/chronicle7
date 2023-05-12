@@ -10,7 +10,7 @@
 namespace chronicle {
 
 /// @brief Type of the attribute.
-enum class AttributeType { undefined, position, normal, textcoord0, color0, tangent, joints0, weights0 };
+enum class AttributeType { undefined, position, normal, textcoord0, textcoord1, color0, tangent, joints0, weights0 };
 
 /// @brief Vertex buffer attribute descriptions.
 struct AttributeDescriptionInfo {

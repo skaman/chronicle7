@@ -23,7 +23,12 @@ private:
     static IndexType getIndexType(Format format);
     static AttributeType getAttributeType(const std::string_view& attributeName);
     static uint32_t getLocationFromAttributeType(AttributeType attributeType);
-    static TextureRef getTexture(const tinygltf::Model& model, uint32_t textureIndex);
+
+    static TextureRef createTexture(const tinygltf::Model& gltfModel, uint32_t textureIndex);
+    static MaterialRef createMaterial(const tinygltf::Model& gltfModel, const tinygltf::Material& gltfMaterial);
+
+    static MeshRef createMesh(const tinygltf::Model& gltfModel, const tinygltf::Mesh& gltfMesh,
+        const std::vector<MaterialRef>& materials, const MaterialRef& defaultMaterial);
 };
 
 } // namespace chronicle

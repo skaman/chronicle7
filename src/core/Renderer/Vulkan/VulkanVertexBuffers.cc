@@ -31,4 +31,15 @@ VertexBuffersRef VulkanVertexBuffers::create(
     return std::make_shared<ConcreteVulkanVertexBuffers>(vertexBuffers, offsets);
 }
 
+VertexBuffersRef VulkanVertexBuffers::create(const VertexBufferRef& vertexBuffer, uint32_t offset)
+{
+    std::vector<VertexBufferRef> vertexBuffers = {};
+    std::vector<uint32_t> offsets = {};
+
+    vertexBuffers.push_back(vertexBuffer);
+    offsets.push_back(offset);
+
+    return std::make_shared<ConcreteVulkanVertexBuffers>(vertexBuffers, offsets);
+}
+
 } // namespace chronicle

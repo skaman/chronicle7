@@ -10,6 +10,15 @@
 
 namespace chronicle {
 
+/// @brief Bounding box.
+struct BoundingBox {
+    /// @brief Bounding box minimal value.
+    glm::vec3 min;
+
+    /// @brief Bounding box maximun value.
+    glm::vec3 max;
+};
+
 /// @brief Submesh data used to construct the mesh.
 struct Submesh {
     /// @brief Vertices count.
@@ -35,6 +44,9 @@ struct Submesh {
 
     /// @brief Pipeline.
     PipelineRef pipeline = {};
+
+    /// @brief Mesh bounding box.
+    BoundingBox boundingBox = {};
 };
 
 class Mesh;

@@ -7,17 +7,19 @@
 struct VSInput
 {
     [[vk::location(0)]] float3 Position : POSITION0;
-    [[vk::location(1)]] float3 Color : COLOR0;
-    [[vk::location(2)]] float2 TexCoord : TEXCOORD0;
-    [[vk::location(3)]] float3 Normal : NORMAL0;
+    [[vk::location(1)]] float3 Normal : NORMAL0;
+    [[vk::location(2)]] float2 TexCoord0 : TEXCOORD0;
+    [[vk::location(3)]] float2 TexCoord1 : TEXCOORD1;
+    [[vk::location(4)]] float3 Color : COLOR0;
 };
 
 struct VSOutput
 {
     float4 Pos : SV_POSITION;
     //[[vk::location(0)]] float3 Color : COLOR0;
-    [[vk::location(1)]] float2 TexCoord : TEXCOORD0;
-    [[vk::location(2)]] float3 Normal : NORMAL0;
+    [[vk::location(1)]] float2 TexCoord0 : TEXCOORD0;
+    [[vk::location(2)]] float2 TexCoord1 : TEXCOORD1;
+    [[vk::location(3)]] float3 Normal : NORMAL0;
 };
 
 struct UBO
@@ -51,10 +53,10 @@ cbuffer materialUbo : register(b0, space1)
     MaterialUBO materialUbo;
 }
 
-//#ifdef HAS_BASE_COLOR_TEXTURE
+#ifdef HAS_BASE_COLOR_TEXTURE
 SamplerState baseColorTexSampler : register(s1, space1);
 Texture2D<float4> baseColorTex : register(t1, space1);
-//#endif
+#endif
 
 //#ifdef HAS_METALLIC_ROUGHNESS_TEXTURE
 SamplerState metallicRoughnessSampler : register(s2, space1);
@@ -99,7 +101,7 @@ VSOutput mainVertex(VSInput input)
 {
     VSOutput output = (VSOutput) 0;
     output.Pos = mul(ubo.projectionMatrix, mul(ubo.viewMatrix, mul(ubo.modelMatrix, float4(input.Position.xyz, 1.0))));
-    output.TexCoord = input.TexCoord;
+    output.TexCoord0 = input.TexCoord0;
     output.Normal = input.Normal;
     return output;
 }
@@ -107,6 +109,15 @@ VSOutput mainVertex(VSInput input)
 float3 lin2rgb(float3 lin)
 {
     return pow(lin, float3(1.0f / 2.2f));
+}
+
+inline float4 getBaseColor(float2 texCoord)
+{
+#ifdef HAS_BASE_COLOR_TEXTURE
+    return baseColorTex.Sample(baseColorTexSampler, texCoord);
+#else
+    return materialUbo.baseColorFactor;
+#endif
 }
 
 float4 mainFragment(in VSOutput input) : SV_TARGET0
@@ -121,7 +132,8 @@ float4 mainFragment(in VSOutput input) : SV_TARGET0
     //float3 normal = float3(0.5f);
     float3 normal = input.Normal;
     float3 radiance = float3(1.0f);
-    float3 color = baseColorTex.Sample(baseColorTexSampler, input.TexCoord);
+    //float3 color = baseColorTex.Sample(baseColorTexSampler, input.TexCoord0);
+    float3 color = getBaseColor(input.TexCoord0);
     float3 irradiance = max(dot(lightDir, normal), 0.0f) * flux / (4.0f * PI * lightDistance * lightDistance);
     //return float4(lightDir, 1.0f);
     //return float4(normal, 1.0f);
