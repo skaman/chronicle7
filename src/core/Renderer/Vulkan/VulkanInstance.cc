@@ -19,11 +19,12 @@ namespace chronicle {
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
-const std::vector<const char*> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME
-//#ifdef VULKAN_ENABLE_DEBUG_MARKER
-//    ,
-//    VK_EXT_DEBUG_MARKER_EXTENSION_NAME
-//#endif // VULKAN_ENABLE_DEBUG_MARKER
+const std::vector<const char*> DEVICE_EXTENSIONS = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    // #ifdef VULKAN_ENABLE_DEBUG_MARKER
+    //     ,
+    //     VK_EXT_DEBUG_MARKER_EXTENSION_NAME
+    // #endif // VULKAN_ENABLE_DEBUG_MARKER
 };
 
 CHR_CONCRETE(VulkanInstance);
@@ -186,11 +187,6 @@ void VulkanInstance::cleanupSwapChain()
     VulkanContext::device.destroyImageView(VulkanContext::depthImageView);
     VulkanContext::device.destroyImage(VulkanContext::depthImage);
     VulkanContext::device.freeMemory(VulkanContext::depthImageMemory);
-
-    // clean swap chain image views
-    for (const auto& imageData : VulkanContext::imagesData) {
-        VulkanContext::device.destroyImageView(imageData.swapChainImageView);
-    }
 
     // clean image data
     VulkanContext::imagesData.clear();
@@ -415,9 +411,8 @@ void VulkanInstance::createSwapChain()
     // prepare images data structures
     VulkanContext::imagesData.resize(swapChainImages.size());
     for (auto i = 0; i < swapChainImages.size(); i++) {
-        VulkanContext::imagesData[i].swapChainImage = swapChainImages[i];
-        VulkanContext::imagesData[i].swapChainImageView = VulkanUtils::createImageView(
-            swapChainImages[i], surfaceFormat.format, vk::ImageAspectFlagBits::eColor, 1);
+        VulkanContext::imagesData[i].swapChainTexture
+            = VulkanTexture::create(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
     }
 }
 
@@ -570,8 +565,8 @@ void VulkanInstance::createFramebuffers()
 
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
-        std::array<vk::ImageView, 3> attachments
-            = { VulkanContext::colorImageView, VulkanContext::depthImageView, imageData.swapChainImageView };
+        std::array<vk::ImageView, 3> attachments = { VulkanContext::colorImageView, VulkanContext::depthImageView,
+            *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
         vk::FramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.setRenderPass(VulkanContext::renderPass);
         framebufferInfo.setAttachments(attachments);
@@ -590,7 +585,8 @@ void VulkanInstance::createDebugFramebuffers()
 
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
-        std::array<vk::ImageView, 1> attachments = { imageData.swapChainImageView };
+        std::array<const vk::ImageView, 1> attachments
+            = { *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
         vk::FramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.setRenderPass(VulkanContext::debugRenderPass);
         framebufferInfo.setAttachments(attachments);

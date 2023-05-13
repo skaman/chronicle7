@@ -10,8 +10,6 @@
 #include "VulkanShader.h"
 #include "VulkanUtils.h"
 
-#include <spirv-reflect/spirv_reflect.h>
-
 namespace chronicle {
 
 CHR_CONCRETE(VulkanPipeline);

@@ -99,8 +99,7 @@ struct VulkanFrameData {
 /// @brief Data related to a single swapchain image.
 struct VulkanImageData {
     // swapchain
-    vk::Image swapChainImage = nullptr; ///< Swapchain images.
-    vk::ImageView swapChainImageView = nullptr; ///< Swapchain image views.
+    TextureRef swapChainTexture = {}; ///< Swapchain texture.
 
     // framebuffers
     vk::Framebuffer framebuffer = nullptr; ///< Framebuffer main render pass.

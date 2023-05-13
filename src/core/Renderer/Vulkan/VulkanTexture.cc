@@ -15,6 +15,8 @@ VulkanTexture::VulkanTexture(const TextureInfo& textureInfo)
     , _width(textureInfo.width)
     , _height(textureInfo.height)
 {
+    CHRZONE_RENDERER;
+
     assert(_width > 0);
     assert(_height > 0);
 
@@ -70,27 +72,51 @@ VulkanTexture::VulkanTexture(const TextureInfo& textureInfo)
     }
 }
 
+VulkanTexture::VulkanTexture(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
+    : _image(image)
+    , _fromExternalImage(true)
+    , _width(width)
+    , _height(height)
+{
+    CHRZONE_RENDERER;
+
+    assert(format != vk::Format::eUndefined);
+    assert(_image);
+    assert(_width > 0);
+    assert(_height > 0);
+
+    _imageView = VulkanUtils::createImageView(_image, format, vk::ImageAspectFlagBits::eColor, 1);
+}
+
 VulkanTexture::~VulkanTexture()
 {
     CHRZONE_RENDERER;
 
     CHRLOG_TRACE("Destroy texture");
 
-    // destroy imageview, sampler, image and free memory
     VulkanContext::device.destroyImageView(_imageView);
-    VulkanContext::device.destroySampler(_sampler);
-    VulkanContext::device.destroyImage(_image);
-    VulkanContext::device.freeMemory(_imageMemory);
+
+    if (!_fromExternalImage) {
+        VulkanContext::device.destroySampler(_sampler);
+        VulkanContext::device.destroyImage(_image);
+        VulkanContext::device.freeMemory(_imageMemory);
+    }
 }
 
 TextureRef VulkanTexture::create(const TextureInfo& textureInfo)
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_TRACE("Create texture: generate mipmaps={}", textureInfo.generateMipmaps);
-
     // create an instance of the class
     return std::make_shared<ConcreteVulkanTexture>(textureInfo);
+}
+
+TextureRef VulkanTexture::create(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
+{
+    CHRZONE_RENDERER;
+
+    // create an instance of the class
+    return std::make_shared<ConcreteVulkanTexture>(image, format, width, height);
 }
 
 } // namespace chronicle

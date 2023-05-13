@@ -7,7 +7,10 @@
 
 #include "Renderer/ShaderI.h"
 
+#pragma warning(push)
+#pragma warning(disable : 26439)
 #include <spirv-reflect/spirv_reflect.h>
+#pragma warning(pop)
 
 namespace chronicle {
 

@@ -68,7 +68,7 @@ bool VulkanRenderer::beginFrame()
         auto result = VulkanContext::device.acquireNextImageKHR(
             VulkanContext::swapChain, std::numeric_limits<uint64_t>::max(), frameData.imageAvailableSemaphore, nullptr);
         VulkanContext::currentImage = result.value;
-    } catch (vk::OutOfDateKHRError err) {
+    } catch (const vk::OutOfDateKHRError&) {
         VulkanInstance::recreateSwapChain();
         return false;
     }
@@ -168,7 +168,7 @@ void VulkanRenderer::endFrame()
     vk::Result resultPresent;
     try {
         resultPresent = VulkanContext::presentQueue.presentKHR(presentInfo);
-    } catch (vk::OutOfDateKHRError err) {
+    } catch (const vk::OutOfDateKHRError&) {
         resultPresent = vk::Result::eErrorOutOfDateKHR;
     }
 

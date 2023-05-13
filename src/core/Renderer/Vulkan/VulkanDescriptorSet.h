@@ -88,14 +88,11 @@ public:
         layoutBinding.setStageFlags(VulkanEnums::shaderStageToVulkan(stage));
         _layoutBindings.push_back(layoutBinding);
 
-        // cast the texture to a vulkan texture
-        const auto vulkanTexture = static_cast<const VulkanTexture*>(texture.get());
-
         // create the descriptor image informations.
         vk::DescriptorImageInfo imageInfo {};
         imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
-        imageInfo.setImageView(vulkanTexture->imageView());
-        imageInfo.setSampler(vulkanTexture->sampler());
+        imageInfo.setImageView(*static_cast<const vk::ImageView*>(texture->textureId()));
+        imageInfo.setSampler(*static_cast<const vk::Sampler*>(texture->samplerId()));
 
         // create and add the descriptor binding informations
         VulkanDescriptorSetBindingInfo descriptorSetBinding
