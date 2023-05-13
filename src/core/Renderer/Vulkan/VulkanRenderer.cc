@@ -7,6 +7,7 @@
 #include "VulkanEvents.h"
 #include "VulkanImGui.h"
 #include "VulkanInstance.h"
+#include "VulkanRenderPass.h"
 #include "VulkanUtils.h"
 
 namespace chronicle {
@@ -96,7 +97,7 @@ bool VulkanRenderer::beginFrame()
 
     // begin render pass
     vk::RenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.setRenderPass(VulkanContext::renderPass);
+    renderPassInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId()));
     renderPassInfo.setFramebuffer(imageData.framebuffer);
     renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
     renderPassInfo.setClearValues(clearValues);
@@ -138,7 +139,7 @@ void VulkanRenderer::endFrame()
 
     // begin debug draw pass
     vk::RenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.setRenderPass(VulkanContext::debugRenderPass);
+    renderPassInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::debugRenderPass->renderPassId()));
     renderPassInfo.setFramebuffer(imageData.debugFramebuffer);
     renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);

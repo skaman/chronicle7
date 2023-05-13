@@ -7,6 +7,7 @@
 
 #include "VulkanEnums.h"
 #include "VulkanInstance.h"
+#include "VulkanRenderPass.h"
 #include "VulkanShader.h"
 #include "VulkanUtils.h"
 
@@ -186,7 +187,7 @@ void VulkanPipeline::create()
     graphicsPipelineInfo.setPColorBlendState(&colorBlending);
     graphicsPipelineInfo.setPDynamicState(&dynamicState);
     graphicsPipelineInfo.setLayout(_pipelineLayout);
-    graphicsPipelineInfo.setRenderPass(VulkanContext::renderPass);
+    graphicsPipelineInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId()));
     graphicsPipelineInfo.setSubpass(0);
 
     // create the graphics pipeline

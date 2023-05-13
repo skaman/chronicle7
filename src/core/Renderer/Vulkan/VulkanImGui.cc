@@ -7,6 +7,7 @@
 #include "Storage/Storage.h"
 #include "VulkanCommandBuffer.h"
 #include "VulkanCommon.h"
+#include "VulkanRenderPass.h"
 #include "VulkanUtils.h"
 
 #ifdef GLFW_PLATFORM
@@ -90,7 +91,9 @@ void VulkanImGui::init()
     initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.Allocator = nullptr;
     initInfo.CheckVkResultFn = checkVulkanResult;
-    ImGui_ImplVulkan_Init(&initInfo, VulkanContext::debugRenderPass);
+
+    auto renderPass = static_cast<const vk::RenderPass*>(VulkanContext::debugRenderPass->renderPassId());
+    ImGui_ImplVulkan_Init(&initInfo, *renderPass);
 
     // create font texture
     auto commandBuffer = VulkanUtils::beginSingleTimeCommands();

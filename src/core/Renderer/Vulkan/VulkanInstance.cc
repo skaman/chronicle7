@@ -7,6 +7,7 @@
 #include "VulkanDescriptorSet.h"
 #include "VulkanExtensions.h"
 #include "VulkanInstance.h"
+#include "VulkanRenderPass.h"
 #include "VulkanUtils.h"
 
 #ifdef GLFW_PLATFORM
@@ -19,13 +20,7 @@ namespace chronicle {
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
-const std::vector<const char*> DEVICE_EXTENSIONS = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    // #ifdef VULKAN_ENABLE_DEBUG_MARKER
-    //     ,
-    //     VK_EXT_DEBUG_MARKER_EXTENSION_NAME
-    // #endif // VULKAN_ENABLE_DEBUG_MARKER
-};
+const std::vector<const char*> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 CHR_CONCRETE(VulkanInstance);
 
@@ -112,8 +107,8 @@ void VulkanInstance::deinit()
     VulkanContext::framesData.clear();
 
     // destroy rendering passes
-    VulkanContext::device.destroyRenderPass(VulkanContext::debugRenderPass);
-    VulkanContext::device.destroyRenderPass(VulkanContext::renderPass);
+    VulkanContext::debugRenderPass.reset();
+    VulkanContext::renderPass.reset();
 
     // cleanup swap chain
     cleanupSwapChain();
@@ -425,125 +420,60 @@ void VulkanInstance::createRenderPass()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_TRACE("Create main render pass");
-
     // color attachment
-    vk::AttachmentDescription colorAttachment = {};
-    colorAttachment.setFormat(VulkanContext::swapChainImageFormat);
-    colorAttachment.setSamples(VulkanContext::msaaSamples);
-    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
-    colorAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-    // color attachment reference
-    vk::AttachmentReference colorAttachmentRef = {};
-    colorAttachmentRef.setAttachment(0);
-    colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    RenderPassAttachment colorAttachment
+        = { .format = VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat),
+              .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples),
+              .loadOp = AttachmentLoadOp::clear,
+              .storeOp = AttachmentStoreOp::store,
+              .stencilLoadOp = AttachmentLoadOp::dontCare,
+              .stencilStoreOp = AttachmentStoreOp::dontCare,
+              .initialLayout = ImageLayout::undefined,
+              .finalLayout = ImageLayout::colorAttachment };
 
     // depth attachment
-    vk::AttachmentDescription depthAttachment = {};
-    depthAttachment.setFormat(VulkanContext::depthImageFormat);
-    depthAttachment.setSamples(VulkanContext::msaaSamples);
-    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
-    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
-    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-    // depth attachment reference
-    vk::AttachmentReference depthAttachmentRef = {};
-    depthAttachmentRef.setAttachment(1);
-    depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    RenderPassAttachment depthAttachment = { .format = VulkanEnums::formatFromVulkan(VulkanContext::depthImageFormat),
+        .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples),
+        .loadOp = AttachmentLoadOp::clear,
+        .storeOp = AttachmentStoreOp::dontCare,
+        .stencilLoadOp = AttachmentLoadOp::dontCare,
+        .stencilStoreOp = AttachmentStoreOp::dontCare,
+        .initialLayout = ImageLayout::undefined,
+        .finalLayout = ImageLayout::depthStencilAttachment };
 
     // resolve attachment
-    vk::AttachmentDescription colorAttachmentResolve = {};
-    colorAttachmentResolve.setFormat(VulkanContext::swapChainImageFormat);
-    colorAttachmentResolve.setSamples(vk::SampleCountFlagBits::e1);
-    colorAttachmentResolve.setLoadOp(vk::AttachmentLoadOp::eDontCare);
-    colorAttachmentResolve.setStoreOp(vk::AttachmentStoreOp::eStore);
-    colorAttachmentResolve.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    colorAttachmentResolve.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    colorAttachmentResolve.setInitialLayout(vk::ImageLayout::eUndefined);
-    colorAttachmentResolve.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
-
-    // resolve attachment reference
-    vk::AttachmentReference colorAttachmentResolveRef = {};
-    colorAttachmentResolveRef.setAttachment(2);
-    colorAttachmentResolveRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-    // subpass
-    vk::SubpassDescription subpass = {};
-    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-    subpass.setColorAttachments(colorAttachmentRef);
-    subpass.setPDepthStencilAttachment(&depthAttachmentRef);
-    subpass.setPResolveAttachments(&colorAttachmentResolveRef);
-
-    // dependency
-    vk::SubpassDependency dependency = {};
-    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
-    dependency.setDstSubpass(0);
-    dependency.setSrcStageMask(
-        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests);
-    dependency.setDstStageMask(
-        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests);
-    dependency.setDstAccessMask(
-        vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite);
+    RenderPassAttachment resolveAttachment
+        = { .format = VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat),
+              .msaa = MSAA::sampleCount1,
+              .loadOp = AttachmentLoadOp::dontCare,
+              .storeOp = AttachmentStoreOp::store,
+              .stencilLoadOp = AttachmentLoadOp::dontCare,
+              .stencilStoreOp = AttachmentStoreOp::dontCare,
+              .initialLayout = ImageLayout::undefined,
+              .finalLayout = ImageLayout::colorAttachment };
 
     // create the renderpass
-    vk::RenderPassCreateInfo createRenderPassInfo = {};
-    std::array<vk::AttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
-    createRenderPassInfo.setAttachments(attachments);
-    createRenderPassInfo.setSubpasses(subpass);
-    createRenderPassInfo.setDependencies(dependency);
-    VulkanContext::renderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
+    VulkanContext::renderPass = RenderPass::create({ .colorAttachment = colorAttachment,
+        .depthStencilAttachment = depthAttachment,
+        .resolveAttachment = resolveAttachment });
 }
 
 void VulkanInstance::createDebugRenderPass()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_TRACE("Create ImGui render pass");
-
     // color attachment
-    vk::AttachmentDescription colorAttachment = {};
-    colorAttachment.setFormat(VulkanContext::swapChainImageFormat);
-    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eLoad);
-    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    colorAttachment.setInitialLayout(vk::ImageLayout::ePresentSrcKHR);
-    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+    RenderPassAttachment colorAttachment
+        = { .format = VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat),
+              .msaa = MSAA::sampleCount1,
+              .loadOp = AttachmentLoadOp::load,
+              .storeOp = AttachmentStoreOp::store,
+              .stencilLoadOp = AttachmentLoadOp::dontCare,
+              .stencilStoreOp = AttachmentStoreOp::dontCare,
+              .initialLayout = ImageLayout::colorAttachment,
+              .finalLayout = ImageLayout::presentSrc };
 
-    // color attachment reference
-    vk::AttachmentReference colorAttachmentRef = {};
-    colorAttachmentRef.setAttachment(0);
-    colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-    // subpass
-    vk::SubpassDescription subpass = {};
-    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-    subpass.setColorAttachments(colorAttachmentRef);
-
-    // dependency
-    vk::SubpassDependency dependency = {};
-    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
-    dependency.setDstSubpass(0);
-    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
-
-    // create the renderpass
-    vk::RenderPassCreateInfo createRenderPassInfo = {};
-    std::array<vk::AttachmentDescription, 1> attachments = { colorAttachment };
-    createRenderPassInfo.setAttachments(attachments);
-    createRenderPassInfo.setSubpasses(subpass);
-    createRenderPassInfo.setDependencies(dependency);
-    VulkanContext::debugRenderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
+    VulkanContext::debugRenderPass = RenderPass::create({ .colorAttachment = colorAttachment });
 }
 
 void VulkanInstance::createFramebuffers()
@@ -559,7 +489,7 @@ void VulkanInstance::createFramebuffers()
                   *static_cast<const vk::ImageView*>(VulkanContext::depthTexture->textureId()),
                   *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
         vk::FramebufferCreateInfo framebufferInfo = {};
-        framebufferInfo.setRenderPass(VulkanContext::renderPass);
+        framebufferInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId()));
         framebufferInfo.setAttachments(attachments);
         framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
         framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
@@ -579,7 +509,8 @@ void VulkanInstance::createDebugFramebuffers()
         std::array<const vk::ImageView, 1> attachments
             = { *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
         vk::FramebufferCreateInfo framebufferInfo = {};
-        framebufferInfo.setRenderPass(VulkanContext::debugRenderPass);
+        framebufferInfo.setRenderPass(
+            *static_cast<const vk::RenderPass*>(VulkanContext::debugRenderPass->renderPassId()));
         framebufferInfo.setAttachments(attachments);
         framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
         framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);

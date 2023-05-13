@@ -26,15 +26,7 @@ enum class IndexType {
 };
 
 /// @brief Samples count for multi sampling anti aliasing
-enum class MSAA {
-    sampleCount1,
-    sampleCount2,
-    sampleCount4,
-    sampleCount8,
-    sampleCount16,
-    sampleCount32,
-    sampleCount64
-};
+enum class MSAA { sampleCount1, sampleCount2, sampleCount4, sampleCount8, sampleCount16, sampleCount32, sampleCount64 };
 
 /// @brief Data format for surface, texture or data structures.
 enum class Format {
@@ -126,6 +118,32 @@ enum class TextureType {
     sampled, ///< Sampled texture.
     color, ///< Color texture.
     depth ///< Depth texture.
+};
+
+/// @brief Specify how contents of an attachment are treated at the beginning of a subpass.
+enum class AttachmentLoadOp {
+    load, ///< Specifies that the previous contents of the image within the render area will be preserved.
+    clear, ///< Specifies that the contents within the render area will be cleared to a uniform value, which is
+           ///< specified when a render pass instance is begun.
+    dontCare ///< Specifies that the previous contents within the area need not be preserved; the contents of the
+             ///< attachment will be undefined inside the render area.
+};
+
+/// @brief Specify how contents of an attachment are treated at the end of a subpass.
+enum class AttachmentStoreOp {
+    store, ///< Specifies the contents generated during the render pass and within the render area are written to
+           ///< memory.
+    dontCare ///< Specifies the contents within the render area are not needed after rendering, and may be discarded;
+             ///< the contents of the attachment will be undefined inside the render area.
+};
+
+/// @brief Layout of image and image subresources.
+enum class ImageLayout {
+    undefined, ///< Specifies that the layout is unknown. Image memory cannot be transitioned into this layout.
+    colorAttachment, ///< Must only be used as a color or resolve attachment in a Framebuffer.
+    depthStencilAttachment, ///< Specifies a layout for both the depth and stencil aspects of a depth/stencil format
+                            ///< image allowing read and write access as a depth/stencil attachment.
+    presentSrc ///< Must only be used for presenting a presentable image for display.
 };
 
 } // namespace chronicle

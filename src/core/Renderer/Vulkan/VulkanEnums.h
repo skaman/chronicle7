@@ -341,6 +341,48 @@ public:
             throw RendererError("Unsupported MSAA");
         }
     }
+
+    static vk::AttachmentLoadOp attachmentLoadOpToVulkan(AttachmentLoadOp attachmentLoadOp)
+    {
+        switch (attachmentLoadOp) {
+        case AttachmentLoadOp::load:
+            return vk::AttachmentLoadOp::eLoad;
+        case AttachmentLoadOp::clear:
+            return vk::AttachmentLoadOp::eClear;
+        case AttachmentLoadOp::dontCare:
+            return vk::AttachmentLoadOp::eDontCare;
+        default:
+            throw RendererError("Unsupported attachment load operation");
+        }
+    }
+
+    static vk::AttachmentStoreOp attachmentStoreOpToVulkan(AttachmentStoreOp attachmentStoreOp)
+    {
+        switch (attachmentStoreOp) {
+        case AttachmentStoreOp::store:
+            return vk::AttachmentStoreOp::eStore;
+        case AttachmentStoreOp::dontCare:
+            return vk::AttachmentStoreOp::eDontCare;
+        default:
+            throw RendererError("Unsupported attachment store operation");
+        }
+    }
+
+    static vk::ImageLayout imageLayoutToVulkan(ImageLayout imageLayout)
+    {
+        switch (imageLayout) {
+        case ImageLayout::undefined:
+            return vk::ImageLayout::eUndefined;
+        case ImageLayout::colorAttachment:
+            return vk::ImageLayout::eColorAttachmentOptimal;
+        case ImageLayout::depthStencilAttachment:
+            return vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        case ImageLayout::presentSrc:
+            return vk::ImageLayout::ePresentSrcKHR;
+        default:
+            throw RendererError("Unsupported image layout");
+        }
+    }
 };
 
 } // namespace chronicle

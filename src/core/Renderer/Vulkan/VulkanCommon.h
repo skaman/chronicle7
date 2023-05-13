@@ -142,8 +142,8 @@ struct VulkanContext {
     static inline vk::CommandPool commandPool = nullptr; ///< Command pool.
 
     // draw pass
-    static inline vk::RenderPass renderPass = nullptr; ///< Main render pass.
-    static inline vk::RenderPass debugRenderPass = nullptr; ///< Debug render pass.
+    static inline RenderPassRef renderPass = {}; ///< Main render pass.
+    static inline RenderPassRef debugRenderPass = {}; ///< Debug render pass.
 
     // descriptor sets
     static inline vk::DescriptorPool descriptorPool = nullptr; ///< Descriptor pool used to allocate resources.
