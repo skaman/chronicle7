@@ -13,6 +13,15 @@
 #define GLFW_PLATFORM
 #endif
 
+// disable a bunch of intellisense warning that we don't want for external libraries
+#pragma warning(push)
+#pragma warning(disable : 6201)
+#pragma warning(disable : 6285)
+#pragma warning(disable : 26437)
+#pragma warning(disable : 26451)
+#pragma warning(disable : 26495)
+#pragma warning(disable : 26498)
+
 // vulkan hpp
 #ifdef VULKAN_RENDERER
 #include <vulkan/vulkan.hpp>
@@ -83,6 +92,9 @@
 // magic enums
 #include <magic_enum.hpp>
 
+// restore warnings
+#pragma warning(pop)
+
 // std lib
 #include <bit>
 #include <chrono>
@@ -139,15 +151,15 @@ constexpr void log(
 #define CHRLOG_ERROR(...)                                                                                              \
     chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::err, __VA_ARGS__)
 
-// #ifdef NDEBUG
-// #define CHRLOG_DEBUG(...) (void)0
-// #define CHRLOG_TRACE(...) (void)0
-// #else
+#ifdef NDEBUG
+#define CHRLOG_DEBUG(...) (void)0
+#define CHRLOG_TRACE(...) (void)0
+#else
 #define CHRLOG_DEBUG(...)                                                                                              \
     chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::debug, __VA_ARGS__)
 #define CHRLOG_TRACE(...)                                                                                              \
     chronicle::log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::trace, __VA_ARGS__)
-// #endif
+#endif
 
 // trace
 #ifdef NDEBUG
