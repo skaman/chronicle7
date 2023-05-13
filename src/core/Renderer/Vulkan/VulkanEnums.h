@@ -25,11 +25,11 @@ public:
     static vk::ShaderStageFlagBits shaderStageToVulkan(ShaderStage stage)
     {
         switch (stage) {
-        case chronicle::ShaderStage::fragment:
+        case ShaderStage::fragment:
             return vk::ShaderStageFlagBits::eFragment;
-        case chronicle::ShaderStage::vertex:
+        case ShaderStage::vertex:
             return vk::ShaderStageFlagBits::eVertex;
-        case chronicle::ShaderStage::compute:
+        case ShaderStage::compute:
             return vk::ShaderStageFlagBits::eCompute;
         default:
             throw RendererError("Unsupported stage flags");
@@ -39,9 +39,9 @@ public:
     static vk::IndexType indexTypeToVulkan(IndexType indexType)
     {
         switch (indexType) {
-        case chronicle::IndexType::uint16:
+        case IndexType::uint16:
             return vk::IndexType::eUint16;
-        case chronicle::IndexType::uint32:
+        case IndexType::uint32:
             return vk::IndexType::eUint32;
         default:
             throw RendererError("Unsupported index type");
@@ -269,32 +269,76 @@ public:
     static vk::DescriptorType descriptorTypeFromVulkan(DescriptorType descriptorType)
     {
         switch (descriptorType) {
-        case chronicle::DescriptorType::sampler:
+        case DescriptorType::sampler:
             return vk::DescriptorType::eSampler;
-        case chronicle::DescriptorType::combinedImageSampler:
+        case DescriptorType::combinedImageSampler:
             return vk::DescriptorType::eCombinedImageSampler;
-        case chronicle::DescriptorType::sampledImage:
+        case DescriptorType::sampledImage:
             return vk::DescriptorType::eSampledImage;
-        case chronicle::DescriptorType::storageImage:
+        case DescriptorType::storageImage:
             return vk::DescriptorType::eStorageImage;
-        case chronicle::DescriptorType::uniformTexelBuffer:
+        case DescriptorType::uniformTexelBuffer:
             return vk::DescriptorType::eUniformTexelBuffer;
-        case chronicle::DescriptorType::storageTexelBuffer:
+        case DescriptorType::storageTexelBuffer:
             return vk::DescriptorType::eStorageTexelBuffer;
-        case chronicle::DescriptorType::uniformBuffer:
+        case DescriptorType::uniformBuffer:
             return vk::DescriptorType::eUniformBuffer;
-        case chronicle::DescriptorType::storageBuffer:
+        case DescriptorType::storageBuffer:
             return vk::DescriptorType::eStorageBuffer;
-        case chronicle::DescriptorType::uniformBufferDynamic:
+        case DescriptorType::uniformBufferDynamic:
             return vk::DescriptorType::eUniformBufferDynamic;
-        case chronicle::DescriptorType::storageBufferDynamic:
+        case DescriptorType::storageBufferDynamic:
             return vk::DescriptorType::eStorageBufferDynamic;
-        case chronicle::DescriptorType::inputAttachment:
+        case DescriptorType::inputAttachment:
             return vk::DescriptorType::eInputAttachment;
-        case chronicle::DescriptorType::accelerationStructure:
+        case DescriptorType::accelerationStructure:
             return vk::DescriptorType::eAccelerationStructureKHR;
         default:
             throw RendererError("Unsupported descriptor type");
+        }
+    }
+
+    static vk::SampleCountFlagBits msaaToVulkan(MSAA msaa)
+    {
+        switch (msaa) {
+        case MSAA::sampleCount1:
+            return vk::SampleCountFlagBits::e1;
+        case MSAA::sampleCount2:
+            return vk::SampleCountFlagBits::e2;
+        case MSAA::sampleCount4:
+            return vk::SampleCountFlagBits::e4;
+        case MSAA::sampleCount8:
+            return vk::SampleCountFlagBits::e8;
+        case MSAA::sampleCount16:
+            return vk::SampleCountFlagBits::e16;
+        case MSAA::sampleCount32:
+            return vk::SampleCountFlagBits::e32;
+        case MSAA::sampleCount64:
+            return vk::SampleCountFlagBits::e64;
+        default:
+            throw RendererError("Unsupported MSAA");
+        }
+    }
+
+    static MSAA msaaFromVulkan(vk::SampleCountFlagBits sampleCountFlagBit)
+    {
+        switch (sampleCountFlagBit) {
+        case vk::SampleCountFlagBits::e1:
+            return MSAA::sampleCount1;
+        case vk::SampleCountFlagBits::e2:
+            return MSAA::sampleCount2;
+        case vk::SampleCountFlagBits::e4:
+            return MSAA::sampleCount4;
+        case vk::SampleCountFlagBits::e8:
+            return MSAA::sampleCount8;
+        case vk::SampleCountFlagBits::e16:
+            return MSAA::sampleCount16;
+        case vk::SampleCountFlagBits::e32:
+            return MSAA::sampleCount32;
+        case vk::SampleCountFlagBits::e64:
+            return MSAA::sampleCount64;
+        default:
+            throw RendererError("Unsupported MSAA");
         }
     }
 };

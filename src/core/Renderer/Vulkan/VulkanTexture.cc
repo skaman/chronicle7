@@ -3,6 +3,7 @@
 
 #include "VulkanTexture.h"
 
+#include "VulkanEnums.h"
 #include "VulkanInstance.h"
 #include "VulkanUtils.h"
 
@@ -10,8 +11,9 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanTexture);
 
-VulkanTexture::VulkanTexture(const TextureInfo& textureInfo)
-    : _generateMipmaps(textureInfo.generateMipmaps)
+VulkanTexture::VulkanTexture(const SampledTextureInfo& textureInfo)
+    : _format(Format::R8G8B8A8Unorm)
+    , _generateMipmaps(textureInfo.generateMipmaps)
     , _width(textureInfo.width)
     , _height(textureInfo.height)
 {
@@ -72,9 +74,53 @@ VulkanTexture::VulkanTexture(const TextureInfo& textureInfo)
     }
 }
 
+VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
+    : _type(TextureType::color)
+    , _format(textureInfo.format)
+    , _width(textureInfo.width)
+    , _height(textureInfo.height)
+{
+    CHRZONE_RENDERER;
+
+    assert(_width > 0);
+    assert(_height > 0);
+    assert(_format != Format::undefined);
+
+    auto format = VulkanEnums::formatToVulkan(_format);
+
+    auto [imageMemory, image] = VulkanUtils::createImage(_width, _height, 1,
+        VulkanEnums::msaaToVulkan(textureInfo.msaa), format, vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+        vk::MemoryPropertyFlagBits::eDeviceLocal);
+    _imageMemory = imageMemory;
+    _image = image;
+    _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor, 1);
+}
+
+VulkanTexture::VulkanTexture(const DepthTextureInfo& textureInfo)
+    : _format(textureInfo.format)
+    , _width(textureInfo.width)
+    , _height(textureInfo.height)
+{
+    CHRZONE_RENDERER;
+
+    assert(_width > 0);
+    assert(_height > 0);
+    assert(_format != Format::undefined);
+
+    auto format = VulkanEnums::formatToVulkan(_format);
+
+    auto [imageMemory, image] = VulkanUtils::createImage(_width, _height, 1,
+        VulkanEnums::msaaToVulkan(textureInfo.msaa), format, vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    _imageMemory = imageMemory;
+    _image = image;
+    _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eDepth, 1);
+}
+
 VulkanTexture::VulkanTexture(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
     : _image(image)
-    , _fromExternalImage(true)
+    , _type(TextureType::swapchain)
     , _width(width)
     , _height(height)
 {
@@ -96,14 +142,17 @@ VulkanTexture::~VulkanTexture()
 
     VulkanContext::device.destroyImageView(_imageView);
 
-    if (!_fromExternalImage) {
+    if (_type == TextureType::sampled) {
         VulkanContext::device.destroySampler(_sampler);
+    }
+
+    if (_type != TextureType::swapchain) {
         VulkanContext::device.destroyImage(_image);
         VulkanContext::device.freeMemory(_imageMemory);
     }
 }
 
-TextureRef VulkanTexture::create(const TextureInfo& textureInfo)
+TextureRef VulkanTexture::createSampled(const SampledTextureInfo& textureInfo)
 {
     CHRZONE_RENDERER;
 
@@ -111,7 +160,23 @@ TextureRef VulkanTexture::create(const TextureInfo& textureInfo)
     return std::make_shared<ConcreteVulkanTexture>(textureInfo);
 }
 
-TextureRef VulkanTexture::create(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
+TextureRef VulkanTexture::createColor(const ColorTextureInfo& textureInfo)
+{
+    CHRZONE_RENDERER;
+
+    // create an instance of the class
+    return std::make_shared<ConcreteVulkanTexture>(textureInfo);
+}
+
+TextureRef VulkanTexture::createDepth(const DepthTextureInfo& textureInfo)
+{
+    CHRZONE_RENDERER;
+
+    // create an instance of the class
+    return std::make_shared<ConcreteVulkanTexture>(textureInfo);
+}
+
+TextureRef VulkanTexture::createSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
 {
     CHRZONE_RENDERER;
 

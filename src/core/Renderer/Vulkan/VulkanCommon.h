@@ -130,11 +130,13 @@ struct VulkanContext {
     static inline vk::Extent2D swapChainExtent = {}; ///< Swapchain extent.
     static inline bool swapChainInvalidated = false; ///< Indicate if the swapchain is invalidated and need recreation.
 
+    // multisampling
+    static inline vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1; ///< Number of samples.
+    static inline TextureRef colorTexture = {}; ///< Multisampling color image.
+
     // depth image
-    static inline vk::Image depthImage = nullptr; ///< Depth image.
-    static inline vk::DeviceMemory depthImageMemory = nullptr; ///< Memory for depth image.
-    static inline vk::ImageView depthImageView = nullptr; ///< Depth image view.
     static inline vk::Format depthImageFormat = vk::Format::eUndefined; ///< Depth image format.
+    static inline TextureRef depthTexture = {}; ///< Depth image.
 
     // command pool
     static inline vk::CommandPool commandPool = nullptr; ///< Command pool.
@@ -142,12 +144,6 @@ struct VulkanContext {
     // draw pass
     static inline vk::RenderPass renderPass = nullptr; ///< Main render pass.
     static inline vk::RenderPass debugRenderPass = nullptr; ///< Debug render pass.
-
-    // multisampling
-    static inline vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1; ///< Number of samples.
-    static inline vk::Image colorImage = nullptr; ///< Multisampling color image.
-    static inline vk::DeviceMemory colorImageMemory = nullptr; ///< Memory for multisampling color image.
-    static inline vk::ImageView colorImageView = nullptr; ///< Multisampling color image view.
 
     // descriptor sets
     static inline vk::DescriptorPool descriptorPool = nullptr; ///< Descriptor pool used to allocate resources.

@@ -200,7 +200,7 @@ TextureRef AssetLoader::createTexture(const tinygltf::Model& gltfModel, uint32_t
     assert(gltfImage.height > 0);
 
     // TODO: handle texture sampler
-    auto texture = Texture::create({ .generateMipmaps = true,
+    auto texture = Texture::createSampled({ .generateMipmaps = true,
         .data = gltfImage.image,
         .width = static_cast<uint32_t>(gltfImage.width),
         .height = static_cast<uint32_t>(gltfImage.height) });

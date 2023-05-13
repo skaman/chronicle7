@@ -25,6 +25,17 @@ enum class IndexType {
     uint32
 };
 
+/// @brief Samples count for multi sampling anti aliasing
+enum class MSAA {
+    sampleCount1,
+    sampleCount2,
+    sampleCount4,
+    sampleCount8,
+    sampleCount16,
+    sampleCount32,
+    sampleCount64
+};
+
 /// @brief Data format for surface, texture or data structures.
 enum class Format {
     undefined,
@@ -107,6 +118,14 @@ enum class DescriptorType {
     storageBufferDynamic, ///< Specifies a dynamic storage buffer descriptor.
     inputAttachment, ///< Specifies an input attachment descriptor.
     accelerationStructure ///< Specifies an acceleration structure.
+};
+
+/// @brief Specified the type of a texture.
+enum class TextureType {
+    swapchain, ///< Swapchain texture.
+    sampled, ///< Sampled texture.
+    color, ///< Color texture.
+    depth ///< Depth texture.
 };
 
 } // namespace chronicle

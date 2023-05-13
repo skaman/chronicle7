@@ -178,15 +178,11 @@ void VulkanInstance::cleanupSwapChain()
         VulkanContext::device.destroyFramebuffer(imageData.debugFramebuffer);
     }
 
-    // clean color images and images view
-    VulkanContext::device.destroyImageView(VulkanContext::colorImageView);
-    VulkanContext::device.destroyImage(VulkanContext::colorImage);
-    VulkanContext::device.freeMemory(VulkanContext::colorImageMemory);
+    // clean multisampling color image
+    VulkanContext::colorTexture.reset();
 
-    // clean depth images and images view
-    VulkanContext::device.destroyImageView(VulkanContext::depthImageView);
-    VulkanContext::device.destroyImage(VulkanContext::depthImage);
-    VulkanContext::device.freeMemory(VulkanContext::depthImageMemory);
+    // clean depth image
+    VulkanContext::depthTexture.reset();
 
     // clean image data
     VulkanContext::imagesData.clear();
@@ -384,24 +380,17 @@ void VulkanInstance::createSwapChain()
     VulkanContext::swapChain = VulkanContext::device.createSwapchainKHR(createInfo);
 
     // create color buffer
-    auto [colorImageMemory, colorImage] = VulkanUtils::createImage(extent.width, extent.height, 1,
-        VulkanContext::msaaSamples, surfaceFormat.format, vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
-        vk::MemoryPropertyFlagBits::eDeviceLocal);
-    VulkanContext::colorImage = colorImage;
-    VulkanContext::colorImageMemory = colorImageMemory;
-    VulkanContext::colorImageView
-        = VulkanUtils::createImageView(colorImage, surfaceFormat.format, vk::ImageAspectFlagBits::eColor, 1);
+    VulkanContext::colorTexture = Texture::createColor({ .width = extent.width,
+        .height = extent.height,
+        .format = VulkanEnums::formatFromVulkan(surfaceFormat.format),
+        .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) });
 
     // create depth buffer
     VulkanContext::depthImageFormat = VulkanUtils::findDepthFormat();
-    auto [depthImageMemory, depthImage] = VulkanUtils::createImage(extent.width, extent.height, 1,
-        VulkanContext::msaaSamples, VulkanContext::depthImageFormat, vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    VulkanContext::depthImageMemory = depthImageMemory;
-    VulkanContext::depthImage = depthImage;
-    VulkanContext::depthImageView
-        = VulkanUtils::createImageView(depthImage, VulkanContext::depthImageFormat, vk::ImageAspectFlagBits::eDepth, 1);
+    VulkanContext::depthTexture = Texture::createDepth({ .width = extent.width,
+        .height = extent.height,
+        .format = VulkanEnums::formatFromVulkan(VulkanContext::depthImageFormat),
+        .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) });
 
     // create swap chain images
     auto swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
@@ -412,7 +401,7 @@ void VulkanInstance::createSwapChain()
     VulkanContext::imagesData.resize(swapChainImages.size());
     for (auto i = 0; i < swapChainImages.size(); i++) {
         VulkanContext::imagesData[i].swapChainTexture
-            = VulkanTexture::create(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
+            = VulkanTexture::createSwapchain(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
     }
 }
 
@@ -565,8 +554,10 @@ void VulkanInstance::createFramebuffers()
 
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
-        std::array<vk::ImageView, 3> attachments = { VulkanContext::colorImageView, VulkanContext::depthImageView,
-            *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
+        std::array<vk::ImageView, 3> attachments
+            = { *static_cast<const vk::ImageView*>(VulkanContext::colorTexture->textureId()),
+                  *static_cast<const vk::ImageView*>(VulkanContext::depthTexture->textureId()),
+                  *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
         vk::FramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.setRenderPass(VulkanContext::renderPass);
         framebufferInfo.setAttachments(attachments);

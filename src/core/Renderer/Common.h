@@ -9,6 +9,9 @@
 
 namespace chronicle {
 
+using TextureId = const void*;
+using SamplerId = const void*;
+
 template <class T> class CommandBufferI;
 template <class T> class DescriptorSetI;
 template <class T> class VertexBufferI;
