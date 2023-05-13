@@ -190,18 +190,20 @@ TextureRef AssetLoader::createTexture(const tinygltf::Model& gltfModel, uint32_t
 {
     assert(gltfModel.textures.size() > textureIndex);
 
-    const auto& glfwTexture = gltfModel.textures[textureIndex];
-    auto imageIndex = glfwTexture.source;
+    const auto& gltfTexture = gltfModel.textures[textureIndex];
+    auto imageIndex = gltfTexture.source;
     assert(gltfModel.images.size() > imageIndex);
 
-    const auto& glfwImage = gltfModel.images[imageIndex];
-    assert(glfwImage.image.size() > 0);
-    assert(glfwImage.width > 0);
-    assert(glfwImage.height > 0);
+    const auto& gltfImage = gltfModel.images[imageIndex];
+    assert(gltfImage.image.size() > 0);
+    assert(gltfImage.width > 0);
+    assert(gltfImage.height > 0);
 
     // TODO: handle texture sampler
-    auto texture = Texture::create({});
-    texture->set((void*)glfwImage.image.data(), glfwImage.image.size(), glfwImage.width, glfwImage.height);
+    auto texture = Texture::create({ .generateMipmaps = true,
+        .data = gltfImage.image,
+        .width = static_cast<uint32_t>(gltfImage.width),
+        .height = static_cast<uint32_t>(gltfImage.height) });
     return texture;
 }
 

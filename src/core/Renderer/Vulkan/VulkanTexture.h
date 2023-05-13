@@ -13,14 +13,11 @@ namespace chronicle {
 class VulkanTexture : public TextureI<VulkanTexture>, private NonCopyable<VulkanTexture> {
 protected:
     /// @brief Default constructor.
-    explicit VulkanTexture() = default;
+    explicit VulkanTexture(const TextureInfo& textureInfo);
 
 public:
     /// @brief Destructor.
     ~VulkanTexture();
-
-    /// @brief @see TextureI#set
-    void set(void* src, size_t size, uint32_t width, uint32_t height);
 
     /// @brief @see TextureI#width
     [[nodiscard]] uint32_t width() const { return _width; }
@@ -44,18 +41,15 @@ public:
     [[nodiscard]] static TextureRef create(const TextureInfo& textureInfo);
 
 private:
-    vk::DeviceMemory _imageMemory; ///< Device memory for the image.
-    vk::Image _image; ///< Image.
-    vk::ImageView _imageView; ///< Image view.
-    vk::Sampler _sampler; ///< Image sampler.
+    vk::DeviceMemory _imageMemory = nullptr; ///< Device memory for the image.
+    vk::Image _image = nullptr; ///< Image.
+    vk::ImageView _imageView = nullptr; ///< Image view.
+    vk::Sampler _sampler = nullptr; ///< Image sampler.
 
-    bool _generateMipmaps; ///< Generate mipmaps required.
-    uint32_t _mipLevels; ///< Image miplevels.
-    uint32_t _width; ///< Image width.
-    uint32_t _height; ///< Image height.
-
-    /// @brief cleanup resources.
-    void cleanup() const;
+    bool _generateMipmaps = false; ///< Generate mipmaps required.
+    uint32_t _mipLevels = 0; ///< Image miplevels.
+    uint32_t _width = 0; ///< Image width.
+    uint32_t _height = 0; ///< Image height.
 };
 
 } // namespace chronicle
