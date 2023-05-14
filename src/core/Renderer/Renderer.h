@@ -10,6 +10,7 @@
 #include "Vulkan/VulkanCommandBuffer.h"
 #include "Vulkan/VulkanDescriptorSet.h"
 #include "Vulkan/VulkanIndexBuffer.h"
+#include "Vulkan/VulkanFrameBuffer.h"
 #include "Vulkan/VulkanPipeline.h"
 #include "Vulkan/VulkanRenderer.h"
 #include "Vulkan/VulkanRenderPass.h"

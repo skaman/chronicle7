@@ -102,8 +102,8 @@ struct VulkanImageData {
     TextureRef swapChainTexture = {}; ///< Swapchain texture.
 
     // framebuffers
-    vk::Framebuffer framebuffer = nullptr; ///< Framebuffer main render pass.
-    vk::Framebuffer debugFramebuffer = nullptr; ///< Framebuffer debug render pass.
+    FrameBufferRef framebuffer = nullptr; ///< Framebuffer main render pass.
+    FrameBufferRef debugFramebuffer = nullptr; ///< Framebuffer debug render pass.
 };
 
 struct VulkanContext {

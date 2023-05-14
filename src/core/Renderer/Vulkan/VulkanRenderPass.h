@@ -27,9 +27,17 @@ public:
     [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo);
 
 private:
-    vk::RenderPass _renderPass = nullptr;
+    vk::RenderPass _renderPass = nullptr; ///< Vulkan render pass.
 
+    /// @brief Create a vulkan attachment description from a render pass attachment.
+    /// @param attachment Render pass attachment.
+    /// @return Vulkan attachment description.
     vk::AttachmentDescription createAttachmentDescription(const RenderPassAttachment& attachment) const;
+
+    /// @brief Create a vulkan attachment reference from a render pass attachment.
+    /// @param attachment Render pass attachment.
+    /// @param index Related attachment description index.
+    /// @return Vulkan attachment reference.
     vk::AttachmentReference createAttachmentReference(const RenderPassAttachment& attachment, uint32_t index) const;
 };
 

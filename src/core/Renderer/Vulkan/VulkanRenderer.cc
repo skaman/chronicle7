@@ -5,6 +5,7 @@
 
 #include "VulkanCommandBuffer.h"
 #include "VulkanEvents.h"
+#include "VulkanFrameBuffer.h"
 #include "VulkanImGui.h"
 #include "VulkanInstance.h"
 #include "VulkanRenderPass.h"
@@ -98,7 +99,7 @@ bool VulkanRenderer::beginFrame()
     // begin render pass
     vk::RenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId()));
-    renderPassInfo.setFramebuffer(imageData.framebuffer);
+    renderPassInfo.setFramebuffer(*static_cast<const vk::Framebuffer*>(imageData.framebuffer->frameBufferId()));
     renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
     renderPassInfo.setClearValues(clearValues);
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
@@ -140,7 +141,7 @@ void VulkanRenderer::endFrame()
     // begin debug draw pass
     vk::RenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::debugRenderPass->renderPassId()));
-    renderPassInfo.setFramebuffer(imageData.debugFramebuffer);
+    renderPassInfo.setFramebuffer(*static_cast<const vk::Framebuffer*>(imageData.debugFramebuffer->frameBufferId()));
     renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
     vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 

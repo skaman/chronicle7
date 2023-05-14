@@ -6,6 +6,7 @@
 #include "VulkanCommandBuffer.h"
 #include "VulkanDescriptorSet.h"
 #include "VulkanExtensions.h"
+#include "VulkanFrameBuffer.h"
 #include "VulkanInstance.h"
 #include "VulkanRenderPass.h"
 #include "VulkanUtils.h"
@@ -168,9 +169,9 @@ void VulkanInstance::cleanupSwapChain()
     CHRZONE_RENDERER;
 
     // clean framebuffers
-    for (const auto& imageData : VulkanContext::imagesData) {
-        VulkanContext::device.destroyFramebuffer(imageData.framebuffer);
-        VulkanContext::device.destroyFramebuffer(imageData.debugFramebuffer);
+    for (auto& imageData : VulkanContext::imagesData) {
+        imageData.framebuffer.reset();
+        imageData.debugFramebuffer.reset();
     }
 
     // clean multisampling color image
@@ -484,17 +485,13 @@ void VulkanInstance::createFramebuffers()
 
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
-        std::array<vk::ImageView, 3> attachments
-            = { *static_cast<const vk::ImageView*>(VulkanContext::colorTexture->textureId()),
-                  *static_cast<const vk::ImageView*>(VulkanContext::depthTexture->textureId()),
-                  *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
-        vk::FramebufferCreateInfo framebufferInfo = {};
-        framebufferInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId()));
-        framebufferInfo.setAttachments(attachments);
-        framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
-        framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
-        framebufferInfo.setLayers(1);
-        imageData.framebuffer = VulkanContext::device.createFramebuffer(framebufferInfo);
+        FrameBufferInfo frameBufferInfo = {};
+        frameBufferInfo.attachments = { VulkanContext::colorTexture->textureId(),
+            VulkanContext::depthTexture->textureId(), imageData.swapChainTexture->textureId() };
+        frameBufferInfo.renderPass = VulkanContext::renderPass->renderPassId();
+        frameBufferInfo.width = VulkanContext::swapChainExtent.width;
+        frameBufferInfo.height = VulkanContext::swapChainExtent.height;
+        imageData.framebuffer = FrameBuffer::create(frameBufferInfo);
     }
 }
 
@@ -506,16 +503,12 @@ void VulkanInstance::createDebugFramebuffers()
 
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
-        std::array<const vk::ImageView, 1> attachments
-            = { *static_cast<const vk::ImageView*>(imageData.swapChainTexture->textureId()) };
-        vk::FramebufferCreateInfo framebufferInfo = {};
-        framebufferInfo.setRenderPass(
-            *static_cast<const vk::RenderPass*>(VulkanContext::debugRenderPass->renderPassId()));
-        framebufferInfo.setAttachments(attachments);
-        framebufferInfo.setWidth(VulkanContext::swapChainExtent.width);
-        framebufferInfo.setHeight(VulkanContext::swapChainExtent.height);
-        framebufferInfo.setLayers(1);
-        imageData.debugFramebuffer = VulkanContext::device.createFramebuffer(framebufferInfo);
+        FrameBufferInfo frameBufferInfo = {};
+        frameBufferInfo.attachments = { imageData.swapChainTexture->textureId() };
+        frameBufferInfo.renderPass = VulkanContext::debugRenderPass->renderPassId();
+        frameBufferInfo.width = VulkanContext::swapChainExtent.width;
+        frameBufferInfo.height = VulkanContext::swapChainExtent.height;
+        imageData.debugFramebuffer = FrameBuffer::create(frameBufferInfo);
     }
 }
 

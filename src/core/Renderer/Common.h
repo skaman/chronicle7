@@ -9,6 +9,7 @@
 
 namespace chronicle {
 
+using FrameBufferId = const void*;
 using RenderPassId = const void*;
 using SamplerId = const void*;
 using TextureId = const void*;
@@ -16,6 +17,7 @@ using TextureId = const void*;
 template <class T> class CommandBufferI;
 template <class T> class DescriptorSetI;
 template <class T> class IndexBufferI;
+template <class T> class FrameBufferI;
 template <class T> class PipelineI;
 template <class T> class RendererI;
 template <class T> class RenderPassI;
@@ -29,6 +31,7 @@ template <class T> class VertexBuffersI;
 class VulkanCommandBuffer;
 class VulkanDescriptorSet;
 class VulkanIndexBuffer;
+class VulkanFrameBuffer;
 class VulkanPipeline;
 class VulkanRenderer;
 class VulkanRenderPass;
@@ -41,6 +44,7 @@ class VulkanVertexBuffers;
 using CommandBuffer = CommandBufferI<VulkanCommandBuffer>;
 using DescriptorSet = DescriptorSetI<VulkanDescriptorSet>;
 using IndexBuffer = IndexBufferI<VulkanIndexBuffer>;
+using FrameBuffer = FrameBufferI<VulkanFrameBuffer>;
 using Pipeline = PipelineI<VulkanPipeline>;
 using Renderer = RendererI<VulkanRenderer>;
 using RenderPass = RenderPassI<VulkanRenderPass>;
@@ -54,6 +58,7 @@ using VertexBuffers = VertexBuffersI<VulkanVertexBuffers>;
 using CommandBufferRef = std::shared_ptr<CommandBuffer>;
 using DescriptorSetRef = std::shared_ptr<DescriptorSet>;
 using IndexBufferRef = std::shared_ptr<IndexBuffer>;
+using FrameBufferRef = std::shared_ptr<FrameBuffer>;
 using PipelineRef = std::shared_ptr<Pipeline>;
 using RenderPassRef = std::shared_ptr<RenderPass>;
 using ShaderCompilerRef = std::shared_ptr<ShaderCompiler>;
