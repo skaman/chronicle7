@@ -377,6 +377,8 @@ public:
             return vk::ImageLayout::eColorAttachmentOptimal;
         case ImageLayout::depthStencilAttachment:
             return vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        case ImageLayout::shaderReadOnly:
+            return vk::ImageLayout::eShaderReadOnlyOptimal;
         case ImageLayout::presentSrc:
             return vk::ImageLayout::ePresentSrcKHR;
         default:

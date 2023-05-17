@@ -421,6 +421,8 @@ void VulkanInstance::createRenderPass()
 {
     CHRZONE_RENDERER;
 
+    CHRLOG_TRACE("Create render pass");
+
     // color attachment
     RenderPassAttachment colorAttachment
         = { .format = VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat),
@@ -454,14 +456,17 @@ void VulkanInstance::createRenderPass()
               .finalLayout = ImageLayout::colorAttachment };
 
     // create the renderpass
-    VulkanContext::renderPass = RenderPass::create({ .colorAttachment = colorAttachment,
+    RenderPassInfo renderPassInfo = { .colorAttachment = colorAttachment,
         .depthStencilAttachment = depthAttachment,
-        .resolveAttachment = resolveAttachment });
+        .resolveAttachment = resolveAttachment };
+    VulkanContext::renderPass = RenderPass::create(renderPassInfo);
 }
 
 void VulkanInstance::createDebugRenderPass()
 {
     CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Create debug render pass");
 
     // color attachment
     RenderPassAttachment colorAttachment
@@ -474,7 +479,8 @@ void VulkanInstance::createDebugRenderPass()
               .initialLayout = ImageLayout::colorAttachment,
               .finalLayout = ImageLayout::presentSrc };
 
-    VulkanContext::debugRenderPass = RenderPass::create({ .colorAttachment = colorAttachment });
+    RenderPassInfo renderPassInfo = { .colorAttachment = colorAttachment };
+    VulkanContext::debugRenderPass = RenderPass::create(renderPassInfo);
 }
 
 void VulkanInstance::createFramebuffers()

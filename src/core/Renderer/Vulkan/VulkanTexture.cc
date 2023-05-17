@@ -152,6 +152,7 @@ VulkanTexture::~VulkanTexture()
     }
 }
 
+// TODO: rename this in createWithData and add the sampler also to the color texture
 TextureRef VulkanTexture::createSampled(const SampledTextureInfo& textureInfo)
 {
     CHRZONE_RENDERER;

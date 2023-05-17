@@ -10,6 +10,7 @@
 #include <Renderer/Renderer.h>
 #include <Storage/Storage.h>
 #include <Utils/Camera.h>
+#include <Utils/Scene.h>
 
 using namespace entt::literals;
 using namespace chronicle;
@@ -27,15 +28,7 @@ public:
 
         CHRLOG_INFO("Start");
 
-        // assets
-        //_mesh = MeshAsset::load("D:\\viking_room.obj");
-        //_texture = TextureAsset::load("D:\\viking_room.png");
-
         auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
-        // auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Buggy\\glTF\\Buggy.gltf");
-        // auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Box\\glTF\\Box.gltf");
-        // auto test =
-        // AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf");
         _mesh2 = test.meshes[0];
 
         // descriptor sets
@@ -45,15 +38,7 @@ public:
             descriptorSet->build();
         }
 
-        //// pipeline
-        //
-        ////auto test2 = ShaderCompiler::compile(":/MaterialPbr.hlsl");
-        // PipelineInfo pipelineInfo = {};
-        // pipelineInfo.shader = ShaderCompiler::compile(":/MaterialPbr.hlsl");
-        // pipelineInfo.vertexBuffers = _mesh2->vertexBuffersInfo(0);
-        //// pipelineInfo.vertexBuffers.push_back(_mesh->bufferInfo());
-        //
-        //_pipeline = Pipeline::create(pipelineInfo, "Test pipeline");
+        _scene = Scene::create("Demo scene");
     }
 
     void onCursorPosition(const CursorPositionEvent& evn) { }
@@ -70,10 +55,8 @@ public:
 
         Renderer::waitIdle();
 
-        //_mesh.reset();
         _mesh2.reset();
-        //_texture.reset();
-        //_pipeline.reset();
+        _scene.reset();
 
         Renderer::deinit();
         Platform::deinit();
@@ -96,7 +79,6 @@ public:
             cameraMovements(static_cast<float>(delta));
 
             drawDebugUI();
-            // drawCamera();
 
             Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
             for (auto i = 0; i < _mesh2->submeshCount(); i++) {
@@ -194,38 +176,8 @@ public:
         ImGui::End();
     }
 
-    // void drawCamera()
-    //{
-    //     const ImGuiIO& io = ImGui::GetIO();
-    //
-    //     if (!ImGui::Begin("Camera")) {
-    //         ImGui::End();
-    //         return;
-    //     }
-    //
-    //     glm::vec3 scale;
-    //     glm::quat rotation;
-    //     glm::vec3 translation;
-    //     glm::vec3 skew;
-    //     glm::vec4 perspective;
-    //     glm::decompose(_ubo.view, scale, rotation, translation, skew, perspective);
-    //
-    //     if (ImGui::InputFloat3("Translation", glm::value_ptr(translation))) {
-    //         _ubo.view = glm::translate(translation) * glm::toMat4(rotation) * glm::scale(scale);
-    //     }
-    //     ImGui::InputFloat3("Rotation", glm::value_ptr(skew));
-    //     ImGui::InputFloat4("Rotation2", glm::value_ptr(rotation));
-    //     if (ImGui::InputFloat3("Scale", glm::value_ptr(scale))) {
-    //         _ubo.view = glm::translate(translation) * glm::toMat4(rotation) * glm::scale(scale);
-    //     }
-    //
-    //     ImGui::End();
-    // }
-
 private:
-    // PipelineRef _pipeline;
-    // MeshAssetRef _mesh;
-    // TextureAssetRef _texture;
+    SceneRef _scene;
     MeshRef _mesh2;
 
     UniformBufferObject _ubo {};

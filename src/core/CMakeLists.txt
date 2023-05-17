@@ -133,6 +133,8 @@ add_library(chronicle-core
     "Storage/Storage.cc"
     "Utils/Camera.h"
     "Utils/Camera.cc"
+    "Utils/Scene.h"
+    "Utils/Scene.cc"
 
     # IMGUI
     "../../vendor/imgui/imgui.cpp"

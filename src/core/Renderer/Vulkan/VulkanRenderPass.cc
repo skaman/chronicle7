@@ -23,31 +23,34 @@ VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
     subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
 
     // color attachment
+    vk::AttachmentReference colorAttachmentRef;
     if (renderPassInfo.colorAttachment) {
         const auto& attachment = renderPassInfo.colorAttachment.value();
 
-        auto attachmentRef = createAttachmentReference(attachment, static_cast<uint32_t>(attachments.size()));
-        subpass.setColorAttachments(attachmentRef);
+        colorAttachmentRef = createAttachmentReference(static_cast<uint32_t>(attachments.size()), false);
+        subpass.setColorAttachments(colorAttachmentRef);
 
         attachments.push_back(createAttachmentDescription(attachment));
     }
 
     // depth attachment
+    vk::AttachmentReference depthStencilAttachmentRef;
     if (renderPassInfo.depthStencilAttachment) {
         const auto& attachment = renderPassInfo.depthStencilAttachment.value();
 
-        auto attachmentRef = createAttachmentReference(attachment, static_cast<uint32_t>(attachments.size()));
-        subpass.setPDepthStencilAttachment(&attachmentRef);
+        depthStencilAttachmentRef = createAttachmentReference(static_cast<uint32_t>(attachments.size()), true);
+        subpass.setPDepthStencilAttachment(&depthStencilAttachmentRef);
 
         attachments.push_back(createAttachmentDescription(attachment));
     }
 
     // resolve attachment
+    vk::AttachmentReference resolveAttachmentRef;
     if (renderPassInfo.resolveAttachment) {
         const auto& attachment = renderPassInfo.resolveAttachment.value();
 
-        auto attachmentRef = createAttachmentReference(attachment, static_cast<uint32_t>(attachments.size()));
-        subpass.setPResolveAttachments(&attachmentRef);
+        resolveAttachmentRef = createAttachmentReference(static_cast<uint32_t>(attachments.size()), false);
+        subpass.setPResolveAttachments(&resolveAttachmentRef);
 
         attachments.push_back(createAttachmentDescription(attachment));
     }
@@ -108,14 +111,12 @@ vk::AttachmentDescription VulkanRenderPass::createAttachmentDescription(const Re
     return attachmentDescription;
 }
 
-vk::AttachmentReference VulkanRenderPass::createAttachmentReference(
-    const RenderPassAttachment& attachment, uint32_t index) const
+vk::AttachmentReference VulkanRenderPass::createAttachmentReference(uint32_t index, bool isDepthAttachment) const
 {
     // we use the final layout for the reference layout, with the exception of the swapchain, in that case we use
     // the color attachment layout
-    auto attachmentReferenceLayout = attachment.finalLayout == ImageLayout::presentSrc
-        ? vk::ImageLayout::eColorAttachmentOptimal
-        : VulkanEnums::imageLayoutToVulkan(attachment.finalLayout);
+    auto attachmentReferenceLayout = isDepthAttachment ? vk::ImageLayout::eDepthStencilAttachmentOptimal
+                                                       : vk::ImageLayout::eColorAttachmentOptimal;
 
     vk::AttachmentReference attachmentReference = {};
     attachmentReference.setAttachment(index);

@@ -71,6 +71,14 @@ public:
     /// @return Max frames in flight.
     [[nodiscard]] static uint32_t maxFramesInFlight() { return T::maxFramesInFlight(); }
 
+    /// @brief Get the swapchain surface format.
+    /// @return Swap chain format.
+    [[nodiscard]] static Format swapChainImageFormat() { return T::swapChainImageFormat(); }
+
+    /// @brief Find the best depth format supported by the GPU.
+    /// @return Depth format.
+    [[nodiscard]] static Format findDepthFormat() { return T::findDepthFormat(); }
+
     /// @brief Get the descriptor set layout 0 (frame descriptor set)
     /// @return Descriptor set layout.
     [[nodiscard]] static DescriptorSetLayout descriptorSetLayout() { return T::descriptorSetLayout(); }

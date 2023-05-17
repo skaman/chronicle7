@@ -143,6 +143,8 @@ enum class ImageLayout {
     colorAttachment, ///< Must only be used as a color or resolve attachment in a Framebuffer.
     depthStencilAttachment, ///< Specifies a layout for both the depth and stencil aspects of a depth/stencil format
                             ///< image allowing read and write access as a depth/stencil attachment.
+    shaderReadOnly, ///< Specifies a layout allowing read-only access in a shader as a sampled image, combined
+                    ///< image/sampler, or input attachment.
     presentSrc ///< Must only be used for presenting a presentable image for display.
 };
 

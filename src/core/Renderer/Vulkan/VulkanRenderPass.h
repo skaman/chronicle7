@@ -35,10 +35,10 @@ private:
     vk::AttachmentDescription createAttachmentDescription(const RenderPassAttachment& attachment) const;
 
     /// @brief Create a vulkan attachment reference from a render pass attachment.
-    /// @param attachment Render pass attachment.
     /// @param index Related attachment description index.
+    /// @param isDepthAttachment Related attachment is a depth buffer attachment.
     /// @return Vulkan attachment reference.
-    vk::AttachmentReference createAttachmentReference(const RenderPassAttachment& attachment, uint32_t index) const;
+    vk::AttachmentReference createAttachmentReference(uint32_t index, bool isDepthAttachment) const;
 };
 
 } // namespace chronicle

@@ -7,6 +7,8 @@
 
 #include "Renderer/RendererI.h"
 #include "VulkanCommon.h"
+#include "VulkanEnums.h"
+#include "VulkanUtils.h"
 
 namespace chronicle {
 
@@ -66,6 +68,18 @@ public:
 
     /// @brief @see RendererI#maxFramesInFlight
     [[nodiscard]] static uint32_t maxFramesInFlight() { return VulkanContext::maxFramesInFlight; }
+
+    /// @brief @see RendererI#swapChainImageFormat
+    [[nodiscard]] static Format swapChainImageFormat()
+    {
+        return VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat);
+    }
+
+    /// @brief @see RendererI#findDepthFormat
+    [[nodiscard]] static Format findDepthFormat()
+    {
+        return VulkanEnums::formatFromVulkan(VulkanUtils::findDepthFormat());
+    }
 
     /// @brief @see RendererI#descriptorSetLayout
     [[nodiscard]] static DescriptorSetLayout descriptorSetLayout();
