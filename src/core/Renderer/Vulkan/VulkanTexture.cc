@@ -77,6 +77,7 @@ VulkanTexture::VulkanTexture(const SampledTextureInfo& textureInfo)
 VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
     : _type(TextureType::color)
     , _format(textureInfo.format)
+    , _generateMipmaps(textureInfo.generateMipmaps)
     , _width(textureInfo.width)
     , _height(textureInfo.height)
 {
@@ -88,13 +89,28 @@ VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
 
     auto format = VulkanEnums::formatToVulkan(_format);
 
-    auto [imageMemory, image] = VulkanUtils::createImage(_width, _height, 1,
-        VulkanEnums::msaaToVulkan(textureInfo.msaa), format, vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
-        vk::MemoryPropertyFlagBits::eDeviceLocal);
+    vk::ImageUsageFlags usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled;
+    if (textureInfo.isInputAttachment) {
+        usageFlags |= vk::ImageUsageFlagBits::eInputAttachment;
+    } else {
+        usageFlags |= vk::ImageUsageFlagBits::eTransientAttachment;
+    }
+    //if (_generateMipmaps) {
+    //    usageFlags |= vk::ImageUsageFlagBits::eSampled;
+    //}
+
+    // calculate mip levels
+    _mipLevels = _generateMipmaps ? static_cast<uint32_t>(std::floor(std::log2(std::max(_width, _height)))) + 1 : 1;
+
+    auto [imageMemory, image]
+        = VulkanUtils::createImage(_width, _height, _mipLevels, VulkanEnums::msaaToVulkan(textureInfo.msaa), format,
+            vk::ImageTiling::eOptimal, usageFlags, vk::MemoryPropertyFlagBits::eDeviceLocal);
     _imageMemory = imageMemory;
     _image = image;
     _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor, 1);
+
+    // create sampler
+    _sampler = VulkanUtils::createTextureSampler(_mipLevels);
 }
 
 VulkanTexture::VulkanTexture(const DepthTextureInfo& textureInfo)
@@ -142,7 +158,7 @@ VulkanTexture::~VulkanTexture()
 
     VulkanContext::device.destroyImageView(_imageView);
 
-    if (_type == TextureType::sampled) {
+    if (_sampler) {
         VulkanContext::device.destroySampler(_sampler);
     }
 

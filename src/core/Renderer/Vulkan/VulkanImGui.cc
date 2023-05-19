@@ -135,21 +135,19 @@ void VulkanImGui::newFrame()
     ImGui::NewFrame();
 }
 
-void VulkanImGui::draw(const CommandBufferRef& commandBuffer)
+void VulkanImGui::draw(CommandBufferId commandBufferId)
 {
     CHRZONE_RENDERER;
 
     CHRLOG_TRACE("ImGui render");
-
-    // cast command buffer into vulkan command buffer
-    auto vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer.get());
 
     // render imgui
     ImGui::Render();
 
     // draw imgui data
     ImDrawData* main_draw_data = ImGui::GetDrawData();
-    ImGui_ImplVulkan_RenderDrawData(main_draw_data, vulkanCommandBuffer->commandBuffer());
+    auto commandBuffer = *static_cast<const vk::CommandBuffer*>(commandBufferId);
+    ImGui_ImplVulkan_RenderDrawData(main_draw_data, commandBuffer);
 
     // update and render additional platform windows
     const ImGuiIO& io = ImGui::GetIO();

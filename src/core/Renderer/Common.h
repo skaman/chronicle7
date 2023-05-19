@@ -9,6 +9,7 @@
 
 namespace chronicle {
 
+using CommandBufferId = const void*;
 using FrameBufferId = const void*;
 using RenderPassId = const void*;
 using SamplerId = const void*;

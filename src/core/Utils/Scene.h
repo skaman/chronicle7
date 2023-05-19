@@ -6,6 +6,8 @@
 #include "pch.h"
 
 #include "Renderer/Renderer.h"
+#include "Loaders/AssetLoader.h"
+#include "Camera.h"
 
 namespace chronicle {
 
@@ -17,13 +19,21 @@ protected:
     explicit Scene(const std::string& name);
 
 public:
-    void render();
+    void render(CommandBufferRef commandBuffer);
 
     static SceneRef create(const std::string& name);
 
+    [[nodiscard]] TextureId textureId() const { return _colorTexture->textureId(); }
+    [[nodiscard]] TextureId samplerId() const { return _colorTexture->samplerId(); }
+
+    //[[nodiscard]] CommandBufferId commandBufferId() const
+    //{
+    //    return _commandBuffers[Renderer::currentFrame()]->commandBufferId();
+    //}
+
 private:
     std::string _name = {};
-    std::vector<CommandBufferRef> _commandBuffers = {};
+    //std::vector<CommandBufferRef> _commandBuffers = {};
 
     Format _imageFormat = {};
     Format _depthFormat = {};
@@ -35,6 +45,10 @@ private:
     TextureRef _depthTexture = {};
     RenderPassRef _renderPass = {};
     FrameBufferRef _frameBuffer = {};
+
+    MeshRef _mesh = {};
+    UniformBufferObject _ubo {};
+    Camera _camera;
 };
 
 } // namespace chronicle

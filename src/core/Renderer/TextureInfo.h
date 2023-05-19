@@ -5,6 +5,8 @@
 
 #include "pch.h"
 
+#include "Common.h"
+
 namespace chronicle {
 
 /// @brief Informations used to create a sampled texture.
@@ -35,6 +37,12 @@ struct ColorTextureInfo {
 
     /// @brief MSAA sample count.
     MSAA msaa = MSAA::sampleCount1;
+
+    /// @brief The texture will be used as an input attachment.
+    bool isInputAttachment = false;
+
+    /// @brief Generate mipmaps for the texture.
+    bool generateMipmaps = false;
 };
 
 /// @brief Informations used to create a sampled texture.

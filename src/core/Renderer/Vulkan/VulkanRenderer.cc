@@ -75,47 +75,38 @@ bool VulkanRenderer::beginFrame()
         return false;
     }
 
-    // get the current image data
-    const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
-
     // new imgui frame
     VulkanImGui::newFrame();
-
-    // cast the command buffer to a vulkan command buffer
-    const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
 
     CHRLOG_TRACE(
         "New frame: area extent={}x{}", VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height);
 
     // begin main command buffer
-    vk::CommandBufferBeginInfo beginInfo = {};
-    vulkanCommandBuffer->commandBuffer().begin(beginInfo);
+    commandBuffer()->begin();
 
-    // begin draw pass
-    std::array<vk::ClearValue, 2> clearValues {};
-    clearValues[0].setColor({ std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } });
-    clearValues[1].setDepthStencil({ 1.0f, 0 });
+    return true;
+}
+
+bool VulkanRenderer::beginRenderPass()
+{
+    CHRZONE_RENDERER;
+
+    // get the current image data
+    const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
 
     // begin render pass
-    vk::RenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId()));
-    renderPassInfo.setFramebuffer(*static_cast<const vk::Framebuffer*>(imageData.framebuffer->frameBufferId()));
-    renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
-    renderPassInfo.setClearValues(clearValues);
-    vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+    commandBuffer()->beginRenderPass({ .renderPassId = VulkanContext::renderPass->renderPassId(),
+        .frameBufferId = imageData.framebuffer->frameBufferId(),
+        .renderAreaOffset = { 0, 0 },
+        .renderAreaExtent = { VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height } });
 
     // set viewport
-    vk::Viewport viewportInfo = {};
-    viewportInfo.setX(0.0f);
-    viewportInfo.setY(0.0f);
-    viewportInfo.setWidth(static_cast<float>(VulkanContext::swapChainExtent.width));
-    viewportInfo.setHeight(static_cast<float>(VulkanContext::swapChainExtent.height));
-    viewportInfo.setMinDepth(0.0f);
-    viewportInfo.setMaxDepth(1.0f);
-    vulkanCommandBuffer->commandBuffer().setViewport(0, viewportInfo);
-
-    // set scissor
-    vulkanCommandBuffer->commandBuffer().setScissor(0, vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
+    commandBuffer()->setViewport({ .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(VulkanContext::swapChainExtent.width),
+        .height = static_cast<float>(VulkanContext::swapChainExtent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f });
 
     return true;
 }
@@ -126,38 +117,36 @@ void VulkanRenderer::endFrame()
 
     CHRLOG_TRACE("End swapchain");
 
+    auto vulkanCommandBuffer = *static_cast<const vk::CommandBuffer*>(commandBuffer()->commandBufferId());
+
     // get the current frame data
     const VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
 
     // get the current image data
     const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
 
-    // cast the command buffer to a vulkan command buffer
-    const auto& vulkanCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer().get());
-
     // end main draw pass
-    vulkanCommandBuffer->commandBuffer().endRenderPass();
+    commandBuffer()->endRenderPass();
 
     // begin debug draw pass
-    vk::RenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::debugRenderPass->renderPassId()));
-    renderPassInfo.setFramebuffer(*static_cast<const vk::Framebuffer*>(imageData.debugFramebuffer->frameBufferId()));
-    renderPassInfo.setRenderArea(vk::Rect2D({ 0, 0 }, VulkanContext::swapChainExtent));
-    vulkanCommandBuffer->commandBuffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+    commandBuffer()->beginRenderPass({ .renderPassId = VulkanContext::debugRenderPass->renderPassId(),
+        .frameBufferId = imageData.debugFramebuffer->frameBufferId(),
+        .renderAreaOffset = { 0, 0 },
+        .renderAreaExtent = { VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height } });
 
     // draw imgui
-    VulkanImGui::draw(commandBuffer());
+    VulkanImGui::draw(commandBuffer()->commandBufferId());
 
     // end debug draw pass
-    vulkanCommandBuffer->commandBuffer().endRenderPass();
-    vulkanCommandBuffer->commandBuffer().end();
+    commandBuffer()->endRenderPass();
+    commandBuffer()->end();
 
     // submit command buffers
     vk::SubmitInfo submitInfo = {};
     std::array<vk::PipelineStageFlags, 1> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
     submitInfo.setWaitSemaphores(frameData.imageAvailableSemaphore);
     submitInfo.setWaitDstStageMask(waitStages);
-    submitInfo.setCommandBuffers(vulkanCommandBuffer->commandBuffer());
+    submitInfo.setCommandBuffers(vulkanCommandBuffer);
     submitInfo.setSignalSemaphores(frameData.renderFinishedSemaphore);
     VulkanContext::graphicsQueue.submit(submitInfo, frameData.inFlightFence);
 

@@ -36,6 +36,9 @@ public:
     /// @return True if a new image is acquire. If false the loop tick should be skipped and try again.
     static bool beginFrame() { return T::beginFrame(); }
 
+    // TODO: temporary, need to be handled from the sandbox
+    static bool beginRenderPass() { return T::beginRenderPass(); }
+
     /// @brief End a frame and submit data to the GPU.
     static void endFrame() { T::endFrame(); }
 
@@ -70,6 +73,10 @@ public:
     /// @brief Get the number of max frames in flight.
     /// @return Max frames in flight.
     [[nodiscard]] static uint32_t maxFramesInFlight() { return T::maxFramesInFlight(); }
+
+    /// @brief Get the number of the current frame.
+    /// @return Current frame number.
+    [[nodiscard]] static uint32_t currentFrame() { return T::currentFrame(); }
 
     /// @brief Get the swapchain surface format.
     /// @return Swap chain format.

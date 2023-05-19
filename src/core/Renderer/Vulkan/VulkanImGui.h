@@ -29,7 +29,7 @@ public:
 
     /// @brief Draw the UI data into the command buffer.
     /// @param commandBuffer Command where where to draw the UI.
-    static void draw(const CommandBufferRef& commandBuffer);
+    static void draw(CommandBufferId commandBufferId);
 };
 
 } // namespace chronicle

@@ -30,6 +30,8 @@ public:
     /// @brief @see RendererI#beginFrame
     static bool beginFrame();
 
+    static bool beginRenderPass();
+
     /// @brief @see RendererI#endFrame
     static void endFrame();
 
@@ -68,6 +70,9 @@ public:
 
     /// @brief @see RendererI#maxFramesInFlight
     [[nodiscard]] static uint32_t maxFramesInFlight() { return VulkanContext::maxFramesInFlight; }
+
+    /// @brief @see RendererI#currentFrame
+    [[nodiscard]] static uint32_t currentFrame() { return VulkanContext::currentFrame; }
 
     /// @brief @see RendererI#swapChainImageFormat
     [[nodiscard]] static Format swapChainImageFormat()

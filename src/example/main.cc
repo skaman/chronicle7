@@ -12,6 +12,8 @@
 #include <Utils/Camera.h>
 #include <Utils/Scene.h>
 
+#include <imgui/backends/imgui_impl_vulkan.h>
+
 using namespace entt::literals;
 using namespace chronicle;
 
@@ -39,6 +41,10 @@ public:
         }
 
         _scene = Scene::create("Demo scene");
+
+        auto imageView = *static_cast<const vk::ImageView*>(_scene->textureId());
+        auto sampler = *static_cast<const vk::Sampler*>(_scene->samplerId());
+        _imTexture = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void onCursorPosition(const CursorPositionEvent& evn) { }
@@ -55,6 +61,8 @@ public:
 
         Renderer::waitIdle();
 
+        //ImGui_ImplVulkan_RemoveTexture(_imTexture);
+
         _mesh2.reset();
         _scene.reset();
 
@@ -66,9 +74,17 @@ public:
     {
         double delta;
 
+        //std::vector<CommandBufferId> commandBuffers(1);
+
         while (Platform::poll(delta)) {
             if (!Renderer::beginFrame())
                 continue;
+
+            _scene->render(Renderer::commandBuffer());
+
+            Renderer::beginRenderPass();
+
+            //commandBuffers[0] = _scene->commandBufferId();
 
             if (float aspect = static_cast<float>(Renderer::width()) / static_cast<float>(Renderer::height());
                 _camera.aspect() != aspect) {
@@ -172,6 +188,7 @@ public:
         if (ImGui::Checkbox("Show debug lines", &enabled)) {
             Renderer::setDebugShowLines(enabled);
         }
+        ImGui::Image(_imTexture, ImVec2 { 512, 512 });
 
         ImGui::End();
     }
@@ -184,6 +201,8 @@ private:
 
     bool _isMovingCamera = false;
     Camera _camera;
+
+    VkDescriptorSet _imTexture;
 
     std::pair<double, double> _lastMousePosition;
 };

@@ -20,6 +20,21 @@ public:
     /// @brief Destructor.
     ~VulkanCommandBuffer() = default;
 
+    /// @brief @see CommandBufferI#begin
+    void begin() const;
+
+    /// @brief @see CommandBufferI#end
+    void end() const;
+
+    /// @brief @see CommandBufferI#setViewport
+    void setViewport(const Viewport& viewport) const;
+
+    /// @brief @see CommandBufferI#beginRenderPass
+    void beginRenderPass(const RenderPassBeginInfo& renderPassInfo) const;
+
+    /// @brief @see CommandBufferI#endRenderPass
+    void endRenderPass() const;
+
     /// @brief @see CommandBufferI#drawIndexed
     void drawIndexed(uint32_t indexCount, uint32_t instanceCount) const;
 
@@ -47,9 +62,8 @@ public:
     /// @brief @see CommandBufferI#insertDebugLabel
     void insertDebugLabel(const char* name, glm::vec4 color) const;
 
-    /// @brief Get the vulkan handle for the command buffer.
-    /// @return Vulkan handle.
-    [[nodiscard]] const vk::CommandBuffer& commandBuffer() const { return _commandBuffer; }
+    /// @brief @see CommandBufferI#commandBufferId
+    [[nodiscard]] CommandBufferId commandBufferId() const { return static_cast<CommandBufferId>(&_commandBuffer); }
 
     /// @brief @see CommandBufferI#create
     /// @param debugName Debug name.

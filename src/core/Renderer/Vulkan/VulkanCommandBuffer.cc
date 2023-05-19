@@ -34,6 +34,48 @@ VulkanCommandBuffer::VulkanCommandBuffer(const char* debugName)
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
+void VulkanCommandBuffer::begin() const
+{
+    vk::CommandBufferBeginInfo beginInfo = {};
+    _commandBuffer.begin(beginInfo);
+}
+
+void VulkanCommandBuffer::end() const { _commandBuffer.end(); }
+
+void VulkanCommandBuffer::setViewport(const Viewport& viewport) const
+{
+    vk::Viewport viewportInfo = {};
+    viewportInfo.setX(viewport.x);
+    viewportInfo.setY(viewport.y);
+    viewportInfo.setWidth(viewport.width);
+    viewportInfo.setHeight(viewport.height);
+    viewportInfo.setMinDepth(viewport.minDepth);
+    viewportInfo.setMaxDepth(viewport.maxDepth);
+    _commandBuffer.setViewport(0, viewportInfo);
+
+    // set scissor
+    _commandBuffer.setScissor(
+        0, vk::Rect2D({ 0, 0 }, { static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height) }));
+}
+
+void VulkanCommandBuffer::beginRenderPass(const RenderPassBeginInfo& renderPassInfo) const
+{
+    std::array<vk::ClearValue, 2> clearValues {};
+    clearValues[0].setColor({ std::array<float, 4> { 1.0f, 0.0f, 0.0f, 1.0f } });
+    clearValues[1].setDepthStencil({ 1.0f, 0 });
+
+    vk::RenderPassBeginInfo renderPassBeginInfo = {};
+    renderPassBeginInfo.setRenderPass(*static_cast<const vk::RenderPass*>(renderPassInfo.renderPassId));
+    renderPassBeginInfo.setFramebuffer(*static_cast<const vk::Framebuffer*>(renderPassInfo.frameBufferId));
+    renderPassBeginInfo.setRenderArea(
+        vk::Rect2D({ renderPassInfo.renderAreaOffset.x, renderPassInfo.renderAreaOffset.y },
+            { renderPassInfo.renderAreaExtent.x, renderPassInfo.renderAreaExtent.y }));
+    renderPassBeginInfo.setClearValues(clearValues);
+    _commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
+}
+
+void VulkanCommandBuffer::endRenderPass() const { _commandBuffer.endRenderPass(); }
+
 void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
 {
     CHRZONE_RENDERER;
