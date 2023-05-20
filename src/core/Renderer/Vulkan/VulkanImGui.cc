@@ -88,11 +88,11 @@ void VulkanImGui::init()
     initInfo.Subpass = 0;
     initInfo.MinImageCount = VulkanContext::maxFramesInFlight;
     initInfo.ImageCount = static_cast<uint32_t>(VulkanContext::imagesData.size());
-    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.MSAASamples = static_cast<VkSampleCountFlagBits>(VulkanContext::msaaSamples);
     initInfo.Allocator = nullptr;
     initInfo.CheckVkResultFn = checkVulkanResult;
 
-    auto renderPass = static_cast<const vk::RenderPass*>(VulkanContext::debugRenderPass->renderPassId());
+    auto renderPass = static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId());
     ImGui_ImplVulkan_Init(&initInfo, *renderPass);
 
     // create font texture

@@ -65,9 +65,7 @@ void VulkanInstance::init()
     createSwapChain();
     createCommandPool();
     createRenderPass();
-    createDebugRenderPass();
     createFramebuffers();
-    createDebugFramebuffers();
     createSyncObjects();
     createCommandBuffers();
     createDescriptorPool();
@@ -108,7 +106,6 @@ void VulkanInstance::deinit()
     VulkanContext::framesData.clear();
 
     // destroy rendering passes
-    VulkanContext::debugRenderPass.reset();
     VulkanContext::renderPass.reset();
 
     // cleanup swap chain
@@ -161,7 +158,6 @@ void VulkanInstance::recreateSwapChain()
 
     // create main and debug framebuffers
     createFramebuffers();
-    createDebugFramebuffers();
 }
 
 void VulkanInstance::cleanupSwapChain()
@@ -171,7 +167,6 @@ void VulkanInstance::cleanupSwapChain()
     // clean framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
         imageData.framebuffer.reset();
-        imageData.debugFramebuffer.reset();
     }
 
     // clean multisampling color image
@@ -283,7 +278,8 @@ void VulkanInstance::pickPhysicalDevice()
     for (const auto& device : devices) {
         if (VulkanUtils::isDeviceSuitable(device, DEVICE_EXTENSIONS)) {
             VulkanContext::physicalDevice = device;
-            VulkanContext::msaaSamples = VulkanUtils::getMaxUsableSampleCount();
+            // TODO: restore
+            //VulkanContext::msaaSamples = VulkanUtils::getMaxUsableSampleCount();
             break;
         }
     }
@@ -453,34 +449,13 @@ void VulkanInstance::createRenderPass()
               .stencilLoadOp = AttachmentLoadOp::dontCare,
               .stencilStoreOp = AttachmentStoreOp::dontCare,
               .initialLayout = ImageLayout::undefined,
-              .finalLayout = ImageLayout::colorAttachment };
+              .finalLayout = ImageLayout::presentSrc };
 
     // create the renderpass
     RenderPassInfo renderPassInfo = { .colorAttachment = colorAttachment,
         .depthStencilAttachment = depthAttachment,
         .resolveAttachment = resolveAttachment };
     VulkanContext::renderPass = RenderPass::create(renderPassInfo);
-}
-
-void VulkanInstance::createDebugRenderPass()
-{
-    CHRZONE_RENDERER;
-
-    CHRLOG_TRACE("Create debug render pass");
-
-    // color attachment
-    RenderPassAttachment colorAttachment
-        = { .format = VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat),
-              .msaa = MSAA::sampleCount1,
-              .loadOp = AttachmentLoadOp::load,
-              .storeOp = AttachmentStoreOp::store,
-              .stencilLoadOp = AttachmentLoadOp::dontCare,
-              .stencilStoreOp = AttachmentStoreOp::dontCare,
-              .initialLayout = ImageLayout::colorAttachment,
-              .finalLayout = ImageLayout::presentSrc };
-
-    RenderPassInfo renderPassInfo = { .colorAttachment = colorAttachment };
-    VulkanContext::debugRenderPass = RenderPass::create(renderPassInfo);
 }
 
 void VulkanInstance::createFramebuffers()
@@ -498,23 +473,6 @@ void VulkanInstance::createFramebuffers()
         frameBufferInfo.width = VulkanContext::swapChainExtent.width;
         frameBufferInfo.height = VulkanContext::swapChainExtent.height;
         imageData.framebuffer = FrameBuffer::create(frameBufferInfo);
-    }
-}
-
-void VulkanInstance::createDebugFramebuffers()
-{
-    CHRZONE_RENDERER;
-
-    CHRLOG_TRACE("Create ImGui framebuffers");
-
-    // create the framebuffers
-    for (auto& imageData : VulkanContext::imagesData) {
-        FrameBufferInfo frameBufferInfo = {};
-        frameBufferInfo.attachments = { imageData.swapChainTexture->textureId() };
-        frameBufferInfo.renderPass = VulkanContext::debugRenderPass->renderPassId();
-        frameBufferInfo.width = VulkanContext::swapChainExtent.width;
-        frameBufferInfo.height = VulkanContext::swapChainExtent.height;
-        imageData.debugFramebuffer = FrameBuffer::create(frameBufferInfo);
     }
 }
 

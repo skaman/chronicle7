@@ -16,7 +16,7 @@ Scene::Scene(const std::string& name)
 
     // create command buffers
     //_commandBuffers.resize(Renderer::maxFramesInFlight());
-    //for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
+    // for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
     //    auto debugName = std::format("Scene {} command buffer (frame {})", _name, i);
     //    _commandBuffers[i] = VulkanCommandBuffer::create(debugName.c_str());
     //}
@@ -32,9 +32,15 @@ Scene::Scene(const std::string& name)
         .height = _height,
         .format = _imageFormat,
         .msaa = _msaa,
-        .isInputAttachment = true,
+        .isInputAttachment = true, // TODO: maybe false?
         .generateMipmaps = false });
     _depthTexture = Texture::createDepth({ .width = _width, .height = _height, .format = _depthFormat, .msaa = _msaa });
+    _resolveTexture = Texture::createColor({ .width = _width,
+        .height = _height,
+        .format = _imageFormat,
+        .msaa = MSAA::sampleCount1,
+        .isInputAttachment = true,
+        .generateMipmaps = false });
 
     // color attachment
     RenderPassAttachment colorAttachment = { .format = _imageFormat,
@@ -44,7 +50,7 @@ Scene::Scene(const std::string& name)
         .stencilLoadOp = AttachmentLoadOp::dontCare,
         .stencilStoreOp = AttachmentStoreOp::dontCare,
         .initialLayout = ImageLayout::undefined,
-        .finalLayout = ImageLayout::shaderReadOnly };
+        .finalLayout = ImageLayout::colorAttachment };
 
     // depth attachment
     RenderPassAttachment depthAttachment = { .format = _depthFormat,
@@ -56,19 +62,32 @@ Scene::Scene(const std::string& name)
         .initialLayout = ImageLayout::undefined,
         .finalLayout = ImageLayout::depthStencilAttachment };
 
+    // resolve attachment
+    RenderPassAttachment resolveAttachment = { .format = _imageFormat,
+        .msaa = MSAA::sampleCount1,
+        .loadOp = AttachmentLoadOp::dontCare,
+        .storeOp = AttachmentStoreOp::store,
+        .stencilLoadOp = AttachmentLoadOp::dontCare,
+        .stencilStoreOp = AttachmentStoreOp::dontCare,
+        .initialLayout = ImageLayout::undefined,
+        .finalLayout = ImageLayout::shaderReadOnly };
+
     // create render pass
-    _renderPass = RenderPass::create({ .colorAttachment = colorAttachment, .depthStencilAttachment = depthAttachment });
+    _renderPass = RenderPass::create({ .colorAttachment = colorAttachment,
+        .depthStencilAttachment = depthAttachment,
+        .resolveAttachment = resolveAttachment });
 
     // create frame buffer
     FrameBufferInfo frameBufferInfo = {};
-    frameBufferInfo.attachments = { _colorTexture->textureId(), _depthTexture->textureId() };
+    frameBufferInfo.attachments
+        = { _colorTexture->textureId(), _depthTexture->textureId(), _resolveTexture->textureId() };
     frameBufferInfo.renderPass = _renderPass->renderPassId();
     frameBufferInfo.width = _width;
     frameBufferInfo.height = _height;
     _frameBuffer = FrameBuffer::create(frameBufferInfo);
 
     // TODO: test to remove
-    auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
+    auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf", _renderPass);
     _mesh = test.meshes[0];
 }
 
@@ -77,9 +96,9 @@ void Scene::render(CommandBufferRef commandBuffer)
     // start
     auto currentFrame = Renderer::currentFrame();
 
-    //const auto& commandBuffer = _commandBuffers[currentFrame];
+    // const auto& commandBuffer = _commandBuffers[currentFrame];
 
-    //commandBuffer->begin();
+    // commandBuffer->begin();
 
     // begin render pass
     // TODO: add local cache for renderpass id and frame buffer id
@@ -97,8 +116,7 @@ void Scene::render(CommandBufferRef commandBuffer)
         .maxDepth = 1.0f });
 
     // camera
-    if (float aspect = static_cast<float>(_width) / static_cast<float>(_height);
-        _camera.aspect() != aspect) {
+    if (float aspect = static_cast<float>(_width) / static_cast<float>(_height); _camera.aspect() != aspect) {
         _camera.setAspect(aspect);
         _camera.recalculateProjection();
     }
@@ -125,7 +143,7 @@ void Scene::render(CommandBufferRef commandBuffer)
     // end
     commandBuffer->endRenderPass();
 
-    //commandBuffer->end();
+    // commandBuffer->end();
 }
 
 SceneRef Scene::create(const std::string& name)

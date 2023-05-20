@@ -30,8 +30,8 @@ public:
 
         CHRLOG_INFO("Start");
 
-        auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
-        _mesh2 = test.meshes[0];
+        //auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
+        //_mesh2 = test.meshes[0];
 
         // descriptor sets
         for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
@@ -63,7 +63,7 @@ public:
 
         //ImGui_ImplVulkan_RemoveTexture(_imTexture);
 
-        _mesh2.reset();
+        //_mesh2.reset();
         _scene.reset();
 
         Renderer::deinit();
@@ -96,16 +96,16 @@ public:
 
             drawDebugUI();
 
-            Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
-            for (auto i = 0; i < _mesh2->submeshCount(); i++) {
-                Renderer::commandBuffer()->bindPipeline(_mesh2->pipeline(i));
-                Renderer::commandBuffer()->bindVertexBuffers(_mesh2->vertexBuffers(i));
-                Renderer::commandBuffer()->bindIndexBuffer(_mesh2->indexBuffer(i), _mesh2->indexType(i));
-                Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
-                Renderer::commandBuffer()->bindDescriptorSet(_mesh2->material(i)->descriptorSet(), 1);
-                Renderer::commandBuffer()->drawIndexed(_mesh2->indicesCount(i), 1);
-            }
-            Renderer::commandBuffer()->endDebugLabel();
+            //Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
+            //for (auto i = 0; i < _mesh2->submeshCount(); i++) {
+            //    Renderer::commandBuffer()->bindPipeline(_mesh2->pipeline(i));
+            //    Renderer::commandBuffer()->bindVertexBuffers(_mesh2->vertexBuffers(i));
+            //    Renderer::commandBuffer()->bindIndexBuffer(_mesh2->indexBuffer(i), _mesh2->indexType(i));
+            //    Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
+            //    Renderer::commandBuffer()->bindDescriptorSet(_mesh2->material(i)->descriptorSet(), 1);
+            //    Renderer::commandBuffer()->drawIndexed(_mesh2->indicesCount(i), 1);
+            //}
+            //Renderer::commandBuffer()->endDebugLabel();
 
             // CHRLOG_DEBUG("{}", delta);
 
@@ -188,14 +188,14 @@ public:
         if (ImGui::Checkbox("Show debug lines", &enabled)) {
             Renderer::setDebugShowLines(enabled);
         }
-        ImGui::Image(_imTexture, ImVec2 { 512, 512 });
+        ImGui::Image(_imTexture, ImVec2 { 1024, 768 });
 
         ImGui::End();
     }
 
 private:
     SceneRef _scene;
-    MeshRef _mesh2;
+    //MeshRef _mesh2;
 
     UniformBufferObject _ubo {};
 

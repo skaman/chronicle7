@@ -6,10 +6,12 @@
 #include "pch.h"
 
 #include "Common.h"
+#include "DescriptorSetLayout.h"
 #include "VertexBufferInfo.h"
 
 #ifdef VULKAN_RENDERER
 #include "Vulkan/VulkanShader.h"
+#include "Vulkan/VulkanRenderPass.h"
 #endif
 
 namespace chronicle {
@@ -18,6 +20,9 @@ namespace chronicle {
 struct PipelineInfo {
     /// @brief Shader to be attached to the pipeline.
     ShaderRef shader = {};
+
+    /// @brief Render pass to be attached to the pipeline.
+    RenderPassRef renderPass = {};
 
     /// @brief Informations about the layout of the vertex buffers will be attached to the pipeline.
     std::vector<VertexBufferInfo> vertexBuffers = {};
@@ -32,6 +37,7 @@ template <> struct std::hash<chronicle::PipelineInfo> {
     std::size_t operator()(const chronicle::PipelineInfo& data) const noexcept
     {
         std::size_t h = data.shader->hash();
+        std::hash_add(h, data.renderPass->hash());
         for (const auto& vertexBuffer : data.vertexBuffers) {
             std::hash_combine(h, vertexBuffer);
         }

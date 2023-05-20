@@ -17,6 +17,7 @@ CHR_CONCRETE(VulkanPipeline);
 
 VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const char* debugName)
     : _shader(pipelineInfo.shader)
+    , _renderPass(pipelineInfo.renderPass)
     , _vertexBuffers(pipelineInfo.vertexBuffers)
 {
     CHRZONE_RENDERER;
@@ -142,7 +143,7 @@ void VulkanPipeline::create()
     // multisample state
     vk::PipelineMultisampleStateCreateInfo multisampling = {};
     multisampling.setSampleShadingEnable(false);
-    multisampling.setRasterizationSamples(VulkanContext::msaaSamples);
+    multisampling.setRasterizationSamples(VulkanEnums::msaaToVulkan(_renderPass->msaa()));
 
     // depth stencil
     vk::PipelineDepthStencilStateCreateInfo depthStencil = {};
@@ -187,7 +188,7 @@ void VulkanPipeline::create()
     graphicsPipelineInfo.setPColorBlendState(&colorBlending);
     graphicsPipelineInfo.setPDynamicState(&dynamicState);
     graphicsPipelineInfo.setLayout(_pipelineLayout);
-    graphicsPipelineInfo.setRenderPass(*static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId()));
+    graphicsPipelineInfo.setRenderPass(*static_cast<const vk::RenderPass*>(_renderPass->renderPassId()));
     graphicsPipelineInfo.setSubpass(0);
 
     // create the graphics pipeline

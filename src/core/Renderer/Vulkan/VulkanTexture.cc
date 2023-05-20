@@ -92,9 +92,10 @@ VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
     vk::ImageUsageFlags usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled;
     if (textureInfo.isInputAttachment) {
         usageFlags |= vk::ImageUsageFlagBits::eInputAttachment;
-    } else {
-        usageFlags |= vk::ImageUsageFlagBits::eTransientAttachment;
-    }
+    } 
+    //else {
+    //    usageFlags |= vk::ImageUsageFlagBits::eTransientAttachment;
+    //}
     //if (_generateMipmaps) {
     //    usageFlags |= vk::ImageUsageFlagBits::eSampled;
     //}
@@ -107,14 +108,15 @@ VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
             vk::ImageTiling::eOptimal, usageFlags, vk::MemoryPropertyFlagBits::eDeviceLocal);
     _imageMemory = imageMemory;
     _image = image;
-    _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor, 1);
+    _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eColor, _mipLevels);
 
     // create sampler
     _sampler = VulkanUtils::createTextureSampler(_mipLevels);
 }
 
 VulkanTexture::VulkanTexture(const DepthTextureInfo& textureInfo)
-    : _format(textureInfo.format)
+    : _type(TextureType::depth)
+    , _format(textureInfo.format)
     , _width(textureInfo.width)
     , _height(textureInfo.height)
 {

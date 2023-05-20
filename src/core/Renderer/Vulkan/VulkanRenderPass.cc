@@ -11,10 +11,12 @@ namespace chronicle {
 CHR_CONCRETE(VulkanRenderPass);
 
 VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
+    : _format(renderPassInfo.colorAttachment.format)
+    , _msaa(renderPassInfo.colorAttachment.msaa)
 {
     CHRZONE_RENDERER;
 
-    assert(renderPassInfo.colorAttachment);
+    _hash = std::hash<RenderPassInfo>()(renderPassInfo);
 
     std::vector<vk::AttachmentDescription> attachments = {};
 
@@ -23,15 +25,12 @@ VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
     subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
 
     // color attachment
-    vk::AttachmentReference colorAttachmentRef;
-    if (renderPassInfo.colorAttachment) {
-        const auto& attachment = renderPassInfo.colorAttachment.value();
+    const auto& colorAttachment = renderPassInfo.colorAttachment;
 
-        colorAttachmentRef = createAttachmentReference(static_cast<uint32_t>(attachments.size()), false);
-        subpass.setColorAttachments(colorAttachmentRef);
+    auto colorAttachmentRef = createAttachmentReference(static_cast<uint32_t>(attachments.size()), false);
+    subpass.setColorAttachments(colorAttachmentRef);
 
-        attachments.push_back(createAttachmentDescription(attachment));
-    }
+    attachments.push_back(createAttachmentDescription(colorAttachment));
 
     // depth attachment
     vk::AttachmentReference depthStencilAttachmentRef;

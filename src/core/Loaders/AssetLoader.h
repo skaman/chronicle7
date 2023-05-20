@@ -16,7 +16,7 @@ struct AssetResult {
 
 class AssetLoader {
 public:
-    [[nodiscard]] static AssetResult load(const std::string& filename);
+    [[nodiscard]] static AssetResult load(const std::string& filename, const RenderPassRef& renderPass);
 
 private:
     static Format getAttributeFormat(const tinygltf::Accessor& accessor);
@@ -28,7 +28,7 @@ private:
     static MaterialRef createMaterial(const tinygltf::Model& gltfModel, const tinygltf::Material& gltfMaterial);
 
     static MeshRef createMesh(const tinygltf::Model& gltfModel, const tinygltf::Mesh& gltfMesh,
-        const std::vector<MaterialRef>& materials, const MaterialRef& defaultMaterial);
+        const std::vector<MaterialRef>& materials, const MaterialRef& defaultMaterial, const RenderPassRef& renderPass);
 };
 
 } // namespace chronicle

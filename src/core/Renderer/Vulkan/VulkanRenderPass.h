@@ -23,11 +23,23 @@ public:
     /// @brief @see RenderPassI#renderPassId
     [[nodiscard]] RenderPassId renderPassId() const { return static_cast<RenderPassId>(&_renderPass); }
 
+    /// @brief @see RenderPassI#hash
+    [[nodiscard]] size_t hash() const { return _hash; };
+
+    /// @brief @see RenderPassI#format
+    [[nodiscard]] Format format() const { return _format; };
+
+    /// @brief @see RenderPassI#msaa
+    [[nodiscard]] MSAA msaa() const { return _msaa; };
+
     /// @brief @see RenderPassI#create
     [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo);
 
 private:
     vk::RenderPass _renderPass = nullptr; ///< Vulkan render pass.
+    Format _format = Format::undefined; ///< Format for the surface used by the render pass.
+    MSAA _msaa = MSAA::sampleCount1; ///< Multi sampling for the surface used by the render pass.
+    size_t _hash; ///< Hash of the configuration used to create the render pass.
 
     /// @brief Create a vulkan attachment description from a render pass attachment.
     /// @param attachment Render pass attachment.

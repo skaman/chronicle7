@@ -103,7 +103,6 @@ struct VulkanImageData {
 
     // framebuffers
     FrameBufferRef framebuffer = nullptr; ///< Framebuffer main render pass.
-    FrameBufferRef debugFramebuffer = nullptr; ///< Framebuffer debug render pass.
 };
 
 struct VulkanContext {
@@ -143,7 +142,6 @@ struct VulkanContext {
 
     // draw pass
     static inline RenderPassRef renderPass = {}; ///< Main render pass.
-    static inline RenderPassRef debugRenderPass = {}; ///< Debug render pass.
 
     // descriptor sets
     static inline vk::DescriptorPool descriptorPool = nullptr; ///< Descriptor pool used to allocate resources.

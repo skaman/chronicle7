@@ -18,6 +18,18 @@ public:
     /// @return Render pass ID
     [[nodiscard]] RenderPassId renderPassId() const { return static_cast<const T*>(this)->renderPassId(); }
 
+    /// @brief Get the hash of the configuration used to create the render pass.
+    /// @return Render pass hash.
+    [[nodiscard]] size_t hash() const { return static_cast<const T*>(this)->hash(); };
+
+    /// @brief Get the format used by the color attachment.
+    /// @return Format.
+    [[nodiscard]] Format format() const { return static_cast<const T*>(this)->format(); };
+
+    /// @brief Get the multi sampling used by the color attachment.
+    /// @return Multi sampling.
+    [[nodiscard]] MSAA msaa() const { return static_cast<const T*>(this)->msaa(); };
+
     /// @brief Factory for create a new render pass.
     /// @param renderPassInfo Informations used to create the render pass.
     /// @return The render pass.

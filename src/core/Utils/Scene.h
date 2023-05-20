@@ -23,8 +23,8 @@ public:
 
     static SceneRef create(const std::string& name);
 
-    [[nodiscard]] TextureId textureId() const { return _colorTexture->textureId(); }
-    [[nodiscard]] TextureId samplerId() const { return _colorTexture->samplerId(); }
+    [[nodiscard]] TextureId textureId() const { return _resolveTexture->textureId(); }
+    [[nodiscard]] TextureId samplerId() const { return _resolveTexture->samplerId(); }
 
     //[[nodiscard]] CommandBufferId commandBufferId() const
     //{
@@ -43,6 +43,7 @@ private:
 
     TextureRef _colorTexture = {};
     TextureRef _depthTexture = {};
+    TextureRef _resolveTexture = {};
     RenderPassRef _renderPass = {};
     FrameBufferRef _frameBuffer = {};
 

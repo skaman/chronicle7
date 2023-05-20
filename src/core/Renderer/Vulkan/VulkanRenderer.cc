@@ -125,15 +125,6 @@ void VulkanRenderer::endFrame()
     // get the current image data
     const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
 
-    // end main draw pass
-    commandBuffer()->endRenderPass();
-
-    // begin debug draw pass
-    commandBuffer()->beginRenderPass({ .renderPassId = VulkanContext::debugRenderPass->renderPassId(),
-        .frameBufferId = imageData.debugFramebuffer->frameBufferId(),
-        .renderAreaOffset = { 0, 0 },
-        .renderAreaExtent = { VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height } });
-
     // draw imgui
     VulkanImGui::draw(commandBuffer()->commandBufferId());
 

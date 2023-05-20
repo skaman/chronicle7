@@ -44,6 +44,7 @@ public:
 private:
     std::string _debugName; ///< Debug name.
     ShaderRef _shader; ///< Shader.
+    RenderPassRef _renderPass; ///< Render pass.
 
     std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout; ///< Descriptor sets layout.
     vk::PipelineLayout _pipelineLayout; ///< Pipeline layout.

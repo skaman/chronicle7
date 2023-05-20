@@ -53,14 +53,8 @@ private:
     /// @brief Create the main render pass.
     static void createRenderPass();
 
-    /// @brief Create the debug render pass.
-    static void createDebugRenderPass();
-
     /// @brief Create the main frame buffers.
     static void createFramebuffers();
-
-    /// @brief Create the debug frame buffers.
-    static void createDebugFramebuffers();
 
     /// @brief Create the synchronization objects.
     static void createSyncObjects();

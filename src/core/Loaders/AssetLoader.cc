@@ -16,7 +16,7 @@ struct Vertex {
     glm::vec4 color;
 };
 
-AssetResult AssetLoader::load(const std::string& filename)
+AssetResult AssetLoader::load(const std::string& filename, const RenderPassRef& renderPass)
 {
     tinygltf::Model model;
     tinygltf::TinyGLTF loader;
@@ -55,7 +55,7 @@ AssetResult AssetLoader::load(const std::string& filename)
 
     // create meshes
     for (const auto& gltfMesh : model.meshes) {
-        result.meshes.push_back(createMesh(model, gltfMesh, materials, defaultMaterial));
+        result.meshes.push_back(createMesh(model, gltfMesh, materials, defaultMaterial, renderPass));
     }
 
     return result;
@@ -258,7 +258,7 @@ MaterialRef AssetLoader::createMaterial(const tinygltf::Model& gltfModel, const 
 }
 
 MeshRef AssetLoader::createMesh(const tinygltf::Model& gltfModel, const tinygltf::Mesh& gltfMesh,
-    const std::vector<MaterialRef>& materials, const MaterialRef& defaultMaterial)
+    const std::vector<MaterialRef>& materials, const MaterialRef& defaultMaterial, const RenderPassRef& renderPass)
 {
     std::vector<Submesh> submeshes = {};
 
@@ -477,6 +477,7 @@ MeshRef AssetLoader::createMesh(const tinygltf::Model& gltfModel, const tinygltf
 
         PipelineInfo pipelineInfo = {};
         pipelineInfo.shader = ShaderLoader::load(shaderCompilerOptions);
+        pipelineInfo.renderPass = renderPass;
         pipelineInfo.vertexBuffers = submesh.vertexBuffersInfo;
         pipelineInfo.descriptorSetsLayout.push_back(Renderer::descriptorSetLayout());
         pipelineInfo.descriptorSetsLayout.push_back(descriptorLayout);
