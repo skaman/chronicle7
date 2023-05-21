@@ -11,7 +11,7 @@
 namespace chronicle {
 
 struct AssetResult {
-    std::vector<MeshRef> meshes = {};
+    std::vector<MeshRef> meshes {};
 };
 
 class AssetLoader {

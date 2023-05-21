@@ -59,11 +59,11 @@ public:
         const std::unordered_map<ShaderStage, std::string>& entryPoints, size_t hash);
 
 private:
-    std::unordered_map<ShaderStage, vk::ShaderModule> _shaderModules = {}; ///< Shader modules mapped for stages.
-    std::unordered_map<ShaderStage, std::string> _entryPoints = {}; ///< Shader entry points.
-    std::vector<DescriptorSetLayout> _descriptorSetsLayout = {}; ///< Descriptor sets layout.
-    std::vector<ShaderStage> _stages = {}; ///< Shader stages.
-    size_t _hash; ///< Hash of the configuration used to create the shader.
+    std::unordered_map<ShaderStage, vk::ShaderModule> _shaderModules {}; ///< Shader modules mapped for stages.
+    std::unordered_map<ShaderStage, std::string> _entryPoints {}; ///< Shader entry points.
+    std::vector<DescriptorSetLayout> _descriptorSetsLayout {}; ///< Descriptor sets layout.
+    std::vector<ShaderStage> _stages {}; ///< Shader stages.
+    size_t _hash {}; ///< Hash of the configuration used to create the shader.
 
     /// @brief Get the descriptor sets layout data from SPIR-V code of a single shader.
     /// @param code Shaders SPIR-V code.

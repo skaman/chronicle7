@@ -12,7 +12,7 @@ enum class GCType { pipeline, pipelineLayout, buffer, deviceMemory, descriptorSe
 
 /// @brief Garbage collector data.
 struct GCData {
-    GCType type; ///< Entry type.
+    GCType type {}; ///< Entry type.
     union {
         vk::Pipeline pipeline; ///< Pipeline
         vk::PipelineLayout pipelineLayout; ///< Pipeline layout
@@ -55,7 +55,7 @@ struct GCData {
 namespace chronicle {
 
 struct VulkanGCContext {
-    static inline std::vector<std::vector<GCData>> queues;
+    static inline std::vector<std::vector<GCData>> queues {};
 };
 
 class VulkanGC {

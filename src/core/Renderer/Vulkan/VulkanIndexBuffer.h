@@ -29,9 +29,9 @@ public:
     [[nodiscard]] static IndexBufferRef create(const uint8_t* src, size_t size, const std::string& name);
 
 private:
-    std::string _name; ///< Name.
-    vk::Buffer _buffer; ///< Buffer.
-    vk::DeviceMemory _bufferMemory; ///< Device memory for the buffer.
+    std::string _name {}; ///< Name.
+    vk::Buffer _buffer {}; ///< Buffer.
+    vk::DeviceMemory _bufferMemory {}; ///< Device memory for the buffer.
 };
 
 } // namespace chronicle

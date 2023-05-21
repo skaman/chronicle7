@@ -39,18 +39,18 @@ public:
     [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const std::string& name);
 
 private:
-    std::string _name; ///< Name.
-    ShaderRef _shader; ///< Shader.
-    RenderPassRef _renderPass; ///< Render pass.
+    std::string _name {}; ///< Name.
+    ShaderRef _shader {}; ///< Shader.
+    RenderPassRef _renderPass {}; ///< Render pass.
 
-    std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout; ///< Descriptor sets layout.
-    vk::PipelineLayout _pipelineLayout; ///< Pipeline layout.
-    vk::Pipeline _graphicsPipeline; ///< Graphics pipeline.
+    std::vector<vk::DescriptorSetLayout> _descriptorSetsLayout {}; ///< Descriptor sets layout.
+    vk::PipelineLayout _pipelineLayout {}; ///< Pipeline layout.
+    vk::Pipeline _graphicsPipeline {}; ///< Graphics pipeline.
 
-    vk::DescriptorPool _descriptorPool; ///< Descriptor pool.
-    std::vector<vk::DescriptorSet> _descriptorSets; ///< Descriptor sets.
+    vk::DescriptorPool _descriptorPool {}; ///< Descriptor pool.
+    std::vector<vk::DescriptorSet> _descriptorSets {}; ///< Descriptor sets.
 
-    std::vector<VertexBufferInfo> _vertexBuffers; ///< Vertex buffers.
+    std::vector<VertexBufferInfo> _vertexBuffers {}; ///< Vertex buffers.
 
     /// @brief Create the pipeline.
     void create();

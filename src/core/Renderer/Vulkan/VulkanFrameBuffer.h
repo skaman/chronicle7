@@ -28,8 +28,8 @@ public:
     [[nodiscard]] static FrameBufferRef create(const FrameBufferInfo& frameBufferInfo, const std::string& name);
 
 private:
-    std::string _name; ///< Name.
-    vk::Framebuffer _framebuffer = nullptr; ///< Vulkan frame buffer.
+    std::string _name {}; ///< Name.
+    vk::Framebuffer _framebuffer {}; ///< Vulkan frame buffer.
 };
 
 } // namespace chronicle

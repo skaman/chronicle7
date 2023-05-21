@@ -74,8 +74,8 @@ public:
     [[nodiscard]] static CommandBufferRef create(const std::string& name);
 
 private:
-    std::string _name; ///< Name.
-    vk::CommandBuffer _commandBuffer; ///< Command buffer.
+    std::string _name {}; ///< Name.
+    vk::CommandBuffer _commandBuffer {}; ///< Command buffer.
 };
 
 } // namespace chronicle

@@ -37,11 +37,11 @@ public:
     [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo, const std::string& name);
 
 private:
-    std::string _name; ///< Name.
-    vk::RenderPass _renderPass = nullptr; ///< Vulkan render pass.
-    Format _format = Format::undefined; ///< Format for the surface used by the render pass.
-    MSAA _msaa = MSAA::sampleCount1; ///< Multi sampling for the surface used by the render pass.
-    size_t _hash; ///< Hash of the configuration used to create the render pass.
+    std::string _name {}; ///< Name.
+    vk::RenderPass _renderPass {}; ///< Vulkan render pass.
+    Format _format { Format::undefined }; ///< Format for the surface used by the render pass.
+    MSAA _msaa { MSAA::sampleCount1 }; ///< Multi sampling for the surface used by the render pass.
+    size_t _hash {}; ///< Hash of the configuration used to create the render pass.
 
     /// @brief Create a vulkan attachment description from a render pass attachment.
     /// @param attachment Render pass attachment.

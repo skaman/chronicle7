@@ -6,12 +6,12 @@
 namespace chronicle {
 
 template <typename T> struct PlatformEvent {
-    T data = {};
+    T data {};
 };
 
 struct CursorPositionData {
-    double positionX;
-    double positionY;
+    double positionX {};
+    double positionY {};
 };
 
 enum class CursorMode { normal = 0, hidden = 1, disabled = 2 };
@@ -218,42 +218,42 @@ enum class Key {
 };
 
 struct MouseButtonData {
-    MouseButton button;
-    ButtonAction action;
-    KeyModifier modifier;
+    MouseButton button {};
+    ButtonAction action {};
+    KeyModifier modifier {};
 };
 
 struct MouseEnterData {
-    bool entered;
+    bool entered {};
 };
 
 struct MouseScrollData {
-    double offsetX;
-    double offsetY;
+    double offsetX {};
+    double offsetY {};
 };
 
 struct KeyData {
-    Key key;
-    ButtonAction action;
-    KeyModifier modifier;
+    Key key {};
+    ButtonAction action {};
+    KeyModifier modifier {};
 };
 
 struct CharData {
-    wchar_t character;
+    wchar_t character {};
 };
 
 struct GamepadData {
-    std::array<ButtonAction, static_cast<int>(GamepadButton::count)> buttons;
-    std::array<float, static_cast<int>(GamepadAxis::count)> axes;
+    std::array<ButtonAction, static_cast<int>(GamepadButton::count)> buttons {};
+    std::array<float, static_cast<int>(GamepadAxis::count)> axes {};
 };
 
 struct GamepadConnectedData {
-    Gamepad gamepad;
-    bool connected;
+    Gamepad gamepad {};
+    bool connected {};
 };
 
 struct PathDropData {
-    std::vector<std::string> paths;
+    std::vector<std::string> paths {};
 };
 
 using CursorPositionEvent = PlatformEvent<CursorPositionData>;

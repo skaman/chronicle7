@@ -16,18 +16,18 @@ namespace chronicle {
 
 /// @brief Binding data for uniform buffer.
 struct UniformStateBindingData {
-    vk::DeviceMemory bufferMemory; ///< Device memory that contain the data.
-    vk::DescriptorBufferInfo bufferInfo; ///< Descriptor buffer informations.
+    vk::DeviceMemory bufferMemory {}; ///< Device memory that contain the data.
+    vk::DescriptorBufferInfo bufferInfo {}; ///< Descriptor buffer informations.
 };
 
 /// @brief Binding data for a sampler.
 struct CombinedImageSamplerBindingData {
-    vk::DescriptorImageInfo imageInfo; ///< Descriptor image informations.
+    vk::DescriptorImageInfo imageInfo {}; ///< Descriptor image informations.
 };
 
 /// @brief Binding informations for a descriptor.
 struct VulkanDescriptorSetBindingInfo {
-    vk::DescriptorType type; ///< Descriptor type.
+    vk::DescriptorType type {}; ///< Descriptor type.
 
     union {
         UniformStateBindingData uniform; ///< Uniform buffer info.
@@ -135,15 +135,15 @@ public:
     [[nodiscard]] static DescriptorSetRef create(const std::string& name);
 
 private:
-    std::string _name; ///< Name.
+    std::string _name {}; ///< Name.
 
-    vk::DescriptorSet _descriptorSet = nullptr; ///< Descriptor set handle.
-    vk::DescriptorSetLayout _descriptorSetLayout = nullptr; ///< Descriptor set layout.
+    vk::DescriptorSet _descriptorSet {}; ///< Descriptor set handle.
+    vk::DescriptorSetLayout _descriptorSetLayout {}; ///< Descriptor set layout.
 
-    std::vector<vk::DescriptorSetLayoutBinding> _layoutBindings = {}; ///< Layout bindings.
-    std::vector<VulkanDescriptorSetBindingInfo> _descriptorSetsBindingInfo = {}; ///< Descriptor sets binding info.
+    std::vector<vk::DescriptorSetLayoutBinding> _layoutBindings {}; ///< Layout bindings.
+    std::vector<VulkanDescriptorSetBindingInfo> _descriptorSetsBindingInfo {}; ///< Descriptor sets binding info.
 
-    std::unordered_map<entt::hashed_string::hash_type, void*> _buffersMapped = {}; ///< Map for uniform buffers memory.
+    std::unordered_map<entt::hashed_string::hash_type, void*> _buffersMapped {}; ///< Map for uniform buffers memory.
 
     /// @brief Create a write descriptor set for a uniform.
     /// @param index Descriptor set index.

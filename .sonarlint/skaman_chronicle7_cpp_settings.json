@@ -1485,10 +1485,6 @@
       "level": "On",
       "severity": "Major"
     },
-    "cpp:S6190": {
-      "level": "On",
-      "severity": "Major"
-    },
     "cpp:S6195": {
       "level": "On",
       "severity": "Major"
@@ -2184,6 +2180,9 @@
       "level": "Off"
     },
     "cpp:S1749": {
+      "level": "Off"
+    },
+    "cpp:S6190": {
       "level": "Off"
     },
     "cpp:S2806": {

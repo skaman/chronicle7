@@ -19,8 +19,12 @@ public:
 
 class Storage {
 public:
+    static void init();
+
     [[nodiscard]] static std::vector<uint8_t> readBytes(const std::string& filename);
     [[nodiscard]] static std::string readString(const std::string& filename);
+
+    static void registerFileData(const std::string& filename, const uint8_t* data, size_t size);
 
 private:
     [[nodiscard]] static std::vector<uint8_t> getBytesFromConstData(const uint8_t* data, size_t size);

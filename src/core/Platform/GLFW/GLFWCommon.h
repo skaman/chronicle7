@@ -8,13 +8,13 @@
 namespace chronicle {
 
 struct GLFWContext {
-    static inline GLFWwindow* window = nullptr;
-    static inline std::string title = "Chronicle";
-    static inline int width = 1024 * 2;
-    static inline int height = 768 * 2;
-    static inline entt::dispatcher dispatcher = {};
-    static inline GLFWcursor* cursor = nullptr;
-    static inline CursorType cursorType = CursorType::system;
+    static inline GLFWwindow* window { nullptr };
+    static inline std::string title { "Chronicle" };
+    static inline int width { 1024 * 2 }; // TODO: use the right dpi scale
+    static inline int height { 768 * 2 }; // TODO: use the right dpi scale
+    static inline entt::dispatcher dispatcher {};
+    static inline GLFWcursor* cursor { nullptr };
+    static inline CursorType cursorType { CursorType::system };
 };
 
 } // namespace chronicle

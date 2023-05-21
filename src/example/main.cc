@@ -21,6 +21,7 @@ class ExampleApp {
 public:
     void init()
     {
+        Storage::init();
         Platform::init();
         Renderer::init();
 

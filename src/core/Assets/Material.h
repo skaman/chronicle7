@@ -18,13 +18,13 @@ enum class AlphaMode : uint32_t {
 
 /// @brief Material UBO for descriptor set.
 struct MaterialUBO {
-    glm::vec4 baseColorFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; ///< The base color of the material.
-    float metallicFactor = 1.0f; ///< The metalness of the material.
-    float roughnessFactor = 1.0f; ///< The roughness of the material.
-    glm::vec3 emissiveFactor = { 0.0f, 0.0f, 0.0f }; ///< The factors for the emissive color of the material.
-    AlphaMode alphaMode = AlphaMode::opaque; ///< The alpha rendering mode of the material.
-    float alphaCutoff = 0.5f; ///< The alpha cutoff value of the material.
-    bool doubleSided = false; ///< Specifies whether the material is double sided.
+    glm::vec4 baseColorFactor { 1.0f, 1.0f, 1.0f, 1.0f }; ///< The base color of the material.
+    float metallicFactor { 1.0f }; ///< The metalness of the material.
+    float roughnessFactor { 1.0f }; ///< The roughness of the material.
+    glm::vec3 emissiveFactor { 0.0f, 0.0f, 0.0f }; ///< The factors for the emissive color of the material.
+    AlphaMode alphaMode { AlphaMode::opaque }; ///< The alpha rendering mode of the material.
+    float alphaCutoff { 0.5f }; ///< The alpha cutoff value of the material.
+    bool doubleSided { false }; ///< Specifies whether the material is double sided.
 };
 
 class Material;
@@ -173,13 +173,13 @@ public:
     [[nodiscard]] static MaterialRef create(const char* debugName);
 
 private:
-    MaterialUBO _ubo = {}; ///< Material uniform buffer object.
-    TextureRef _baseColorTexture = {}; ///< The base color texture.
-    TextureRef _metallicRoughnessTexture = {}; ///< The metallic-roughness texture.
-    TextureRef _normalTexture = {}; ///< The tangent space normal texture.
-    TextureRef _occlusionTexture = {}; ///< The occlusion texture.
-    TextureRef _emissiveTexture = {}; ///< The emissive texture.
-    DescriptorSetRef _descriptorSet = {}; ///< Descriptor set.
+    MaterialUBO _ubo {}; ///< Material uniform buffer object.
+    TextureRef _baseColorTexture {}; ///< The base color texture.
+    TextureRef _metallicRoughnessTexture {}; ///< The metallic-roughness texture.
+    TextureRef _normalTexture {}; ///< The tangent space normal texture.
+    TextureRef _occlusionTexture {}; ///< The occlusion texture.
+    TextureRef _emissiveTexture {}; ///< The emissive texture.
+    DescriptorSetRef _descriptorSet {}; ///< Descriptor set.
 };
 
 } // namespace chronicle

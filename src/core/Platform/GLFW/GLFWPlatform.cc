@@ -18,6 +18,7 @@ void GLFWPlatform::init()
     GLFWContext::window
         = glfwCreateWindow(GLFWContext::width, GLFWContext::height, GLFWContext::title.c_str(), nullptr, nullptr);
 
+    //glfwSetWindowAttrib(GLFWContext::window, GLFW_TITLEBAR, GLFW_FALSE);
     glfwSetInputMode(GLFWContext::window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 
     glfwSetFramebufferSizeCallback(GLFWContext::window, framebufferSizeCallback);

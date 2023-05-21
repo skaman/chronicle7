@@ -12,8 +12,8 @@ namespace chronicle {
 
 /// @brief Data structure for find queue families.
 struct VulkanQueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily; ///< Graphics family index.
-    std::optional<uint32_t> presentFamily; ///< Present family index.
+    std::optional<uint32_t> graphicsFamily {}; ///< Graphics family index.
+    std::optional<uint32_t> presentFamily {}; ///< Present family index.
 
     /// @brief Check if families are setted.
     /// @return True if all families are setted, otherwise false.
@@ -22,101 +22,95 @@ struct VulkanQueueFamilyIndices {
 
 /// @brief Data structure for find swapchain support.
 struct VulkanSwapChainSupportDetails {
-    vk::SurfaceCapabilitiesKHR capabilities; ///< Swapchain capabilities.
-    std::vector<vk::SurfaceFormatKHR> formats; ///< Swapchain formats.
-    std::vector<vk::PresentModeKHR> presentModes; ///< Present modes.
+    vk::SurfaceCapabilitiesKHR capabilities {}; ///< Swapchain capabilities.
+    std::vector<vk::SurfaceFormatKHR> formats {}; ///< Swapchain formats.
+    std::vector<vk::PresentModeKHR> presentModes {}; ///< Present modes.
 };
 
 /// @brief Default uniform buffer object with model-view-projection matrix
 struct UniformBufferObject {
-    alignas(16) glm::mat4 model; ///< Model.
-    alignas(16) glm::mat4 view; ///< View.
-    alignas(16) glm::mat4 proj; ///< Projection.
+    alignas(16) glm::mat4 model {}; ///< Model.
+    alignas(16) glm::mat4 view {}; ///< View.
+    alignas(16) glm::mat4 proj {}; ///< Projection.
 };
 
 /// @brief Data related to a single frame in flight.
 struct VulkanFrameData {
     // sync objects
-    vk::Semaphore imageAvailableSemaphore = nullptr; ///< Image available semaphore.
-    vk::Semaphore renderFinishedSemaphore = nullptr; ///< Render finished semaphore.
-    vk::Fence inFlightFence = nullptr; ///< Fence for frames in flight.
+    vk::Semaphore imageAvailableSemaphore {}; ///< Image available semaphore.
+    vk::Semaphore renderFinishedSemaphore {}; ///< Render finished semaphore.
+    vk::Fence inFlightFence {}; ///< Fence for frames in flight.
 
     // command buffers
-    CommandBufferRef commandBuffer = nullptr; ///< Command Buffer.
+    CommandBufferRef commandBuffer {}; ///< Command Buffer.
 
     // descriptor sets
-    DescriptorSetRef descriptorSet = nullptr; ///< Descriptor set.
+    DescriptorSetRef descriptorSet {}; ///< Descriptor set.
 };
 
 /// @brief Data related to a single swapchain image.
 struct VulkanImageData {
     // swapchain
-    TextureRef swapChainTexture = {}; ///< Swapchain texture.
+    TextureRef swapChainTexture {}; ///< Swapchain texture.
 
     // framebuffers
-    FrameBufferRef framebuffer = nullptr; ///< Framebuffer main render pass.
+    FrameBufferRef framebuffer {}; ///< Framebuffer main render pass.
 };
 
 struct VulkanContext {
     // instance, debugger and surface
-    static inline vk::Instance instance = nullptr; ///< Vulkan instance.
-    static inline VkDebugUtilsMessengerEXT debugCallback = VK_NULL_HANDLE; ///< Debug messenger callback.
-    static inline vk::SurfaceKHR surface = nullptr; ///< Draw surface.
+    static inline vk::Instance instance {}; ///< Vulkan instance.
+    static inline VkDebugUtilsMessengerEXT debugCallback { VK_NULL_HANDLE }; ///< Debug messenger callback.
+    static inline vk::SurfaceKHR surface {}; ///< Draw surface.
 
     // devices
-    static inline vk::PhysicalDevice physicalDevice = nullptr; ///< Physical device.
-    static inline vk::Device device = nullptr; ///< Logical device.
+    static inline vk::PhysicalDevice physicalDevice {}; ///< Physical device.
+    static inline vk::Device device {}; ///< Logical device.
 
     // queues
-    static inline vk::Queue graphicsQueue = nullptr; ///< Graphics queue.
-    static inline vk::Queue presentQueue = nullptr; ///< Presentation queue.
+    static inline vk::Queue graphicsQueue {}; ///< Graphics queue.
+    static inline vk::Queue presentQueue {}; ///< Presentation queue.
 
     // families
-    static inline uint32_t graphicsFamily = 0; ///< Graphics family index.
-    static inline uint32_t presentFamily = 0; ///< Present family index.
+    static inline uint32_t graphicsFamily {}; ///< Graphics family index.
+    static inline uint32_t presentFamily {}; ///< Present family index.
 
     // swapchain
-    static inline vk::SwapchainKHR swapChain = nullptr; ///< Swapchain.
-    static inline vk::Format swapChainImageFormat = vk::Format::eUndefined; ///< Swapchain image format.
-    static inline vk::Extent2D swapChainExtent = {}; ///< Swapchain extent.
-    static inline bool swapChainInvalidated = false; ///< Indicate if the swapchain is invalidated and need recreation.
-
-    // multisampling
-    static inline vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1; ///< Number of samples.
-    static inline TextureRef colorTexture = {}; ///< Multisampling color image.
-
-    // depth image
-    static inline vk::Format depthImageFormat = vk::Format::eUndefined; ///< Depth image format.
-    static inline TextureRef depthTexture = {}; ///< Depth image.
+    static inline vk::SwapchainKHR swapChain {}; ///< Swapchain.
+    static inline vk::Format swapChainImageFormat { vk::Format::eUndefined }; ///< Swapchain image format.
+    static inline vk::Extent2D swapChainExtent {}; ///< Swapchain extent.
+    static inline bool swapChainInvalidated {
+        false
+    }; ///< Indicate if the swapchain is invalidated and need recreation.
 
     // command pool
-    static inline vk::CommandPool commandPool = nullptr; ///< Command pool.
+    static inline vk::CommandPool commandPool {}; ///< Command pool.
 
     // draw pass
-    static inline RenderPassRef renderPass = {}; ///< Main render pass.
+    static inline RenderPassRef renderPass {}; ///< Main render pass.
 
     // descriptor sets
-    static inline vk::DescriptorPool descriptorPool = nullptr; ///< Descriptor pool used to allocate resources.
+    static inline vk::DescriptorPool descriptorPool {}; ///< Descriptor pool used to allocate resources.
 
     // frame data
-    static inline std::vector<VulkanFrameData> framesData = {}; ///< Data related to the frames in flight.
+    static inline std::vector<VulkanFrameData> framesData {}; ///< Data related to the frames in flight.
 
     // images data
-    static inline std::vector<VulkanImageData> imagesData = {}; ///< Data related to the swapchain images.
+    static inline std::vector<VulkanImageData> imagesData {}; ///< Data related to the swapchain images.
 
     // current frame
-    static inline int currentFrame = 0; ///< Index of current frame in flight.
-    static inline int currentImage = 0; ///< Index of current swapchain image.
+    static inline int currentFrame {}; ///< Index of current frame in flight.
+    static inline int currentImage {}; ///< Index of current swapchain image.
 
     // options
-    static inline int maxFramesInFlight = 3; ///< Number of max frames in flights.
-    static inline bool enabledValidationLayer = true; ///< Enabled state for debug validation layers.
+    static inline int maxFramesInFlight { 3 }; ///< Number of max frames in flights.
+    static inline bool enabledValidationLayer { true }; ///< Enabled state for debug validation layers.
 
     // debug
-    static inline bool debugShowLines = false; ///< Debug show lines.
+    static inline bool debugShowLines { false }; ///< Debug show lines.
 
     // events
-    static inline entt::dispatcher dispatcher = {}; ///< Events dispatcher.
+    static inline entt::dispatcher dispatcher {}; ///< Events dispatcher.
 };
 
 } // namespace chronicle

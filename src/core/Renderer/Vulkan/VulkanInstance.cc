@@ -168,12 +168,6 @@ void VulkanInstance::cleanupSwapChain()
         imageData.framebuffer.reset();
     }
 
-    // clean multisampling color image
-    VulkanContext::colorTexture.reset();
-
-    // clean depth image
-    VulkanContext::depthTexture.reset();
-
     // clean image data
     VulkanContext::imagesData.clear();
 
@@ -370,23 +364,6 @@ void VulkanInstance::createSwapChain()
     }
     VulkanContext::swapChain = VulkanContext::device.createSwapchainKHR(createInfo);
 
-    // create color buffer
-    VulkanContext::colorTexture
-        = Texture::createColor({ .width = extent.width,
-                                   .height = extent.height,
-                                   .format = VulkanEnums::formatFromVulkan(surfaceFormat.format),
-                                   .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) },
-            "Main color texture");
-
-    // create depth buffer
-    VulkanContext::depthImageFormat = VulkanUtils::findDepthFormat();
-    VulkanContext::depthTexture
-        = Texture::createDepth({ .width = extent.width,
-                                   .height = extent.height,
-                                   .format = VulkanEnums::formatFromVulkan(VulkanContext::depthImageFormat),
-                                   .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) },
-            "Main depth texture");
-
     // create swap chain images
     auto swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
     VulkanContext::swapChainImageFormat = surfaceFormat.format;
@@ -425,29 +402,8 @@ void VulkanInstance::createRenderPass()
     // color attachment
     RenderPassAttachment colorAttachment
         = { .format = VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat),
-              .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples),
-              .loadOp = AttachmentLoadOp::clear,
-              .storeOp = AttachmentStoreOp::store,
-              .stencilLoadOp = AttachmentLoadOp::dontCare,
-              .stencilStoreOp = AttachmentStoreOp::dontCare,
-              .initialLayout = ImageLayout::undefined,
-              .finalLayout = ImageLayout::colorAttachment };
-
-    // depth attachment
-    RenderPassAttachment depthAttachment = { .format = VulkanEnums::formatFromVulkan(VulkanContext::depthImageFormat),
-        .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples),
-        .loadOp = AttachmentLoadOp::clear,
-        .storeOp = AttachmentStoreOp::dontCare,
-        .stencilLoadOp = AttachmentLoadOp::dontCare,
-        .stencilStoreOp = AttachmentStoreOp::dontCare,
-        .initialLayout = ImageLayout::undefined,
-        .finalLayout = ImageLayout::depthStencilAttachment };
-
-    // resolve attachment
-    RenderPassAttachment resolveAttachment
-        = { .format = VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat),
               .msaa = MSAA::sampleCount1,
-              .loadOp = AttachmentLoadOp::dontCare,
+              .loadOp = AttachmentLoadOp::clear,
               .storeOp = AttachmentStoreOp::store,
               .stencilLoadOp = AttachmentLoadOp::dontCare,
               .stencilStoreOp = AttachmentStoreOp::dontCare,
@@ -455,9 +411,7 @@ void VulkanInstance::createRenderPass()
               .finalLayout = ImageLayout::presentSrc };
 
     // create the renderpass
-    RenderPassInfo renderPassInfo = { .colorAttachment = colorAttachment,
-        .depthStencilAttachment = depthAttachment,
-        .resolveAttachment = resolveAttachment };
+    RenderPassInfo renderPassInfo = { .colorAttachment = colorAttachment };
     VulkanContext::renderPass = RenderPass::create(renderPassInfo, "Main render pass");
 }
 
@@ -470,8 +424,7 @@ void VulkanInstance::createFramebuffers()
     // create the framebuffers
     for (auto& imageData : VulkanContext::imagesData) {
         FrameBufferInfo frameBufferInfo = {};
-        frameBufferInfo.attachments = { VulkanContext::colorTexture->textureId(),
-            VulkanContext::depthTexture->textureId(), imageData.swapChainTexture->textureId() };
+        frameBufferInfo.attachments = { imageData.swapChainTexture->textureId() };
         frameBufferInfo.renderPass = VulkanContext::renderPass->renderPassId();
         frameBufferInfo.width = VulkanContext::swapChainExtent.width;
         frameBufferInfo.height = VulkanContext::swapChainExtent.height;

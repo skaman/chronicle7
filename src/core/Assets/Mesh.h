@@ -13,49 +13,49 @@ namespace chronicle {
 /// @brief Bounding box.
 struct BoundingBox {
     /// @brief Bounding box minimal value.
-    glm::vec3 min;
+    glm::vec3 min {};
 
     /// @brief Bounding box maximun value.
-    glm::vec3 max;
+    glm::vec3 max {};
 };
 
 /// @brief Submesh data used to construct the mesh.
 struct Submesh {
     /// @brief Vertices count.
-    uint32_t verticesCount = 0;
+    uint32_t verticesCount { 0 };
 
     /// @brief Vertex buffers.
-    std::vector<VertexBufferRef> vertexBuffers = {};
+    std::vector<VertexBufferRef> vertexBuffers {};
 
     /// @brief Vertex buffer ids.
-    std::vector<VertexBufferId> vertexBufferIds = {};
+    std::vector<VertexBufferId> vertexBufferIds {};
 
     /// @brief Vertex buffer offsets.
-    std::vector<uint64_t> vertexBufferOffsets = {};
+    std::vector<uint64_t> vertexBufferOffsets {};
 
     /// @brief Vertex buffers informations.
-    std::vector<VertexBufferInfo> vertexBuffersInfo = {};
+    std::vector<VertexBufferInfo> vertexBuffersInfo {};
 
     /// @brief Indices count.
-    uint32_t indicesCount = 0;
+    uint32_t indicesCount { 0 };
 
     /// @brief Index type.
-    IndexType indexType = IndexType::undefined;
+    IndexType indexType { IndexType::undefined };
 
     /// @brief Index buffer.
-    IndexBufferRef indexBuffer = {};
+    IndexBufferRef indexBuffer {};
 
     /// @brief Index buffer id.
-    IndexBufferId indexBufferId = {};
+    IndexBufferId indexBufferId {};
 
     /// @brief Material.
-    MaterialRef material = {};
+    MaterialRef material {};
 
     /// @brief Pipeline.
-    PipelineRef pipeline = {};
+    PipelineRef pipeline {};
 
     /// @brief Mesh bounding box.
-    BoundingBox boundingBox = {};
+    BoundingBox boundingBox {};
 };
 
 class Mesh;
@@ -181,7 +181,7 @@ public:
     [[nodiscard]] static MeshRef create(const std::vector<Submesh>& submeshes);
 
 private:
-    std::vector<Submesh> _submeshes = {}; ///< Submeshes that compose the mesh.
+    std::vector<Submesh> _submeshes {}; ///< Submeshes that compose the mesh.
 };
 
 } // namespace chronicle

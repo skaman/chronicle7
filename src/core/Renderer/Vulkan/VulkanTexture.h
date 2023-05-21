@@ -72,18 +72,18 @@ public:
         const vk::Image& image, vk::Format format, uint32_t width, uint32_t height, const std::string& name);
 
 private:
-    std::string _name; ///< Name.
-    vk::DeviceMemory _imageMemory = nullptr; ///< Device memory for the image.
-    vk::Image _image = nullptr; ///< Image.
-    vk::ImageView _imageView = nullptr; ///< Image view.
-    vk::Sampler _sampler = nullptr; ///< Image sampler.
+    std::string _name {}; ///< Name.
+    vk::DeviceMemory _imageMemory {}; ///< Device memory for the image.
+    vk::Image _image {}; ///< Image.
+    vk::ImageView _imageView {}; ///< Image view.
+    vk::Sampler _sampler {}; ///< Image sampler.
 
-    TextureType _type = TextureType::sampled; ///< Texture type.
-    Format _format = Format::undefined;
-    bool _generateMipmaps = false; ///< Generate mipmaps required.
-    uint32_t _mipLevels = 0; ///< Image miplevels.
-    uint32_t _width = 0; ///< Image width.
-    uint32_t _height = 0; ///< Image height.
+    TextureType _type { TextureType::sampled }; ///< Texture type.
+    Format _format { Format::undefined };
+    bool _generateMipmaps { false }; ///< Generate mipmaps required.
+    uint32_t _mipLevels {}; ///< Image miplevels.
+    uint32_t _width {}; ///< Image width.
+    uint32_t _height {}; ///< Image height.
 };
 
 } // namespace chronicle
