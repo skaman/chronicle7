@@ -18,23 +18,23 @@ public:
     /// @return Descriptor set layouts.
     [[nodiscard]] std::vector<DescriptorSetLayout> descriptorSetLayouts() const
     {
-        return static_cast<const T*>(this)->descriptorSetLayouts();
+        return CRTP_CONST_THIS->descriptorSetLayouts();
     };
 
     /// @brief Get the available shader stages.
     /// @return Shader stages.
-    [[nodiscard]] std::vector<ShaderStage> stages() const { return static_cast<const T*>(this)->stages(); };
+    [[nodiscard]] std::vector<ShaderStage> stages() const { return CRTP_CONST_THIS->stages(); };
 
     /// @brief Get the hash of the configuration used to create the shader.
     /// @return Shaders hash.
-    [[nodiscard]] size_t hash() const { return static_cast<const T*>(this)->hash(); };
+    [[nodiscard]] size_t hash() const { return CRTP_CONST_THIS->hash(); };
 
     /// @brief Get the entry point for a specific shader stage.
     /// @param stage Shader stage.
     /// @return Entry point.
     [[nodiscard]] const std::string& entryPoint(ShaderStage stage) const
     {
-        return static_cast<const T*>(this)->entryPoint(stage);
+        return CRTP_CONST_THIS->entryPoint(stage);
     }
 
 private:

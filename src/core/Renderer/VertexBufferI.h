@@ -15,7 +15,7 @@ template <class T> class VertexBufferI {
 public:
     /// @brief Get the vertex buffer handle ID
     /// @return Vertex buffer ID
-    [[nodiscard]] VertexBufferId vertexBufferId() const { return static_cast<const T*>(this)->vertexBufferId(); }
+    [[nodiscard]] VertexBufferId vertexBufferId() const { return CRTP_CONST_THIS->vertexBufferId(); }
 
     /// @brief Factory for create a new vertex buffer.
     /// @param data Vertex buffer data.

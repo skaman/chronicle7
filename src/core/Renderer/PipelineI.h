@@ -16,11 +16,11 @@ template <class T> class PipelineI {
 public:
     /// @brief Get the pipeline handle ID
     /// @return Pipeline ID
-    [[nodiscard]] PipelineId pipelineId() const { return static_cast<const T*>(this)->pipelineId(); }
+    [[nodiscard]] PipelineId pipelineId() const { return CRTP_CONST_THIS->pipelineId(); }
 
     /// @brief Get the pipeline layout handle ID
     /// @return Pipeline layout ID
-    [[nodiscard]] PipelineLayoutId pipelineLayoutId() const { return static_cast<const T*>(this)->pipelineLayoutId(); }
+    [[nodiscard]] PipelineLayoutId pipelineLayoutId() const { return CRTP_CONST_THIS->pipelineLayoutId(); }
 
     /// @brief Factory for create a new pipeline.
     /// @param pipelineInfo Informations used to create the pipeline.

@@ -15,7 +15,7 @@ template <class T> class IndexBufferI {
 public:
     /// @brief Get the index buffer handle ID
     /// @return Index buffer ID
-    [[nodiscard]] IndexBufferId indexBufferId() const { return static_cast<const T*>(this)->indexBufferId(); }
+    [[nodiscard]] IndexBufferId indexBufferId() const { return CRTP_CONST_THIS->indexBufferId(); }
 
     /// @brief Factory for create a new index buffer.
     /// @param data Index buffer data.

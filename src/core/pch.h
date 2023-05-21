@@ -190,6 +190,10 @@ constexpr void log(
         }                                                                                                              \
     }
 
+// CRTP helpers
+#define CRTP_CONST_THIS static_cast<const T*>(this)
+#define CRTP_THIS static_cast<T*>(this)
+
 namespace chronicle {
 
 // non copyable classes

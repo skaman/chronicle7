@@ -18,11 +18,11 @@ template <class T> class TextureI {
 public:
     /// @brief Get the texture handle ID
     /// @return Texture ID
-    [[nodiscard]] TextureId textureId() const { return static_cast<const T*>(this)->textureId(); }
+    [[nodiscard]] TextureId textureId() const { return CRTP_CONST_THIS->textureId(); }
 
     /// @brief Get the sampler handle ID
     /// @return Sampler ID
-    [[nodiscard]] SamplerId samplerId() const { return static_cast<const T*>(this)->samplerId(); }
+    [[nodiscard]] SamplerId samplerId() const { return CRTP_CONST_THIS->samplerId(); }
 
     /// @brief Factory for create a new sampled texture.
     /// @param textureInfo Informations used to create the texture.

@@ -34,46 +34,46 @@ template <class T> class CommandBufferI {
 public:
     /// @brief Get the name for the command buffer.
     /// @return Command buffer name.
-    [[nodiscard]] std::string name() const { static_cast<const T*>(this)->name(); }
+    [[nodiscard]] std::string name() const { CRTP_CONST_THIS->name(); }
 
     /// @brief Start recording the command buffer.
-    void begin() const { static_cast<const T*>(this)->begin(); }
+    void begin() const { CRTP_CONST_THIS->begin(); }
 
     /// @brief End recording the command buffer.
-    void end() const { static_cast<const T*>(this)->end(); }
+    void end() const { CRTP_CONST_THIS->end(); }
 
     /// @brief Set the viewport for the command buffer.
     /// @param viewport Structure specifying a viewport.
-    void setViewport(const Viewport& viewport) const { static_cast<const T*>(this)->setViewport(viewport); }
+    void setViewport(const Viewport& viewport) const { CRTP_CONST_THIS->setViewport(viewport); }
 
     /// @brief Begin a new render pass.
     /// @param renderPassInfo Structure specifying render pass begin information.
     void beginRenderPass(const RenderPassBeginInfo& renderPassInfo) const
     {
-        static_cast<const T*>(this)->beginRenderPass(renderPassInfo);
+        CRTP_CONST_THIS->beginRenderPass(renderPassInfo);
     }
 
     /// @brief End the render pass.
-    void endRenderPass() const { static_cast<const T*>(this)->endRenderPass(); }
+    void endRenderPass() const { CRTP_CONST_THIS->endRenderPass(); }
 
     /// @brief Draw primitives with indexed vertices.
     /// @param indexCount The number of vertices to draw.
     /// @param instanceCount The number of instances to draw.
     void drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
     {
-        static_cast<const T*>(this)->drawIndexed(indexCount, instanceCount);
+        CRTP_CONST_THIS->drawIndexed(indexCount, instanceCount);
     }
 
     /// @brief Bind a pipeline object to the command buffer.
     /// @param pipelineId The pipeline to be bound.
-    void bindPipeline(PipelineId pipelineId) const { static_cast<const T*>(this)->bindPipeline(pipelineId); }
+    void bindPipeline(PipelineId pipelineId) const { CRTP_CONST_THIS->bindPipeline(pipelineId); }
 
     /// @brief Bind a vertex buffer to the command buffer.
     /// @param vertexBufferId The vertex buffer to be bound.
     /// @param offset The vertex buffer data offset.
     void bindVertexBuffer(VertexBufferId vertexBufferId, uint64_t offset = 0) const
     {
-        static_cast<const T*>(this)->bindVertexBuffer(vertexBufferId, offset);
+        CRTP_CONST_THIS->bindVertexBuffer(vertexBufferId, offset);
     }
 
     /// @brief Bind a group of vertex buffers to the command buffer.
@@ -81,7 +81,7 @@ public:
     /// @param offsets The vertex buffers data offset.
     void bindVertexBuffers(const std::vector<VertexBufferId>& vertexBuffers, const std::vector<uint64_t>& offsets) const
     {
-        static_cast<const T*>(this)->bindVertexBuffers(vertexBuffers, offsets);
+        CRTP_CONST_THIS->bindVertexBuffers(vertexBuffers, offsets);
     }
 
     /// @brief Bind an index buffer to the command buffer.
@@ -90,7 +90,7 @@ public:
     /// @param offset The index buffer data offset.
     void bindIndexBuffer(IndexBufferId indexBufferId, IndexType indexType, uint64_t offset = 0) const
     {
-        static_cast<const T*>(this)->bindIndexBuffer(indexBufferId, indexType, offset);
+        CRTP_CONST_THIS->bindIndexBuffer(indexBufferId, indexType, offset);
     }
 
     /// @brief Bind a descriptor set to the command buffer.
@@ -99,7 +99,7 @@ public:
     /// @param index The number of the descriptor to be bound.
     void bindDescriptorSet(DescriptorSetId descriptorSetId, PipelineLayoutId pipelineLayoutId, uint32_t index) const
     {
-        static_cast<const T*>(this)->bindDescriptorSet(descriptorSetId, pipelineLayoutId, index);
+        CRTP_CONST_THIS->bindDescriptorSet(descriptorSetId, pipelineLayoutId, index);
     }
 
     /// @brief Begin a debug label.
@@ -107,23 +107,23 @@ public:
     /// @param color Label color.
     void beginDebugLabel(const std::string& name, glm::vec4 color) const
     {
-        static_cast<const T*>(this)->beginDebugLabel(name, color);
+        CRTP_CONST_THIS->beginDebugLabel(name, color);
     }
 
     /// @brief End a debug label.
-    void endDebugLabel() const { static_cast<const T*>(this)->endDebugLabel(); }
+    void endDebugLabel() const { CRTP_CONST_THIS->endDebugLabel(); }
 
     /// @brief Insert a debug label.
     /// @param name Label name.
     /// @param color Label color.
     void insertDebugLabel(const std::string& name, glm::vec4 color) const
     {
-        static_cast<const T*>(this)->insertDebugLabel(name, color);
+        CRTP_CONST_THIS->insertDebugLabel(name, color);
     }
 
     /// @brief Get the command buffer handle ID
     /// @return Command buffer ID
-    [[nodiscard]] CommandBufferId commandBufferId() const { return static_cast<const T*>(this)->commandBufferId(); }
+    [[nodiscard]] CommandBufferId commandBufferId() const { return CRTP_CONST_THIS->commandBufferId(); }
 
 private:
     CommandBufferI() = default;

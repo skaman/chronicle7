@@ -16,7 +16,7 @@ template <class T> class FrameBufferI {
 public:
     /// @brief Get the frame buffer handle ID
     /// @return Frame buffer ID
-    [[nodiscard]] FrameBufferId frameBufferId() const { return static_cast<const T*>(this)->frameBufferId(); }
+    [[nodiscard]] FrameBufferId frameBufferId() const { return CRTP_CONST_THIS->frameBufferId(); }
 
     /// @brief Factory for create a new frame buffer.
     /// @param frameBufferInfo Informations used to create the frame buffer.
