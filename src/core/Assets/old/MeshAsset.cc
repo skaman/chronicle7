@@ -37,11 +37,10 @@ MeshAsset::MeshAsset(const std::string& filename)
     CHRLOG_DEBUG("Mesh info: shapes count = {}", shapes.size());
 
     for (uint32_t shapeIndex = 0; shapeIndex < shapes.size(); shapeIndex++) {
-        _vertexBuffers.push_back(VertexBuffer::create());
-        _indexBuffers.push_back(IndexBuffer::create());
+        //_vertexBuffers.push_back(VertexBuffer::create());
 
-        const auto vertexBuffer = _vertexBuffers[shapeIndex].get();
-        const auto indexBuffer = _indexBuffers[shapeIndex].get();
+        //const auto vertexBuffer = _vertexBuffers[shapeIndex].get();
+        // const auto indexBuffer = _indexBuffers[shapeIndex].get();
 
         std::unordered_map<Vertex, uint32_t> uniqueVertices {};
 
@@ -69,15 +68,13 @@ MeshAsset::MeshAsset(const std::string& filename)
         _verticesCount.push_back(static_cast<uint32_t>(vertices.size()));
         _indicesCount.push_back(static_cast<uint32_t>(indices.size()));
 
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-        auto tmpDebugName = std::format("{} (mesh {})", filename, shapeIndex);
-        const char* debugName = tmpDebugName.c_str();
-#else
-        const char* debugName = nullptr;
-#endif // VULKAN_ENABLE_DEBUG_MARKER
-
-        vertexBuffer->set((void*)vertices.data(), sizeof(vertices[0]) * vertices.size(), debugName);
-        indexBuffer->set((void*)indices.data(), sizeof(indices[0]) * indices.size(), debugName);
+        //vertexBuffer->set((void*)vertices.data(), sizeof(vertices[0]) * vertices.size(),
+        //    fmt::format("{} (mesh {})", filename, shapeIndex));
+        // indexBuffer->set((void*)indices.data(), sizeof(indices[0]) * indices.size(), debugName);
+        _vertexBuffers.push_back(VertexBuffer::create((uint8_t*)vertices.data(), sizeof(vertices[0]) * vertices.size(),
+            fmt::format("{} (mesh {})", filename, shapeIndex)));
+        _indexBuffers.push_back(IndexBuffer::create((uint8_t*)indices.data(), sizeof(indices[0]) * indices.size(),
+            fmt::format("{} (mesh {})", filename, shapeIndex)));
     }
 }
 

@@ -5,13 +5,15 @@
 
 #include "VulkanCommon.h"
 #include "VulkanEnums.h"
+#include "VulkanUtils.h"
 
 namespace chronicle {
 
 CHR_CONCRETE(VulkanRenderPass);
 
-VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
-    : _format(renderPassInfo.colorAttachment.format)
+VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo, const std::string& name)
+    : _name(name)
+    , _format(renderPassInfo.colorAttachment.format)
     , _msaa(renderPassInfo.colorAttachment.msaa)
 {
     CHRZONE_RENDERER;
@@ -79,6 +81,12 @@ VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& renderPassInfo)
     createRenderPassInfo.setDependencies(dependency);
 
     _renderPass = VulkanContext::device.createRenderPass(createRenderPassInfo);
+
+    assert(_renderPass);
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    VulkanUtils::setDebugObjectName(_renderPass, _name);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
 VulkanRenderPass::~VulkanRenderPass()
@@ -88,12 +96,12 @@ VulkanRenderPass::~VulkanRenderPass()
     VulkanContext::device.destroyRenderPass(_renderPass);
 }
 
-RenderPassRef VulkanRenderPass::create(const RenderPassInfo& renderPassInfo)
+RenderPassRef VulkanRenderPass::create(const RenderPassInfo& renderPassInfo, const std::string& name)
 {
     CHRZONE_RENDERER;
 
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanRenderPass>(renderPassInfo);
+    return std::make_shared<ConcreteVulkanRenderPass>(renderPassInfo, name);
 }
 
 vk::AttachmentDescription VulkanRenderPass::createAttachmentDescription(const RenderPassAttachment& attachment) const

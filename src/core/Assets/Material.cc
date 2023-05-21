@@ -17,7 +17,7 @@ void Material::build()
 
     CHRLOG_DEBUG("Build material");
 
-    const char* debugName = nullptr;
+    const char* debugName = "test";
 
     _descriptorSet = DescriptorSet::create(debugName);
     _descriptorSet->addUniform<MaterialUBO>("ubo"_hs, ShaderStage::fragment);

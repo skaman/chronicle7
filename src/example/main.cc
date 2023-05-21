@@ -30,7 +30,7 @@ public:
 
         CHRLOG_INFO("Start");
 
-        //auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
+        // auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
         //_mesh2 = test.meshes[0];
 
         // descriptor sets
@@ -42,9 +42,8 @@ public:
 
         _scene = Scene::create("Demo scene");
 
-        auto imageView = *static_cast<const vk::ImageView*>(_scene->textureId());
-        auto sampler = *static_cast<const vk::Sampler*>(_scene->samplerId());
-        _imTexture = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        _imTexture = ImGui_ImplVulkan_AddTexture(
+            _scene->samplerId(), _scene->textureId(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void onCursorPosition(const CursorPositionEvent& evn) { }
@@ -61,7 +60,7 @@ public:
 
         Renderer::waitIdle();
 
-        //ImGui_ImplVulkan_RemoveTexture(_imTexture);
+        // ImGui_ImplVulkan_RemoveTexture(_imTexture);
 
         //_mesh2.reset();
         _scene.reset();
@@ -74,7 +73,7 @@ public:
     {
         double delta;
 
-        //std::vector<CommandBufferId> commandBuffers(1);
+        // std::vector<CommandBufferId> commandBuffers(1);
 
         while (Platform::poll(delta)) {
             if (!Renderer::beginFrame())
@@ -84,7 +83,7 @@ public:
 
             Renderer::beginRenderPass();
 
-            //commandBuffers[0] = _scene->commandBufferId();
+            // commandBuffers[0] = _scene->commandBufferId();
 
             if (float aspect = static_cast<float>(Renderer::width()) / static_cast<float>(Renderer::height());
                 _camera.aspect() != aspect) {
@@ -96,16 +95,16 @@ public:
 
             drawDebugUI();
 
-            //Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
-            //for (auto i = 0; i < _mesh2->submeshCount(); i++) {
-            //    Renderer::commandBuffer()->bindPipeline(_mesh2->pipeline(i));
-            //    Renderer::commandBuffer()->bindVertexBuffers(_mesh2->vertexBuffers(i));
-            //    Renderer::commandBuffer()->bindIndexBuffer(_mesh2->indexBuffer(i), _mesh2->indexType(i));
-            //    Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
-            //    Renderer::commandBuffer()->bindDescriptorSet(_mesh2->material(i)->descriptorSet(), 1);
-            //    Renderer::commandBuffer()->drawIndexed(_mesh2->indicesCount(i), 1);
-            //}
-            //Renderer::commandBuffer()->endDebugLabel();
+            // Renderer::commandBuffer()->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
+            // for (auto i = 0; i < _mesh2->submeshCount(); i++) {
+            //     Renderer::commandBuffer()->bindPipeline(_mesh2->pipeline(i));
+            //     Renderer::commandBuffer()->bindVertexBuffers(_mesh2->vertexBuffers(i));
+            //     Renderer::commandBuffer()->bindIndexBuffer(_mesh2->indexBuffer(i), _mesh2->indexType(i));
+            //     Renderer::commandBuffer()->bindDescriptorSet(Renderer::descriptorSet(), 0);
+            //     Renderer::commandBuffer()->bindDescriptorSet(_mesh2->material(i)->descriptorSet(), 1);
+            //     Renderer::commandBuffer()->drawIndexed(_mesh2->indicesCount(i), 1);
+            // }
+            // Renderer::commandBuffer()->endDebugLabel();
 
             // CHRLOG_DEBUG("{}", delta);
 
@@ -118,6 +117,7 @@ public:
 
             Renderer::descriptorSet()->setUniform<UniformBufferObject>("ubo"_hs, _ubo);
 
+            Renderer::endRenderPass();
             Renderer::endFrame();
         }
     }
@@ -195,7 +195,7 @@ public:
 
 private:
     SceneRef _scene;
-    //MeshRef _mesh2;
+    // MeshRef _mesh2;
 
     UniformBufferObject _ubo {};
 

@@ -14,11 +14,14 @@ class VulkanCommandBuffer : public CommandBufferI<VulkanCommandBuffer>, private 
 protected:
     /// @brief Default constructor.
     /// @param debugName Debug name.
-    explicit VulkanCommandBuffer(const char* debugName);
+    explicit VulkanCommandBuffer(const std::string& name);
 
 public:
     /// @brief Destructor.
     ~VulkanCommandBuffer() = default;
+
+    /// @brief @see CommandBufferI#name
+    [[nodiscard]] std::string name() const { return _name; }
 
     /// @brief @see CommandBufferI#begin
     void begin() const;
@@ -39,39 +42,40 @@ public:
     void drawIndexed(uint32_t indexCount, uint32_t instanceCount) const;
 
     /// @brief @see CommandBufferI#bindPipeline
-    void bindPipeline(const PipelineRef& pipeline);
+    void bindPipeline(PipelineId pipelineId) const;
 
     /// @brief @see CommandBufferI#bindVertexBuffer
-    void bindVertexBuffer(const VertexBufferRef& vertexBuffer) const;
+    void bindVertexBuffer(VertexBufferId vertexBufferId, uint64_t offset) const;
 
     /// @brief @see CommandBufferI#bindVertexBuffers
-    void bindVertexBuffers(const VertexBuffersRef& vertexBuffers) const;
+    void bindVertexBuffers(
+        const std::vector<VertexBufferId>& vertexBuffers, const std::vector<uint64_t>& offsets) const;
 
     /// @brief @see CommandBufferI#bindIndexBuffer
-    void bindIndexBuffer(const IndexBufferRef& indexBuffer, IndexType indexType) const;
+    void bindIndexBuffer(IndexBufferId indexBufferId, IndexType indexType, uint64_t offset) const;
 
     /// @brief @see CommandBufferI#bindDescriptorSet
-    void bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const;
+    void bindDescriptorSet(DescriptorSetId descriptorSetId, PipelineLayoutId pipelineLayoutId, uint32_t index) const;
 
     /// @brief @see CommandBufferI#beginDebugLabel
-    void beginDebugLabel(const char* name, glm::vec4 color) const;
+    void beginDebugLabel(const std::string& name, glm::vec4 color) const;
 
     /// @brief @see CommandBufferI#endDebugLabel
     void endDebugLabel() const;
 
     /// @brief @see CommandBufferI#insertDebugLabel
-    void insertDebugLabel(const char* name, glm::vec4 color) const;
+    void insertDebugLabel(const std::string& name, glm::vec4 color) const;
 
     /// @brief @see CommandBufferI#commandBufferId
-    [[nodiscard]] CommandBufferId commandBufferId() const { return static_cast<CommandBufferId>(&_commandBuffer); }
+    [[nodiscard]] CommandBufferId commandBufferId() const { return _commandBuffer; }
 
     /// @brief @see CommandBufferI#create
-    /// @param debugName Debug name.
-    [[nodiscard]] static CommandBufferRef create(const char* debugName);
+    /// @param name Command buffer name.
+    [[nodiscard]] static CommandBufferRef create(const std::string& name);
 
 private:
+    std::string _name; ///< Name.
     vk::CommandBuffer _commandBuffer; ///< Command buffer.
-    vk::PipelineLayout _currentPipelineLayout; ///< Current pipeline layout.
 };
 
 } // namespace chronicle

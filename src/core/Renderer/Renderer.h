@@ -18,6 +18,5 @@
 #include "Vulkan/VulkanShaderCompiler.h"
 #include "Vulkan/VulkanTexture.h"
 #include "Vulkan/VulkanVertexBuffer.h"
-#include "Vulkan/VulkanVertexBuffers.h"
 
 #endif

@@ -32,6 +32,10 @@ struct RenderPassBeginInfo {
 /// @tparam T Type with implementation.
 template <class T> class CommandBufferI {
 public:
+    /// @brief Get the name for the command buffer.
+    /// @return Command buffer name.
+    [[nodiscard]] std::string name() const { static_cast<const T*>(this)->name(); }
+
     /// @brief Start recording the command buffer.
     void begin() const { static_cast<const T*>(this)->begin(); }
 
@@ -61,43 +65,47 @@ public:
     }
 
     /// @brief Bind a pipeline object to the command buffer.
-    /// @param pipeline The pipeline to be bound.
-    void bindPipeline(const PipelineRef& pipeline) { static_cast<T*>(this)->bindPipeline(pipeline); }
+    /// @param pipelineId The pipeline to be bound.
+    void bindPipeline(PipelineId pipelineId) const { static_cast<const T*>(this)->bindPipeline(pipelineId); }
 
     /// @brief Bind a vertex buffer to the command buffer.
-    /// @param vertexBuffer The vertex buffer to be bound.
-    void bindVertexBuffer(const VertexBufferRef& vertexBuffer) const
+    /// @param vertexBufferId The vertex buffer to be bound.
+    /// @param offset The vertex buffer data offset.
+    void bindVertexBuffer(VertexBufferId vertexBufferId, uint64_t offset = 0) const
     {
-        static_cast<const T*>(this)->bindVertexBuffer(vertexBuffer);
+        static_cast<const T*>(this)->bindVertexBuffer(vertexBufferId, offset);
     }
 
     /// @brief Bind a group of vertex buffers to the command buffer.
-    /// @param vertexBuffer The vertex buffers to be bound.
-    void bindVertexBuffers(const VertexBuffersRef& vertexBuffers) const
+    /// @param vertexBuffers The vertex buffers to be bound.
+    /// @param offsets The vertex buffers data offset.
+    void bindVertexBuffers(const std::vector<VertexBufferId>& vertexBuffers, const std::vector<uint64_t>& offsets) const
     {
-        static_cast<const T*>(this)->bindVertexBuffers(vertexBuffers);
+        static_cast<const T*>(this)->bindVertexBuffers(vertexBuffers, offsets);
     }
 
     /// @brief Bind an index buffer to the command buffer.
-    /// @param indexBuffer The index buffer to be bound.
+    /// @param indexBufferId The index buffer to be bound.
     /// @param indexType Specify the size of the index.
-    void bindIndexBuffer(const IndexBufferRef& indexBuffer, IndexType indexType) const
+    /// @param offset The index buffer data offset.
+    void bindIndexBuffer(IndexBufferId indexBufferId, IndexType indexType, uint64_t offset = 0) const
     {
-        static_cast<const T*>(this)->bindIndexBuffer(indexBuffer, indexType);
+        static_cast<const T*>(this)->bindIndexBuffer(indexBufferId, indexType, offset);
     }
 
     /// @brief Bind a descriptor set to the command buffer.
-    /// @param descriptorSet The descriptor set to be bound.
+    /// @param descriptorSetId The descriptor set to be bound.
+    /// @param pipelineLayoutId The pipeline layout related to the descript set.
     /// @param index The number of the descriptor to be bound.
-    void bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const
+    void bindDescriptorSet(DescriptorSetId descriptorSetId, PipelineLayoutId pipelineLayoutId, uint32_t index) const
     {
-        static_cast<const T*>(this)->bindDescriptorSet(descriptorSet, index);
+        static_cast<const T*>(this)->bindDescriptorSet(descriptorSetId, pipelineLayoutId, index);
     }
 
     /// @brief Begin a debug label.
     /// @param name Label name.
     /// @param color Label color.
-    void beginDebugLabel(const char* name, glm::vec4 color)
+    void beginDebugLabel(const std::string& name, glm::vec4 color) const
     {
         static_cast<const T*>(this)->beginDebugLabel(name, color);
     }
@@ -108,7 +116,7 @@ public:
     /// @brief Insert a debug label.
     /// @param name Label name.
     /// @param color Label color.
-    void insertDebugLabel(const char* name, glm::vec4 color) const
+    void insertDebugLabel(const std::string& name, glm::vec4 color) const
     {
         static_cast<const T*>(this)->insertDebugLabel(name, color);
     }

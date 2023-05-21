@@ -39,16 +39,24 @@ struct VulkanDescriptorSetBindingInfo {
 class VulkanDescriptorSet : public DescriptorSetI<VulkanDescriptorSet>, private NonCopyable<VulkanDescriptorSet> {
 protected:
     /// @brief Default constructor.
-    /// @param debugName Debug name.
-    explicit VulkanDescriptorSet(const char* debugName);
+    /// @param name Debug name.
+    explicit VulkanDescriptorSet(const std::string& name);
 
 public:
     /// @brief Destructor.
     ~VulkanDescriptorSet();
 
+    /// @brief @see DescriptorSetI#name
+    [[nodiscard]] std::string name() const { return _name; }
+
+    /// @brief @see DescriptorSetI#descriptorSetId
+    [[nodiscard]] DescriptorSetId descriptorSetId() const { return _descriptorSet; }
+
     /// @brief @see DescriptorSetI#addUniform
     template <class T> void addUniform(entt::hashed_string::hash_type id, ShaderStage stage)
     {
+        assert(stage != ShaderStage::none);
+
         // create the descriptor set layout binding
         vk::DescriptorSetLayoutBinding layoutBinding = {};
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
@@ -59,10 +67,20 @@ public:
 
         // create a buffer that is visible to the host, so it can be updated for every frame.
         uint32_t bufferSize = sizeof(T);
+
+        assert(bufferSize > 0);
+
         void* bufferMapped;
         auto [bufferMemory, buffer] = VulkanUtils::createBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+        assert(buffer);
+        assert(bufferMemory);
+
         bufferMapped = VulkanContext::device.mapMemory(bufferMemory, 0, bufferSize);
+
+        assert(bufferMapped);
+
         _buffersMapped[id] = bufferMapped;
 
         // create the descriptor buffer informations.
@@ -80,6 +98,9 @@ public:
     /// @brief @see DescriptorSetI#addSampler
     void addSampler(ShaderStage stage, const TextureRef texture)
     {
+        assert(stage != ShaderStage::none);
+        assert(texture);
+
         // create the descriptor set layout binding
         vk::DescriptorSetLayoutBinding layoutBinding = {};
         layoutBinding.setBinding(static_cast<uint32_t>(_layoutBindings.size()));
@@ -91,8 +112,8 @@ public:
         // create the descriptor image informations.
         vk::DescriptorImageInfo imageInfo {};
         imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
-        imageInfo.setImageView(*static_cast<const vk::ImageView*>(texture->textureId()));
-        imageInfo.setSampler(*static_cast<const vk::Sampler*>(texture->samplerId()));
+        imageInfo.setImageView(texture->textureId());
+        imageInfo.setSampler(texture->samplerId());
 
         // create and add the descriptor binding informations
         VulkanDescriptorSetBindingInfo descriptorSetBinding
@@ -109,20 +130,12 @@ public:
     /// @brief @see DescriptorSetI#build
     void build();
 
-    /// @brief Get the vulkan layout bindings for the descriptor set.
-    /// @return Layout bindings.
-    [[nodiscard]] const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings() const { return _layoutBindings; }
-
-    /// @brief Get the vulkan handle for the descriptor set.
-    /// @return Vulkan handle.
-    [[nodiscard]] const vk::DescriptorSet& descriptorSet() const { return _descriptorSet; }
-
     /// @brief @see DescriptorSetI#create
-    /// @param debugName Debug name.
-    [[nodiscard]] static DescriptorSetRef create(const char* debugName);
+    /// @param name Name.
+    [[nodiscard]] static DescriptorSetRef create(const std::string& name);
 
 private:
-    std::string _debugName; ///< Debug name.
+    std::string _name; ///< Name.
 
     vk::DescriptorSet _descriptorSet = nullptr; ///< Descriptor set handle.
     vk::DescriptorSetLayout _descriptorSetLayout = nullptr; ///< Descriptor set layout.

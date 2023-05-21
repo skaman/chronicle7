@@ -24,7 +24,7 @@ public:
     static SceneRef create(const std::string& name);
 
     [[nodiscard]] TextureId textureId() const { return _resolveTexture->textureId(); }
-    [[nodiscard]] TextureId samplerId() const { return _resolveTexture->samplerId(); }
+    [[nodiscard]] SamplerId samplerId() const { return _resolveTexture->samplerId(); }
 
     //[[nodiscard]] CommandBufferId commandBufferId() const
     //{

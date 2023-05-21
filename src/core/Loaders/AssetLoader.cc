@@ -201,9 +201,10 @@ TextureRef AssetLoader::createTexture(const tinygltf::Model& gltfModel, uint32_t
 
     // TODO: handle texture sampler
     auto texture = Texture::createSampled({ .generateMipmaps = true,
-        .data = gltfImage.image,
-        .width = static_cast<uint32_t>(gltfImage.width),
-        .height = static_cast<uint32_t>(gltfImage.height) });
+                                              .data = gltfImage.image,
+                                              .width = static_cast<uint32_t>(gltfImage.width),
+                                              .height = static_cast<uint32_t>(gltfImage.height) },
+        fmt::format("{}", gltfModel.textures[textureIndex].name));
     return texture;
 }
 
@@ -357,17 +358,12 @@ MeshRef AssetLoader::createMesh(const tinygltf::Model& gltfModel, const tinygltf
         }
 
         {
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-            auto tmpDebugName = fmt::format("'{}' mesh, primitive #{}: vertex buffer", gltfMesh.name, primitiveIndex);
-            const char* debugName = tmpDebugName.c_str();
-#else
-            const char* debugName = nullptr;
-#endif // VULKAN_ENABLE_DEBUG_MARKER
-
-            auto vertexBuffer = VertexBuffer::create();
-            vertexBuffer->set(
-                (void*)stagingVertexBuffer.data(), stagingVertexBuffer.size() * sizeof(Vertex), debugName);
-            submesh.vertexBuffers = VertexBuffers::create(vertexBuffer, 0);
+            auto vertexBuffer = VertexBuffer::create((uint8_t*)stagingVertexBuffer.data(),
+                stagingVertexBuffer.size() * sizeof(Vertex),
+                fmt::format("'{}' mesh, primitive #{}: vertex buffer", gltfMesh.name, primitiveIndex));
+            submesh.vertexBuffers.push_back(vertexBuffer);
+            submesh.vertexBufferIds.push_back(vertexBuffer->vertexBufferId());
+            submesh.vertexBufferOffsets.push_back(0);
 
             VertexBufferInfo vertexBufferInfo = {};
             vertexBufferInfo.stride = sizeof(Vertex);
@@ -402,13 +398,6 @@ MeshRef AssetLoader::createMesh(const tinygltf::Model& gltfModel, const tinygltf
                 break;
             }
 
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-            auto tmpDebugName = fmt::format("'{}' mesh, primitive #{}: index buffer", gltfMesh.name, primitiveIndex);
-            const char* debugName = tmpDebugName.c_str();
-#else
-            const char* debugName = nullptr;
-#endif // VULKAN_ENABLE_DEBUG_MARKER
-
             const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
             auto stride = accessor.ByteStride(bufferView);
             const auto& buffer = gltfModel.buffers[bufferView.buffer];
@@ -416,8 +405,9 @@ MeshRef AssetLoader::createMesh(const tinygltf::Model& gltfModel, const tinygltf
             auto startByte = accessor.byteOffset + bufferView.byteOffset;
             auto endByte = accessor.count * stride;
 
-            submesh.indexBuffer = IndexBuffer::create();
-            submesh.indexBuffer->set((void*)(buffer.data.data() + startByte), endByte, debugName);
+            submesh.indexBuffer = IndexBuffer::create((uint8_t*)(buffer.data.data() + startByte), endByte,
+                fmt::format("'{}' mesh, primitive #{}: index buffer", gltfMesh.name, primitiveIndex));
+            submesh.indexBufferId = (vk::Buffer)submesh.indexBuffer->indexBufferId();
         }
 
         // set material

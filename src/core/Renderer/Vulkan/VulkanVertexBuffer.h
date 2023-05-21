@@ -13,28 +13,25 @@ namespace chronicle {
 class VulkanVertexBuffer : public VertexBufferI<VulkanVertexBuffer>, private NonCopyable<VulkanVertexBuffer> {
 protected:
     /// @brief Default constructor.
-    explicit VulkanVertexBuffer() = default;
+    explicit VulkanVertexBuffer(const uint8_t* src, size_t size, const std::string& name);
 
 public:
     /// @brief Destructor.
     ~VulkanVertexBuffer();
 
-    /// @brief @see VertexBufferI#set
-    void set(void* src, size_t size, const char* debugName);
-
-    /// @brief Get the vulkan handle for the buffer.
-    /// @return Vulkan handle.
-    [[nodiscard]] const vk::Buffer& buffer() const { return _buffer; }
+    /// @brief @see IndexBufferI#vertexBufferId
+    [[nodiscard]] VertexBufferId vertexBufferId() const { return _buffer; }
 
     /// @brief @see VertexBufferI#create
-    [[nodiscard]] static VertexBufferRef create();
+    [[nodiscard]] static VertexBufferRef create(const std::vector<uint8_t>& data, const std::string& name);
+
+    /// @brief @see VertexBufferI#create
+    [[nodiscard]] static VertexBufferRef create(const uint8_t* src, size_t size, const std::string& name);
 
 private:
+    std::string _name; ///< Name.
     vk::Buffer _buffer; ///< Buffer.
     vk::DeviceMemory _bufferMemory; ///< Device memory for the buffer.
-
-    /// @brief Cleanup resources.
-    void cleanup() const;
 };
 
 } // namespace chronicle

@@ -13,21 +13,28 @@ namespace chronicle {
 /// @tparam T Type with implementation.
 template <class T> class IndexBufferI {
 public:
-    /// @brief Set data into the index buffer. This method can be called multiple times if there's need to update the
-    ///        data into the index buffer.
-    ///        A new buffer is allocated into the GPU and data is copied. There's no need to keep data in memory once is
-    ///        set into the index buffer.
-    /// @param src Pointer to memory data location.
-    /// @param size Size of the data to set into the index buffer.
-    /// @param debugName Debug name.
-    void set(void* src, size_t size, const char* debugName = nullptr)
+    /// @brief Get the index buffer handle ID
+    /// @return Index buffer ID
+    [[nodiscard]] IndexBufferId indexBufferId() const { return static_cast<const T*>(this)->indexBufferId(); }
+
+    /// @brief Factory for create a new index buffer.
+    /// @param data Index buffer data.
+    /// @param name Index buffer name.
+    /// @return The index buffer.
+    [[nodiscard]] static IndexBufferRef create(const std::vector<uint8_t>& data, const std::string& name)
     {
-        static_cast<T*>(this)->set(src, size, debugName);
+        return T::create(data, name);
     }
 
     /// @brief Factory for create a new index buffer.
+    /// @param src Pointer to memory data location.
+    /// @param size Size of the data to set into the index buffer.
+    /// @param name Index buffer name.
     /// @return The index buffer.
-    [[nodiscard]] static IndexBufferRef create() { return T::create(); }
+    [[nodiscard]] static IndexBufferRef create(const uint8_t* src, size_t size, const std::string& name)
+    {
+        return T::create(src, size, name);
+    }
 
 private:
     IndexBufferI() = default;

@@ -3,18 +3,16 @@
 
 #include "VulkanDescriptorSet.h"
 
+#include "VulkanGC.h"
 #include "VulkanInstance.h"
 
 namespace chronicle {
 
 CHR_CONCRETE(VulkanDescriptorSet);
 
-VulkanDescriptorSet::VulkanDescriptorSet(const char* debugName)
+VulkanDescriptorSet::VulkanDescriptorSet(const std::string& name)
+    : _name(name)
 {
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-    if (debugName != nullptr)
-        _debugName = debugName;
-#endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet()
@@ -23,14 +21,11 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 
     CHRLOG_TRACE("Destroy descriptor set");
 
-    // get garbage collector
-    auto& garbageCollector = VulkanContext::framesData[VulkanContext::currentFrame].garbageCollector;
-
     // clean data inside the binding info
     for (const auto& state : _descriptorSetsBindingInfo) {
         if (state.type == vk::DescriptorType::eUniformBuffer) {
-            garbageCollector.emplace_back(state.uniform.bufferInfo.buffer);
-            garbageCollector.emplace_back(state.uniform.bufferMemory);
+            VulkanGC::add(state.uniform.bufferInfo.buffer);
+            VulkanGC::add(state.uniform.bufferMemory);
         }
     }
 
@@ -46,17 +41,23 @@ void VulkanDescriptorSet::build()
     CHRLOG_TRACE("Build descriptor set");
 
     assert(!_descriptorSet);
+    assert(!_descriptorSetsBindingInfo.empty());
 
     // create the descriptor set layout
     vk::DescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.setBindings(_layoutBindings);
     _descriptorSetLayout = VulkanContext::device.createDescriptorSetLayout(layoutInfo);
 
+    assert(_descriptorSetLayout);
+    assert(VulkanContext::descriptorPool);
+
     // allocate the descriptor set
     vk::DescriptorSetAllocateInfo allocInfo = {};
     allocInfo.setDescriptorPool(VulkanContext::descriptorPool);
     allocInfo.setSetLayouts(_descriptorSetLayout);
     _descriptorSet = VulkanContext::device.allocateDescriptorSets(allocInfo)[0];
+
+    assert(_descriptorSet);
 
     // create the descriptors writes
     std::vector<vk::WriteDescriptorSet> descriptorWrites = {};
@@ -78,20 +79,21 @@ void VulkanDescriptorSet::build()
     VulkanContext::device.updateDescriptorSets(descriptorWrites, nullptr);
 
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
-    // set the debug object name
-    VulkanUtils::setDebugObjectName(_descriptorSet, _debugName.c_str());
+    VulkanUtils::setDebugObjectName(_descriptorSet, _name);
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
-DescriptorSetRef VulkanDescriptorSet::create(const char* debugName)
+DescriptorSetRef VulkanDescriptorSet::create(const std::string& _name)
 {
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanDescriptorSet>(debugName);
+    return std::make_shared<ConcreteVulkanDescriptorSet>(_name);
 }
 
 vk::WriteDescriptorSet VulkanDescriptorSet::createUniformWriteDescriptorSet(
     uint32_t index, const VulkanDescriptorSetBindingInfo& bindingInfo) const
 {
+    assert(_descriptorSet);
+
     // create the write descriptor set
     vk::WriteDescriptorSet descriptorWrite = {};
     descriptorWrite.setDstSet(_descriptorSet);
@@ -106,6 +108,8 @@ vk::WriteDescriptorSet VulkanDescriptorSet::createUniformWriteDescriptorSet(
 vk::WriteDescriptorSet VulkanDescriptorSet::createCombinedImageSamplerWriteDescriptorSet(
     uint32_t index, const VulkanDescriptorSetBindingInfo& bindingInfo) const
 {
+    assert(_descriptorSet);
+
     // create the write descriptor set
     vk::WriteDescriptorSet descriptorWrite = {};
     descriptorWrite.setDstSet(_descriptorSet);

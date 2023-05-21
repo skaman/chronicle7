@@ -11,8 +11,9 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanTexture);
 
-VulkanTexture::VulkanTexture(const SampledTextureInfo& textureInfo)
-    : _format(Format::R8G8B8A8Unorm)
+VulkanTexture::VulkanTexture(const SampledTextureInfo& textureInfo, const std::string& name)
+    : _name(name)
+    , _format(Format::R8G8B8A8Unorm)
     , _generateMipmaps(textureInfo.generateMipmaps)
     , _width(textureInfo.width)
     , _height(textureInfo.height)
@@ -74,8 +75,9 @@ VulkanTexture::VulkanTexture(const SampledTextureInfo& textureInfo)
     }
 }
 
-VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
-    : _type(TextureType::color)
+VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo, const std::string& name)
+    : _name(name)
+    , _type(TextureType::color)
     , _format(textureInfo.format)
     , _generateMipmaps(textureInfo.generateMipmaps)
     , _width(textureInfo.width)
@@ -92,13 +94,7 @@ VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
     vk::ImageUsageFlags usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled;
     if (textureInfo.isInputAttachment) {
         usageFlags |= vk::ImageUsageFlagBits::eInputAttachment;
-    } 
-    //else {
-    //    usageFlags |= vk::ImageUsageFlagBits::eTransientAttachment;
-    //}
-    //if (_generateMipmaps) {
-    //    usageFlags |= vk::ImageUsageFlagBits::eSampled;
-    //}
+    }
 
     // calculate mip levels
     _mipLevels = _generateMipmaps ? static_cast<uint32_t>(std::floor(std::log2(std::max(_width, _height)))) + 1 : 1;
@@ -114,8 +110,9 @@ VulkanTexture::VulkanTexture(const ColorTextureInfo& textureInfo)
     _sampler = VulkanUtils::createTextureSampler(_mipLevels);
 }
 
-VulkanTexture::VulkanTexture(const DepthTextureInfo& textureInfo)
-    : _type(TextureType::depth)
+VulkanTexture::VulkanTexture(const DepthTextureInfo& textureInfo, const std::string& name)
+    : _name(name)
+    , _type(TextureType::depth)
     , _format(textureInfo.format)
     , _width(textureInfo.width)
     , _height(textureInfo.height)
@@ -136,8 +133,10 @@ VulkanTexture::VulkanTexture(const DepthTextureInfo& textureInfo)
     _imageView = VulkanUtils::createImageView(image, format, vk::ImageAspectFlagBits::eDepth, 1);
 }
 
-VulkanTexture::VulkanTexture(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
-    : _image(image)
+VulkanTexture::VulkanTexture(
+    const vk::Image& image, vk::Format format, uint32_t width, uint32_t height, const std::string& name)
+    : _name(name)
+    , _image(image)
     , _type(TextureType::swapchain)
     , _width(width)
     , _height(height)
@@ -170,37 +169,37 @@ VulkanTexture::~VulkanTexture()
     }
 }
 
-// TODO: rename this in createWithData and add the sampler also to the color texture
-TextureRef VulkanTexture::createSampled(const SampledTextureInfo& textureInfo)
+TextureRef VulkanTexture::createSampled(const SampledTextureInfo& textureInfo, const std::string& name)
 {
     CHRZONE_RENDERER;
 
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanTexture>(textureInfo);
+    return std::make_shared<ConcreteVulkanTexture>(textureInfo, name);
 }
 
-TextureRef VulkanTexture::createColor(const ColorTextureInfo& textureInfo)
+TextureRef VulkanTexture::createColor(const ColorTextureInfo& textureInfo, const std::string& name)
 {
     CHRZONE_RENDERER;
 
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanTexture>(textureInfo);
+    return std::make_shared<ConcreteVulkanTexture>(textureInfo, name);
 }
 
-TextureRef VulkanTexture::createDepth(const DepthTextureInfo& textureInfo)
+TextureRef VulkanTexture::createDepth(const DepthTextureInfo& textureInfo, const std::string& name)
 {
     CHRZONE_RENDERER;
 
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanTexture>(textureInfo);
+    return std::make_shared<ConcreteVulkanTexture>(textureInfo, name);
 }
 
-TextureRef VulkanTexture::createSwapchain(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height)
+TextureRef VulkanTexture::createSwapchain(
+    const vk::Image& image, vk::Format format, uint32_t width, uint32_t height, const std::string& name)
 {
     CHRZONE_RENDERER;
 
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanTexture>(image, format, width, height);
+    return std::make_shared<ConcreteVulkanTexture>(image, format, width, height, name);
 }
 
 } // namespace chronicle

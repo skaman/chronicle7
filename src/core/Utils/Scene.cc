@@ -29,18 +29,21 @@ Scene::Scene(const std::string& name)
 
     // TODO: handle MSAA and resolution
     _colorTexture = Texture::createColor({ .width = _width,
-        .height = _height,
-        .format = _imageFormat,
-        .msaa = _msaa,
-        .isInputAttachment = true, // TODO: maybe false?
-        .generateMipmaps = false });
-    _depthTexture = Texture::createDepth({ .width = _width, .height = _height, .format = _depthFormat, .msaa = _msaa });
+                                             .height = _height,
+                                             .format = _imageFormat,
+                                             .msaa = _msaa,
+                                             .isInputAttachment = true, // TODO: maybe false?
+                                             .generateMipmaps = false },
+        fmt::format("Color texture for sene {}", _name));
+    _depthTexture = Texture::createDepth({ .width = _width, .height = _height, .format = _depthFormat, .msaa = _msaa },
+        fmt::format("Depth texture for sene {}", _name));
     _resolveTexture = Texture::createColor({ .width = _width,
-        .height = _height,
-        .format = _imageFormat,
-        .msaa = MSAA::sampleCount1,
-        .isInputAttachment = true,
-        .generateMipmaps = false });
+                                               .height = _height,
+                                               .format = _imageFormat,
+                                               .msaa = MSAA::sampleCount1,
+                                               .isInputAttachment = true,
+                                               .generateMipmaps = false },
+        fmt::format("Resolve texture for sene {}", _name));
 
     // color attachment
     RenderPassAttachment colorAttachment = { .format = _imageFormat,
@@ -74,8 +77,9 @@ Scene::Scene(const std::string& name)
 
     // create render pass
     _renderPass = RenderPass::create({ .colorAttachment = colorAttachment,
-        .depthStencilAttachment = depthAttachment,
-        .resolveAttachment = resolveAttachment });
+                                         .depthStencilAttachment = depthAttachment,
+                                         .resolveAttachment = resolveAttachment },
+        fmt::format("Render pass for scene {}", _name));
 
     // create frame buffer
     FrameBufferInfo frameBufferInfo = {};
@@ -84,7 +88,7 @@ Scene::Scene(const std::string& name)
     frameBufferInfo.renderPass = _renderPass->renderPassId();
     frameBufferInfo.width = _width;
     frameBufferInfo.height = _height;
-    _frameBuffer = FrameBuffer::create(frameBufferInfo);
+    _frameBuffer = FrameBuffer::create(frameBufferInfo, fmt::format("Frambuffer for scene {}", _name));
 
     // TODO: test to remove
     auto test = AssetLoader::load("D:\\Progetti\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf", _renderPass);
@@ -95,10 +99,6 @@ void Scene::render(CommandBufferRef commandBuffer)
 {
     // start
     auto currentFrame = Renderer::currentFrame();
-
-    // const auto& commandBuffer = _commandBuffers[currentFrame];
-
-    // commandBuffer->begin();
 
     // begin render pass
     // TODO: add local cache for renderpass id and frame buffer id
@@ -124,11 +124,13 @@ void Scene::render(CommandBufferRef commandBuffer)
     // draw
     commandBuffer->beginDebugLabel("Start draw scene", { 0.0f, 1.0f, 0.0f, 1.0f });
     for (auto i = 0; i < _mesh->submeshCount(); i++) {
-        commandBuffer->bindPipeline(_mesh->pipeline(i));
-        commandBuffer->bindVertexBuffers(_mesh->vertexBuffers(i));
-        commandBuffer->bindIndexBuffer(_mesh->indexBuffer(i), _mesh->indexType(i));
-        commandBuffer->bindDescriptorSet(Renderer::descriptorSet(), 0);
-        commandBuffer->bindDescriptorSet(_mesh->material(i)->descriptorSet(), 1);
+        commandBuffer->bindPipeline(_mesh->pipeline(i)->pipelineId());
+        commandBuffer->bindVertexBuffers(_mesh->vertexBufferIds(i), _mesh->vertexBufferOffsets(i));
+        commandBuffer->bindIndexBuffer(_mesh->indexBufferId(i), _mesh->indexType(i));
+        commandBuffer->bindDescriptorSet(
+            Renderer::descriptorSet()->descriptorSetId(), _mesh->pipeline(i)->pipelineLayoutId(), 0);
+        commandBuffer->bindDescriptorSet(
+            _mesh->material(i)->descriptorSet()->descriptorSetId(), _mesh->pipeline(i)->pipelineLayoutId(), 1);
         commandBuffer->drawIndexed(_mesh->indicesCount(i), 1);
     }
     commandBuffer->endDebugLabel();
@@ -142,8 +144,6 @@ void Scene::render(CommandBufferRef commandBuffer)
 
     // end
     commandBuffer->endRenderPass();
-
-    // commandBuffer->end();
 }
 
 SceneRef Scene::create(const std::string& name)

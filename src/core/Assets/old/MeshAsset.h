@@ -19,12 +19,11 @@ struct Vertex {
 
     static VertexBufferInfo bufferInfo()
     {
-        using enum chronicle::Format;
-
         return { .stride = sizeof(Vertex),
-            .attributeDescriptions = { { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, pos), .location = 0 },
-                { .format = R32G32B32Sfloat, .offset = offsetof(Vertex, color), .location = 1 },
-                { .format = R32G32Sfloat, .offset = offsetof(Vertex, texCoord), .location = 2 } } };
+            .attributeDescriptions
+            = { { .format = Format::R32G32B32Sfloat, .offset = offsetof(Vertex, pos), .location = 0 },
+                { .format = Format::R32G32B32Sfloat, .offset = offsetof(Vertex, color), .location = 1 },
+                { .format = Format::R32G32Sfloat, .offset = offsetof(Vertex, texCoord), .location = 2 } } };
     }
 };
 

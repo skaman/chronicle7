@@ -25,7 +25,13 @@ struct Submesh {
     uint32_t verticesCount = 0;
 
     /// @brief Vertex buffers.
-    VertexBuffersRef vertexBuffers = {};
+    std::vector<VertexBufferRef> vertexBuffers = {};
+
+    /// @brief Vertex buffer ids.
+    std::vector<VertexBufferId> vertexBufferIds = {};
+
+    /// @brief Vertex buffer offsets.
+    std::vector<uint64_t> vertexBufferOffsets = {};
 
     /// @brief Vertex buffers informations.
     std::vector<VertexBufferInfo> vertexBuffersInfo = {};
@@ -38,6 +44,9 @@ struct Submesh {
 
     /// @brief Index buffer.
     IndexBufferRef indexBuffer = {};
+
+    /// @brief Index buffer id.
+    IndexBufferId indexBufferId = {};
 
     /// @brief Material.
     MaterialRef material = {};
@@ -79,10 +88,28 @@ public:
     /// @brief Get the vertex buffers for a specific submesh.
     /// @param submeshIndex Submesh index.
     /// @return Vertex buffers.
-    [[nodiscard]] VertexBuffersRef vertexBuffers(uint32_t submeshIndex) const
+    [[nodiscard]] std::vector<VertexBufferRef> vertexBuffers(uint32_t submeshIndex) const
     {
         assert(_submeshes.size() > submeshIndex);
         return _submeshes[submeshIndex].vertexBuffers;
+    }
+
+    /// @brief Get the vertex buffer ids for a specific submesh.
+    /// @param submeshIndex Submesh index.
+    /// @return Vertex buffer ids.
+    [[nodiscard]] std::vector<VertexBufferId> vertexBufferIds(uint32_t submeshIndex) const
+    {
+        assert(_submeshes.size() > submeshIndex);
+        return _submeshes[submeshIndex].vertexBufferIds;
+    }
+
+    /// @brief Get the vertex buffer offsets for a specific submesh.
+    /// @param submeshIndex Submesh index.
+    /// @return Vertex buffer offsets.
+    [[nodiscard]] std::vector<uint64_t> vertexBufferOffsets(uint32_t submeshIndex) const
+    {
+        assert(_submeshes.size() > submeshIndex);
+        return _submeshes[submeshIndex].vertexBufferOffsets;
     }
 
     /// @brief Get the vertex buffers informations for a specific submesh.
@@ -119,6 +146,15 @@ public:
     {
         assert(_submeshes.size() > submeshIndex);
         return _submeshes[submeshIndex].indexBuffer;
+    }
+
+    /// @brief Get the index buffer id for a specific submesh.
+    /// @param submeshIndex Submesh index.
+    /// @return Index buffer id.
+    [[nodiscard]] IndexBufferId indexBufferId(uint32_t submeshIndex) const
+    {
+        assert(_submeshes.size() > submeshIndex);
+        return _submeshes[submeshIndex].indexBufferId;
     }
 
     /// @brief Get the material for a specific submesh.

@@ -22,6 +22,7 @@ public:
             result |= vk::ShaderStageFlagBits::eCompute;
         return result;
     }
+
     static vk::ShaderStageFlagBits shaderStageToVulkan(ShaderStage stage)
     {
         switch (stage) {

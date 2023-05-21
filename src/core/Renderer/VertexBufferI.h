@@ -13,21 +13,28 @@ namespace chronicle {
 /// @tparam T Type with implementation.
 template <class T> class VertexBufferI {
 public:
-    /// @brief Set data into the vertex buffer. This method can be called multiple times if there's need to update the
-    ///        data into the vertex buffer.
-    ///        A new buffer is allocated into the GPU and data is copied. There's no need to keep data in memory once is
-    ///        set into the vertex buffer.
-    /// @param src Pointer to memory data location.
-    /// @param size Size of the data to set into the vertex buffer.
-    /// @param debugName Debug name.
-    void set(void* src, size_t size, const char* debugName = nullptr)
+    /// @brief Get the vertex buffer handle ID
+    /// @return Vertex buffer ID
+    [[nodiscard]] VertexBufferId vertexBufferId() const { return static_cast<const T*>(this)->vertexBufferId(); }
+
+    /// @brief Factory for create a new vertex buffer.
+    /// @param data Vertex buffer data.
+    /// @param name Vertex buffer name.
+    /// @return The vertex buffer.
+    [[nodiscard]] static VertexBufferRef create(const std::vector<uint8_t>& data, const std::string& name)
     {
-        static_cast<T*>(this)->set(src, size, debugName);
+        return T::create(data, name);
     }
 
     /// @brief Factory for create a new vertex buffer.
+    /// @param src Pointer to memory data location.
+    /// @param size Size of the data to set into the vertex buffer.
+    /// @param name Vertex buffer name.
     /// @return The vertex buffer.
-    [[nodiscard]] static VertexBufferRef create() { return T::create(); }
+    [[nodiscard]] static VertexBufferRef create(const uint8_t* src, size_t size, const std::string& name)
+    {
+        return T::create(src, size, name);
+    }
 
 private:
     VertexBufferI() = default;

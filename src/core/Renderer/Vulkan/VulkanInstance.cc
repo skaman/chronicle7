@@ -7,6 +7,7 @@
 #include "VulkanDescriptorSet.h"
 #include "VulkanExtensions.h"
 #include "VulkanFrameBuffer.h"
+#include "VulkanGC.h"
 #include "VulkanInstance.h"
 #include "VulkanRenderPass.h"
 #include "VulkanUtils.h"
@@ -85,9 +86,7 @@ void VulkanInstance::deinit()
     }
 
     // clean data from frames garbage collectors
-    for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-        VulkanUtils::cleanupGarbageCollector(VulkanContext::framesData[i].garbageCollector);
-    }
+    VulkanGC::cleanupAll();
 
     // wait for garbage collector destruction
     VulkanContext::device.waitIdle();
@@ -221,12 +220,12 @@ void VulkanInstance::createInstance()
 
 void VulkanInstance::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo)
 {
-    using enum vk::DebugUtilsMessageSeverityFlagBitsEXT;
-    using enum vk::DebugUtilsMessageTypeFlagBitsEXT;
-
     // populate the data structure
-    createInfo.setMessageSeverity(eVerbose | eInfo | eWarning | eError);
-    createInfo.setMessageType(eGeneral | eValidation | ePerformance);
+    createInfo.setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
+        | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
+        | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
+    createInfo.setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral
+        | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance);
     createInfo.setPfnUserCallback(debugCallback);
 }
 
@@ -279,7 +278,7 @@ void VulkanInstance::pickPhysicalDevice()
         if (VulkanUtils::isDeviceSuitable(device, DEVICE_EXTENSIONS)) {
             VulkanContext::physicalDevice = device;
             // TODO: restore
-            //VulkanContext::msaaSamples = VulkanUtils::getMaxUsableSampleCount();
+            // VulkanContext::msaaSamples = VulkanUtils::getMaxUsableSampleCount();
             break;
         }
     }
@@ -372,17 +371,21 @@ void VulkanInstance::createSwapChain()
     VulkanContext::swapChain = VulkanContext::device.createSwapchainKHR(createInfo);
 
     // create color buffer
-    VulkanContext::colorTexture = Texture::createColor({ .width = extent.width,
-        .height = extent.height,
-        .format = VulkanEnums::formatFromVulkan(surfaceFormat.format),
-        .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) });
+    VulkanContext::colorTexture
+        = Texture::createColor({ .width = extent.width,
+                                   .height = extent.height,
+                                   .format = VulkanEnums::formatFromVulkan(surfaceFormat.format),
+                                   .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) },
+            "Main color texture");
 
     // create depth buffer
     VulkanContext::depthImageFormat = VulkanUtils::findDepthFormat();
-    VulkanContext::depthTexture = Texture::createDepth({ .width = extent.width,
-        .height = extent.height,
-        .format = VulkanEnums::formatFromVulkan(VulkanContext::depthImageFormat),
-        .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) });
+    VulkanContext::depthTexture
+        = Texture::createDepth({ .width = extent.width,
+                                   .height = extent.height,
+                                   .format = VulkanEnums::formatFromVulkan(VulkanContext::depthImageFormat),
+                                   .msaa = VulkanEnums::msaaFromVulkan(VulkanContext::msaaSamples) },
+            "Main depth texture");
 
     // create swap chain images
     auto swapChainImages = VulkanContext::device.getSwapchainImagesKHR(VulkanContext::swapChain);
@@ -392,8 +395,8 @@ void VulkanInstance::createSwapChain()
     // prepare images data structures
     VulkanContext::imagesData.resize(swapChainImages.size());
     for (auto i = 0; i < swapChainImages.size(); i++) {
-        VulkanContext::imagesData[i].swapChainTexture
-            = VulkanTexture::createSwapchain(swapChainImages[i], surfaceFormat.format, extent.width, extent.height);
+        VulkanContext::imagesData[i].swapChainTexture = VulkanTexture::createSwapchain(
+            swapChainImages[i], surfaceFormat.format, extent.width, extent.height, "Swapchain texture");
     }
 }
 
@@ -455,7 +458,7 @@ void VulkanInstance::createRenderPass()
     RenderPassInfo renderPassInfo = { .colorAttachment = colorAttachment,
         .depthStencilAttachment = depthAttachment,
         .resolveAttachment = resolveAttachment };
-    VulkanContext::renderPass = RenderPass::create(renderPassInfo);
+    VulkanContext::renderPass = RenderPass::create(renderPassInfo, "Main render pass");
 }
 
 void VulkanInstance::createFramebuffers()
@@ -472,7 +475,7 @@ void VulkanInstance::createFramebuffers()
         frameBufferInfo.renderPass = VulkanContext::renderPass->renderPassId();
         frameBufferInfo.width = VulkanContext::swapChainExtent.width;
         frameBufferInfo.height = VulkanContext::swapChainExtent.height;
-        imageData.framebuffer = FrameBuffer::create(frameBufferInfo);
+        imageData.framebuffer = FrameBuffer::create(frameBufferInfo, "Main framebuffer");
     }
 }
 
@@ -499,14 +502,8 @@ void VulkanInstance::createCommandBuffers()
 
     // create the command buffers
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-        auto tmpDebugName = std::format("Main command buffer (frame {})", i);
-        const char* debugName = tmpDebugName.c_str();
-#else
-        const char* debugName = nullptr;
-#endif // VULKAN_ENABLE_DEBUG_MARKER
-
-        VulkanContext::framesData[i].commandBuffer = VulkanCommandBuffer::create(debugName);
+        VulkanContext::framesData[i].commandBuffer
+            = VulkanCommandBuffer::create(fmt::format("Main command buffer (frame {})", i));
     }
 }
 
@@ -518,14 +515,7 @@ void VulkanInstance::createDescriptorSets()
 
     // create the descriptor sets
     for (auto i = 0; i < VulkanContext::maxFramesInFlight; i++) {
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-        auto tmpDebugName = std::format("Main descriptor set (frame {})", i);
-        const char* debugName = tmpDebugName.c_str();
-#else
-        const char* debugName = nullptr;
-#endif // VULKAN_ENABLE_DEBUG_MARKER
-
-        auto descriptorSet = DescriptorSet::create(debugName);
+        auto descriptorSet = DescriptorSet::create(fmt::format("Main descriptor set (frame {})", i));
         descriptorSet->addUniform<UniformBufferObject>("ubo"_hs, ShaderStage::vertex);
         VulkanContext::framesData[i].descriptorSet = descriptorSet;
     }

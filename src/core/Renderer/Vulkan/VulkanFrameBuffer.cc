@@ -4,12 +4,14 @@
 #include "VulkanFrameBuffer.h"
 
 #include "VulkanCommon.h"
+#include "VulkanUtils.h"
 
 namespace chronicle {
 
 CHR_CONCRETE(VulkanFrameBuffer);
 
-VulkanFrameBuffer::VulkanFrameBuffer(const FrameBufferInfo& frameBufferInfo)
+VulkanFrameBuffer::VulkanFrameBuffer(const FrameBufferInfo& frameBufferInfo, const std::string& name)
+    : _name(name)
 {
     CHRZONE_RENDERER;
 
@@ -20,16 +22,22 @@ VulkanFrameBuffer::VulkanFrameBuffer(const FrameBufferInfo& frameBufferInfo)
 
     std::vector<vk::ImageView> attachments(frameBufferInfo.attachments.size());
     for (auto i = 0; i < frameBufferInfo.attachments.size(); i++) {
-        attachments[i] = *static_cast<const vk::ImageView*>(frameBufferInfo.attachments[i]);
+        attachments[i] = frameBufferInfo.attachments[i];
     }
 
     vk::FramebufferCreateInfo framebufferInfo = {};
-    framebufferInfo.setRenderPass(*static_cast<const vk::RenderPass*>(frameBufferInfo.renderPass));
+    framebufferInfo.setRenderPass(frameBufferInfo.renderPass);
     framebufferInfo.setAttachments(attachments);
     framebufferInfo.setWidth(frameBufferInfo.width);
     framebufferInfo.setHeight(frameBufferInfo.height);
     framebufferInfo.setLayers(1);
     _framebuffer = VulkanContext::device.createFramebuffer(framebufferInfo);
+
+    assert(_framebuffer);
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    VulkanUtils::setDebugObjectName(_framebuffer, name);
+#endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
 VulkanFrameBuffer::~VulkanFrameBuffer()
@@ -39,12 +47,12 @@ VulkanFrameBuffer::~VulkanFrameBuffer()
     VulkanContext::device.destroyFramebuffer(_framebuffer);
 }
 
-FrameBufferRef VulkanFrameBuffer::create(const FrameBufferInfo& frameBufferInfo)
+FrameBufferRef VulkanFrameBuffer::create(const FrameBufferInfo& frameBufferInfo, const std::string& name)
 {
     CHRZONE_RENDERER;
 
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanFrameBuffer>(frameBufferInfo);
+    return std::make_shared<ConcreteVulkanFrameBuffer>(frameBufferInfo, name);
 }
 
 } // namespace chronicle

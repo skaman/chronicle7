@@ -36,8 +36,11 @@ public:
     /// @return True if a new image is acquire. If false the loop tick should be skipped and try again.
     static bool beginFrame() { return T::beginFrame(); }
 
-    // TODO: temporary, need to be handled from the sandbox
-    static bool beginRenderPass() { return T::beginRenderPass(); }
+    /// @brief Begin the main render pass.
+    static void beginRenderPass() { T::beginRenderPass(); }
+
+    /// @brief End the main render pass.
+    static void endRenderPass() { T::endRenderPass(); }
 
     /// @brief End a frame and submit data to the GPU.
     static void endFrame() { T::endFrame(); }

@@ -162,18 +162,18 @@ constexpr void log(
 #endif
 
 // trace
-#ifdef NDEBUG
-#define CHRZONE_PLATFORM (void)0
-#define CHRZONE_RENDERER (void)0
-#define CHRZONE_STORAGE (void)0
-#define CHRZONE_ASSETS (void)0
-#define CHRZONE_SCENE (void)0
-#else
+#ifdef TRACY_ENABLE
 #define CHRZONE_PLATFORM ZoneScopedC(tracy::Color::Blue4)
 #define CHRZONE_RENDERER ZoneScopedC(tracy::Color::Red4)
 #define CHRZONE_STORAGE ZoneScopedC(tracy::Color::Green4)
 #define CHRZONE_ASSETS ZoneScopedC(tracy::Color::Yellow4)
 #define CHRZONE_SCENE ZoneScopedC(tracy::Color::Cyan4)
+#else
+#define CHRZONE_PLATFORM (void)0
+#define CHRZONE_RENDERER (void)0
+#define CHRZONE_STORAGE (void)0
+#define CHRZONE_ASSETS (void)0
+#define CHRZONE_SCENE (void)0
 #endif
 
 // stringify

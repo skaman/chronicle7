@@ -14,22 +14,27 @@ class VulkanTexture : public TextureI<VulkanTexture>, private NonCopyable<Vulkan
 protected:
     /// @brief Construct the sampled texture.
     /// @param textureInfo Informations used to create the texture.
-    explicit VulkanTexture(const SampledTextureInfo& textureInfo);
+    /// @param name Texture name.
+    explicit VulkanTexture(const SampledTextureInfo& textureInfo, const std::string& name);
 
     /// @brief Construct the sampled texture.
     /// @param textureInfo Informations used to create the texture.
-    explicit VulkanTexture(const ColorTextureInfo& textureInfo);
+    /// @param name Texture name.
+    explicit VulkanTexture(const ColorTextureInfo& textureInfo, const std::string& name);
 
     /// @brief Construct the sampled texture.
     /// @param textureInfo Informations used to create the texture.
-    explicit VulkanTexture(const DepthTextureInfo& textureInfo);
+    /// @param name Texture name.
+    explicit VulkanTexture(const DepthTextureInfo& textureInfo, const std::string& name);
 
     /// @brief Construct the texture from an existing image (swapchain image).
     /// @param image Vulkan image.
     /// @param format Vulkan format.
     /// @param width Vulkan image width.
     /// @param height Vulkan image height.
-    explicit VulkanTexture(const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
+    /// @param name Texture name.
+    explicit VulkanTexture(
+        const vk::Image& image, vk::Format format, uint32_t width, uint32_t height, const std::string& name);
 
 public:
     /// @brief Destructor.
@@ -42,30 +47,32 @@ public:
     [[nodiscard]] uint32_t height() const { return _height; }
 
     /// @brief @see TextureI#textureId
-    [[nodiscard]] TextureId textureId() const { return static_cast<TextureId>(&_imageView); }
+    [[nodiscard]] TextureId textureId() const { return _imageView; }
 
     /// @brief @see TextureI#samplerId
-    [[nodiscard]] SamplerId samplerId() const { return static_cast<SamplerId>(&_sampler); }
+    [[nodiscard]] SamplerId samplerId() const { return _sampler; }
 
     /// @brief @see TextureI#createSampled
-    [[nodiscard]] static TextureRef createSampled(const SampledTextureInfo& textureInfo);
+    [[nodiscard]] static TextureRef createSampled(const SampledTextureInfo& textureInfo, const std::string& name);
 
     /// @brief @see TextureI#createColor
-    [[nodiscard]] static TextureRef createColor(const ColorTextureInfo& textureInfo);
+    [[nodiscard]] static TextureRef createColor(const ColorTextureInfo& textureInfo, const std::string& name);
 
     /// @brief @see TextureI#createDepth
-    [[nodiscard]] static TextureRef createDepth(const DepthTextureInfo& textureInfo);
+    [[nodiscard]] static TextureRef createDepth(const DepthTextureInfo& textureInfo, const std::string& name);
 
     /// @brief Factory for create a texture from an existing image (swapchain image).
     /// @param image Vulkan image.
     /// @param format Vulkan format.
     /// @param width Vulkan image width.
     /// @param height Vulkan image height.
+    /// @param name Texture name.
     /// @return The texture.
     [[nodiscard]] static TextureRef createSwapchain(
-        const vk::Image& image, vk::Format format, uint32_t width, uint32_t height);
+        const vk::Image& image, vk::Format format, uint32_t width, uint32_t height, const std::string& name);
 
 private:
+    std::string _name; ///< Name.
     vk::DeviceMemory _imageMemory = nullptr; ///< Device memory for the image.
     vk::Image _image = nullptr; ///< Image.
     vk::ImageView _imageView = nullptr; ///< Image view.

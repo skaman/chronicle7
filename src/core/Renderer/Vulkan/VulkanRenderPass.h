@@ -14,14 +14,15 @@ class VulkanRenderPass : public RenderPassI<VulkanRenderPass>, private NonCopyab
 protected:
     /// @brief Constructor.
     /// @param renderPassInfo Informations used to create the render pass.
-    explicit VulkanRenderPass(const RenderPassInfo& renderPassInfo);
+    /// @param name Render pass name.
+    explicit VulkanRenderPass(const RenderPassInfo& renderPassInfo, const std::string& name);
 
 public:
     /// @brief Destructor.
     ~VulkanRenderPass();
 
     /// @brief @see RenderPassI#renderPassId
-    [[nodiscard]] RenderPassId renderPassId() const { return static_cast<RenderPassId>(&_renderPass); }
+    [[nodiscard]] RenderPassId renderPassId() const { return _renderPass; }
 
     /// @brief @see RenderPassI#hash
     [[nodiscard]] size_t hash() const { return _hash; };
@@ -33,9 +34,10 @@ public:
     [[nodiscard]] MSAA msaa() const { return _msaa; };
 
     /// @brief @see RenderPassI#create
-    [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo);
+    [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo, const std::string& name);
 
 private:
+    std::string _name; ///< Name.
     vk::RenderPass _renderPass = nullptr; ///< Vulkan render pass.
     Format _format = Format::undefined; ///< Format for the surface used by the render pass.
     MSAA _msaa = MSAA::sampleCount1; ///< Multi sampling for the surface used by the render pass.

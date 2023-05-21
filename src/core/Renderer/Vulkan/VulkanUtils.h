@@ -163,41 +163,47 @@ public:
     /// @return Sample count flags.
     [[nodiscard]] static vk::SampleCountFlagBits getMaxUsableSampleCount();
 
-    /// @brief Cleanup garbage collector data.
-    /// @param data Gargabe collector data.
-    static void cleanupGarbageCollector(std::vector<GarbageCollectorData>& data);
-
     /// @brief Set a debug name to the object.
     /// @param objectType Object type.
     /// @param handle Object handle.
     /// @param name Debug name.
-    static void setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const char* name);
+    static void setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const std::string& name);
 
     /// @brief Set a debug name to a buffer.
     /// @param buffer Buffer handle.
     /// @param name Debug name.
-    static void setDebugObjectName(vk::Buffer buffer, const char* name);
+    static void setDebugObjectName(vk::Buffer buffer, const std::string& name);
 
-    /// @brief Set a debug name to a buffer.
+    /// @brief Set a debug name to a command buffer.
     /// @param commandBuffer Command buffer handle.
     /// @param name Debug name.
-    static void setDebugObjectName(vk::CommandBuffer commandBuffer, const char* name);
+    static void setDebugObjectName(vk::CommandBuffer commandBuffer, const std::string& name);
 
-    /// @brief Set a debug name to a buffer.
+    /// @brief Set a debug name to a descriptor set.
     /// @param descriptorSet Descriptor set handle.
     /// @param name Debug name.
-    static void setDebugObjectName(vk::DescriptorSet descriptorSet, const char* name);
+    static void setDebugObjectName(vk::DescriptorSet descriptorSet, const std::string& name);
 
-    /// @brief Set a debug name to a buffer.
+    /// @brief Set a debug name to a pipeline.
     /// @param pipeline Pipeline handle.
     /// @param name Debug name.
-    static void setDebugObjectName(vk::Pipeline pipeline, const char* name);
+    static void setDebugObjectName(vk::Pipeline pipeline, const std::string& name);
+
+    /// @brief Set a debug name to a frame buffer.
+    /// @param framebuffer Framebuffer handle.
+    /// @param name Debug name.
+    static void setDebugObjectName(vk::Framebuffer framebuffer, const std::string& name);
+
+    /// @brief Set a debug name to a render pass.
+    /// @param renderPass Render pass handle.
+    /// @param name Debug name.
+    static void setDebugObjectName(vk::RenderPass renderPass, const std::string& name);
 
     /// @brief Begin a debug label.
     /// @param commandBuffer Command buffer where to add the label.
     /// @param name Label name.
     /// @param color Label color.
-    static void beginDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color);
+    static void beginDebugLabel(vk::CommandBuffer commandBuffer, const std::string& name, glm::vec4 color);
 
     /// @brief End a debug label.
     /// @param commandBuffer Command buffer where the label was added.
@@ -207,7 +213,7 @@ public:
     /// @param commandBuffer Command buffer where to insert the labe.
     /// @param name Label name.
     /// @param color Label color.
-    static void insertDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color);
+    static void insertDebugLabel(vk::CommandBuffer commandBuffer, const std::string& name, glm::vec4 color);
 };
 
 } // namespace chronicle

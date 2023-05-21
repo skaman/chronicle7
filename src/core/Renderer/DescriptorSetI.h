@@ -13,6 +13,14 @@ namespace chronicle {
 /// @tparam T Type with implementation.
 template <class T> class DescriptorSetI {
 public:
+    /// @brief Get the name for the descriptor set.
+    /// @return Descriptor set name.
+    [[nodiscard]] std::string name() const { static_cast<const T*>(this)->name(); }
+
+    /// @brief Get the descriptor set handle ID
+    /// @return Descriptor set ID
+    [[nodiscard]] DescriptorSetId descriptorSetId() const { return static_cast<const T*>(this)->descriptorSetId(); }
+
     /// @brief Add a uniform object to the descriptor set.
     /// @tparam Tx Type of the uniform buffer.
     /// @param id Id used to identify the descriptor set, used later for update his value.
@@ -43,9 +51,9 @@ public:
     void build() { static_cast<T*>(this)->build(); }
 
     /// @brief Factory for create a new descriptor set.
-    /// @param debugName Debug name.
+    /// @param name Name.
     /// @return The descriptor set.
-    [[nodiscard]] static DescriptorSetRef create(const char* debugName) { return T::create(debugName); }
+    [[nodiscard]] static DescriptorSetRef create(const std::string& name) { return T::create(name); }
 
 private:
     DescriptorSetI() = default;

@@ -6,6 +6,7 @@
 #include "VulkanCommandBuffer.h"
 #include "VulkanEvents.h"
 #include "VulkanFrameBuffer.h"
+#include "VulkanGC.h"
 #include "VulkanImGui.h"
 #include "VulkanInstance.h"
 #include "VulkanRenderPass.h"
@@ -51,10 +52,10 @@ bool VulkanRenderer::beginFrame()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_TRACE("Begin swapchain");
+    CHRLOG_TRACE("Begin frame");
 
     // get the current frame data
-    VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
+    const VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
 
     // wait for fence (image GPU processing completed)
     (void)VulkanContext::device.waitForFences(frameData.inFlightFence, true, std::numeric_limits<uint64_t>::max());
@@ -63,7 +64,7 @@ bool VulkanRenderer::beginFrame()
     VulkanContext::device.resetFences(frameData.inFlightFence);
 
     // clean the frame garbage collector
-    VulkanUtils::cleanupGarbageCollector(frameData.garbageCollector);
+    VulkanGC::cleanupCurrentQueue();
 
     // acquire the image
     try {
@@ -87,49 +88,17 @@ bool VulkanRenderer::beginFrame()
     return true;
 }
 
-bool VulkanRenderer::beginRenderPass()
-{
-    CHRZONE_RENDERER;
-
-    // get the current image data
-    const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
-
-    // begin render pass
-    commandBuffer()->beginRenderPass({ .renderPassId = VulkanContext::renderPass->renderPassId(),
-        .frameBufferId = imageData.framebuffer->frameBufferId(),
-        .renderAreaOffset = { 0, 0 },
-        .renderAreaExtent = { VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height } });
-
-    // set viewport
-    commandBuffer()->setViewport({ .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(VulkanContext::swapChainExtent.width),
-        .height = static_cast<float>(VulkanContext::swapChainExtent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f });
-
-    return true;
-}
-
 void VulkanRenderer::endFrame()
 {
     CHRZONE_RENDERER;
 
-    CHRLOG_TRACE("End swapchain");
+    CHRLOG_TRACE("End frame");
 
-    auto vulkanCommandBuffer = *static_cast<const vk::CommandBuffer*>(commandBuffer()->commandBufferId());
+    auto vulkanCommandBuffer = commandBuffer()->commandBufferId();
 
     // get the current frame data
     const VulkanFrameData& frameData = VulkanContext::framesData[VulkanContext::currentFrame];
 
-    // get the current image data
-    const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
-
-    // draw imgui
-    VulkanImGui::draw(commandBuffer()->commandBufferId());
-
-    // end debug draw pass
-    commandBuffer()->endRenderPass();
     commandBuffer()->end();
 
     // submit command buffers
@@ -165,6 +134,43 @@ void VulkanRenderer::endFrame()
     VulkanContext::currentFrame = (VulkanContext::currentFrame + 1) % VulkanContext::maxFramesInFlight;
 
     FrameMark;
+}
+
+void VulkanRenderer::beginRenderPass()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("Begin render pass");
+
+    // get the current image data
+    const VulkanImageData& imageData = VulkanContext::imagesData[VulkanContext::currentImage];
+
+    // begin render pass
+    commandBuffer()->beginRenderPass({ .renderPassId = VulkanContext::renderPass->renderPassId(),
+        .frameBufferId = imageData.framebuffer->frameBufferId(),
+        .renderAreaOffset = { 0, 0 },
+        .renderAreaExtent = { VulkanContext::swapChainExtent.width, VulkanContext::swapChainExtent.height } });
+
+    // set viewport
+    commandBuffer()->setViewport({ .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(VulkanContext::swapChainExtent.width),
+        .height = static_cast<float>(VulkanContext::swapChainExtent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f });
+}
+
+void VulkanRenderer::endRenderPass()
+{
+    CHRZONE_RENDERER;
+
+    CHRLOG_TRACE("End render pass");
+
+    // draw imgui
+    VulkanImGui::draw(commandBuffer()->commandBufferId());
+
+    // end debug draw pass
+    commandBuffer()->endRenderPass();
 }
 
 bool VulkanRenderer::debugShowLines() { return VulkanContext::debugShowLines; }

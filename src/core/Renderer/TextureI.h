@@ -24,26 +24,29 @@ public:
 
     /// @brief Factory for create a new sampled texture.
     /// @param textureInfo Informations used to create the texture.
+    /// @param name Texture name.
     /// @return The texture.
-    [[nodiscard]] static TextureRef createSampled(const SampledTextureInfo& textureInfo)
+    [[nodiscard]] static TextureRef createSampled(const SampledTextureInfo& textureInfo, const std::string& name)
     {
-        return T::createSampled(textureInfo);
+        return T::createSampled(textureInfo, name);
     }
 
     /// @brief Factory for create a new color texture.
     /// @param textureInfo Informations used to create the texture.
+    /// @param name Texture name.
     /// @return The texture.
-    [[nodiscard]] static TextureRef createColor(const ColorTextureInfo& textureInfo)
+    [[nodiscard]] static TextureRef createColor(const ColorTextureInfo& textureInfo, const std::string& name)
     {
-        return T::createColor(textureInfo);
+        return T::createColor(textureInfo, name);
     }
 
     /// @brief Factory for create a new depth texture.
     /// @param textureInfo Informations used to create the texture.
+    /// @param name Texture name.
     /// @return The texture.
-    [[nodiscard]] static TextureRef createDepth(const DepthTextureInfo& textureInfo)
+    [[nodiscard]] static TextureRef createDepth(const DepthTextureInfo& textureInfo, const std::string& name)
     {
-        return T::createDepth(textureInfo);
+        return T::createDepth(textureInfo, name);
     }
 
 private:

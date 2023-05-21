@@ -22,27 +22,24 @@ class VulkanPipeline : public PipelineI<VulkanPipeline>, private NonCopyable<Vul
 protected:
     /// @brief Default constructor.
     /// @param pipelineInfo Informations used to create a new pipeline.
-    /// @param debugName Debug name.
-    explicit VulkanPipeline(const PipelineInfo& pipelineInfo, const char* debugName);
+    /// @param name Pipeline name.
+    explicit VulkanPipeline(const PipelineInfo& pipelineInfo, const std::string& name);
 
 public:
     /// @brief Destructor.
     ~VulkanPipeline();
 
-    /// @brief Get the vulkan handle for pipeline.
-    /// @return Vulkan handle.
-    [[nodiscard]] const vk::Pipeline& pipeline() const { return _graphicsPipeline; }
+    /// @brief @see PipelineI#pipelineId
+    [[nodiscard]] PipelineId pipelineId() const { return _graphicsPipeline; }
 
-    /// @brief Get the pipeline layout.
-    /// @return Pipeline layout.
-    [[nodiscard]] const vk::PipelineLayout& pipelineLayout() const { return _pipelineLayout; }
+    /// @brief @see PipelineI#pipelineLayoutId
+    [[nodiscard]] PipelineLayoutId pipelineLayoutId() const { return _pipelineLayout; }
 
     /// @brief @see PipelineI#create
-    /// @param debugName Debug name.
-    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const char* debugName);
+    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const std::string& name);
 
 private:
-    std::string _debugName; ///< Debug name.
+    std::string _name; ///< Name.
     ShaderRef _shader; ///< Shader.
     RenderPassRef _renderPass; ///< Render pass.
 
@@ -53,8 +50,6 @@ private:
     vk::DescriptorPool _descriptorPool; ///< Descriptor pool.
     std::vector<vk::DescriptorSet> _descriptorSets; ///< Descriptor sets.
 
-    // std::vector<vk::PipelineShaderStageCreateInfo> _shaderStages; ///< Shader stages create informations.
-    // std::vector<vk::ShaderModule> _shaderModules; ///< Shader modules.
     std::vector<VertexBufferInfo> _vertexBuffers; ///< Vertex buffers.
 
     /// @brief Create the pipeline.

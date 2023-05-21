@@ -6,6 +6,7 @@
 #include "Storage/Storage.h"
 
 #include "VulkanEnums.h"
+#include "VulkanGC.h"
 #include "VulkanInstance.h"
 #include "VulkanRenderPass.h"
 #include "VulkanShader.h"
@@ -15,8 +16,9 @@ namespace chronicle {
 
 CHR_CONCRETE(VulkanPipeline);
 
-VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const char* debugName)
-    : _shader(pipelineInfo.shader)
+VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const std::string& name)
+    : _name(name)
+    , _shader(pipelineInfo.shader)
     , _renderPass(pipelineInfo.renderPass)
     , _vertexBuffers(pipelineInfo.vertexBuffers)
 {
@@ -24,15 +26,6 @@ VulkanPipeline::VulkanPipeline(const PipelineInfo& pipelineInfo, const char* deb
 
     assert(_shader);
     assert(_vertexBuffers.size() > 0);
-
-    // CHRLOG_TRACE("Create pipeline: shaders count={}, vertex buffer descriptions count={}",
-    // pipelineInfo.shaders.size(),
-    //     pipelineInfo.vertexBuffers.size());
-
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-    if (debugName != nullptr)
-        _debugName = debugName;
-#endif // VULKAN_ENABLE_DEBUG_MARKER
 
     // descriptor sets layout
     _descriptorSetsLayout = getVulkanDescriptorSetsLayout(pipelineInfo.descriptorSetsLayout);
@@ -58,10 +51,10 @@ VulkanPipeline::~VulkanPipeline()
         VulkanContext::device.destroyDescriptorSetLayout(descriptorSetLayout);
 }
 
-PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo, const char* debugName)
+PipelineRef VulkanPipeline::create(const PipelineInfo& pipelineInfo, const std::string& name)
 {
     // create an instance of the class
-    return std::make_shared<ConcreteVulkanPipeline>(pipelineInfo, debugName);
+    return std::make_shared<ConcreteVulkanPipeline>(pipelineInfo, name);
 }
 
 void VulkanPipeline::create()
@@ -104,13 +97,12 @@ void VulkanPipeline::create()
         bindingDescriptions.push_back(bindingDescription);
 
         // fill the attribute descriptions
-        for (auto j = 0; j < _vertexBuffers[i].attributeDescriptions.size(); j++) {
+        for (const auto& sourceAttributeDescription : _vertexBuffers[i].attributeDescriptions) {
             vk::VertexInputAttributeDescription attributeDescription = {};
             attributeDescription.binding = i;
-            attributeDescription.location = _vertexBuffers[i].attributeDescriptions[j].location;
-            attributeDescription.format
-                = VulkanEnums::formatToVulkan(_vertexBuffers[i].attributeDescriptions[j].format);
-            attributeDescription.offset = _vertexBuffers[i].attributeDescriptions[j].offset;
+            attributeDescription.location = sourceAttributeDescription.location;
+            attributeDescription.format = VulkanEnums::formatToVulkan(sourceAttributeDescription.format);
+            attributeDescription.offset = sourceAttributeDescription.offset;
             attributeDescriptions.push_back(attributeDescription);
         }
     }
@@ -188,7 +180,7 @@ void VulkanPipeline::create()
     graphicsPipelineInfo.setPColorBlendState(&colorBlending);
     graphicsPipelineInfo.setPDynamicState(&dynamicState);
     graphicsPipelineInfo.setLayout(_pipelineLayout);
-    graphicsPipelineInfo.setRenderPass(*static_cast<const vk::RenderPass*>(_renderPass->renderPassId()));
+    graphicsPipelineInfo.setRenderPass(_renderPass->renderPassId());
     graphicsPipelineInfo.setSubpass(0);
 
     // create the graphics pipeline
@@ -198,8 +190,7 @@ void VulkanPipeline::create()
         throw RendererError("Failed to create graphics pipeline");
 
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
-    // set the debug object name
-    VulkanUtils::setDebugObjectName(_graphicsPipeline, _debugName.c_str());
+    VulkanUtils::setDebugObjectName(_graphicsPipeline, _name);
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
@@ -207,12 +198,9 @@ void VulkanPipeline::cleanup()
 {
     CHRZONE_RENDERER;
 
-    // get garbage collector
-    auto& garbageCollector = VulkanContext::framesData[VulkanContext::currentFrame].garbageCollector;
-
     // add data to destroy to the garbage collector
-    garbageCollector.emplace_back(_graphicsPipeline);
-    garbageCollector.emplace_back(_pipelineLayout);
+    VulkanGC::add(_graphicsPipeline);
+    VulkanGC::add(_pipelineLayout);
 
     // descriptor sets clear
     _descriptorSets.clear();
@@ -220,9 +208,6 @@ void VulkanPipeline::cleanup()
 
 void VulkanPipeline::debugShowLines([[maybe_unused]] const DebugShowLinesEvent& evn)
 {
-    // CHRLOG_TRACE("Recreate pipeline: shaders count={}, vertex buffer descriptions count={}", _shaderStages.size(),
-    //     _vertexBuffers.size());
-
     // after a debug show line event, cleanup and recreate the pipeline
     cleanup();
     create();

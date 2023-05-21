@@ -30,10 +30,14 @@ public:
     /// @brief @see RendererI#beginFrame
     static bool beginFrame();
 
-    static bool beginRenderPass();
-
     /// @brief @see RendererI#endFrame
     static void endFrame();
+
+    /// @brief @see RendererI#beginRenderPass
+    static void beginRenderPass();
+
+    /// @brief @see RendererI#endRenderPass
+    static void endRenderPass();
 
     /// @brief @see RendererI#debugShowLines
     [[nodiscard]] static bool debugShowLines();

@@ -14,13 +14,21 @@ namespace chronicle {
 /// @tparam T Type with implementation.
 template <class T> class PipelineI {
 public:
+    /// @brief Get the pipeline handle ID
+    /// @return Pipeline ID
+    [[nodiscard]] PipelineId pipelineId() const { return static_cast<const T*>(this)->pipelineId(); }
+
+    /// @brief Get the pipeline layout handle ID
+    /// @return Pipeline layout ID
+    [[nodiscard]] PipelineLayoutId pipelineLayoutId() const { return static_cast<const T*>(this)->pipelineLayoutId(); }
+
     /// @brief Factory for create a new pipeline.
     /// @param pipelineInfo Informations used to create the pipeline.
-    /// @param debugName Debug name.
+    /// @param name Pipeline name.
     /// @return The pipeline.
-    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const char* debugName)
+    [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const std::string& name)
     {
-        return T::create(pipelineInfo, debugName);
+        return T::create(pipelineInfo, name);
     }
 
 private:

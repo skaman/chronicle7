@@ -1,5 +1,13 @@
 {
   "sonarlint.rules": {
+    "cpp:S4524": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "cpp:S1172": {
+      "level": "On",
+      "severity": "Major"
+    },
     "cpp:S5982": {
       "level": "On",
       "severity": "Critical"
@@ -300,10 +308,6 @@
       "level": "On",
       "severity": "Major"
     },
-    "cpp:S6177": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "cpp:S3135": {
       "level": "On",
       "severity": "Major"
@@ -367,10 +371,6 @@
     "cpp:S6234": {
       "level": "On",
       "severity": "Minor"
-    },
-    "cpp:S4524": {
-      "level": "On",
-      "severity": "Critical"
     },
     "cpp:S3562": {
       "level": "On",
@@ -502,10 +502,6 @@
         "maximumFunctionCognitiveComplexityThreshold": "25"
       },
       "severity": "Critical"
-    },
-    "cpp:S841": {
-      "level": "On",
-      "severity": "Major"
     },
     "cpp:S1000": {
       "level": "On",
@@ -675,10 +671,6 @@
     "cpp:S6367": {
       "level": "On",
       "severity": "Major"
-    },
-    "cpp:S6004": {
-      "level": "On",
-      "severity": "Minor"
     },
     "cpp:S6366": {
       "level": "On",
@@ -852,13 +844,6 @@
       "level": "On",
       "severity": "Major"
     },
-    "cpp:S1479": {
-      "level": "On",
-      "parameters": {
-        "maximum": "30"
-      },
-      "severity": "Major"
-    },
     "cpp:S969": {
       "level": "On",
       "severity": "Blocker"
@@ -958,10 +943,6 @@
     "cpp:S3471": {
       "level": "On",
       "severity": "Minor"
-    },
-    "cpp:S1172": {
-      "level": "On",
-      "severity": "Major"
     },
     "cpp:S3590": {
       "level": "On",
@@ -1821,6 +1802,9 @@
     "cpp:S117": {
       "level": "Off"
     },
+    "cpp:S6177": {
+      "level": "Off"
+    },
     "cpp:S5305": {
       "level": "Off"
     },
@@ -1867,6 +1851,9 @@
       "level": "Off"
     },
     "cpp:S968": {
+      "level": "Off"
+    },
+    "cpp:S841": {
       "level": "Off"
     },
     "cpp:S1001": {
@@ -1953,6 +1940,9 @@
     "cpp:S867": {
       "level": "Off"
     },
+    "cpp:S6004": {
+      "level": "Off"
+    },
     "cpp:S6184": {
       "level": "Off"
     },
@@ -2011,6 +2001,9 @@
       "level": "Off"
     },
     "cpp:S2324": {
+      "level": "Off"
+    },
+    "cpp:S1479": {
       "level": "Off"
     },
     "cpp:S960": {

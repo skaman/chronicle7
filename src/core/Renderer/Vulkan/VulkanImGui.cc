@@ -92,8 +92,7 @@ void VulkanImGui::init()
     initInfo.Allocator = nullptr;
     initInfo.CheckVkResultFn = checkVulkanResult;
 
-    auto renderPass = static_cast<const vk::RenderPass*>(VulkanContext::renderPass->renderPassId());
-    ImGui_ImplVulkan_Init(&initInfo, *renderPass);
+    ImGui_ImplVulkan_Init(&initInfo, VulkanContext::renderPass->renderPassId());
 
     // create font texture
     auto commandBuffer = VulkanUtils::beginSingleTimeCommands();
@@ -146,8 +145,7 @@ void VulkanImGui::draw(CommandBufferId commandBufferId)
 
     // draw imgui data
     ImDrawData* main_draw_data = ImGui::GetDrawData();
-    auto commandBuffer = *static_cast<const vk::CommandBuffer*>(commandBufferId);
-    ImGui_ImplVulkan_RenderDrawData(main_draw_data, commandBuffer);
+    ImGui_ImplVulkan_RenderDrawData(main_draw_data, commandBufferId);
 
     // update and render additional platform windows
     const ImGuiIO& io = ImGui::GetIO();

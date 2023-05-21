@@ -32,10 +32,11 @@ public:
 
     /// @brief Factory for create a new render pass.
     /// @param renderPassInfo Informations used to create the render pass.
+    /// @param name Render pass name.
     /// @return The render pass.
-    [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo)
+    [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo, const std::string& name)
     {
-        return T::create(renderPassInfo);
+        return T::create(renderPassInfo, name);
     }
 
 private:

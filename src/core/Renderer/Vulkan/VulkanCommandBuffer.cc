@@ -9,17 +9,19 @@
 #include "VulkanPipeline.h"
 #include "VulkanRenderer.h"
 #include "VulkanVertexBuffer.h"
-#include "VulkanVertexBuffers.h"
 
 namespace chronicle {
 
 CHR_CONCRETE(VulkanCommandBuffer);
 
-VulkanCommandBuffer::VulkanCommandBuffer(const char* debugName)
+VulkanCommandBuffer::VulkanCommandBuffer(const std::string& name)
+    : _name(name)
 {
     CHRZONE_RENDERER;
 
     CHRLOG_TRACE("Create command buffer");
+
+    assert(VulkanContext::commandPool);
 
     // create the command buffer
     vk::CommandBufferAllocateInfo allocInfo = {};
@@ -28,22 +30,42 @@ VulkanCommandBuffer::VulkanCommandBuffer(const char* debugName)
     allocInfo.setCommandBufferCount(1);
     _commandBuffer = VulkanContext::device.allocateCommandBuffers(allocInfo)[0];
 
+    assert(_commandBuffer);
+
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
-    // set the debug object name
-    VulkanUtils::setDebugObjectName(_commandBuffer, debugName);
+    VulkanUtils::setDebugObjectName(_commandBuffer, name);
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
 void VulkanCommandBuffer::begin() const
 {
+    CHRZONE_RENDERER;
+
+    assert(_commandBuffer);
+
     vk::CommandBufferBeginInfo beginInfo = {};
     _commandBuffer.begin(beginInfo);
 }
 
-void VulkanCommandBuffer::end() const { _commandBuffer.end(); }
+void VulkanCommandBuffer::end() const
+{
+    CHRZONE_RENDERER;
+
+    assert(_commandBuffer);
+
+    _commandBuffer.end();
+}
 
 void VulkanCommandBuffer::setViewport(const Viewport& viewport) const
 {
+    CHRZONE_RENDERER;
+
+    assert(viewport.width > 0.0f);
+    assert(viewport.height > 0.0f);
+    assert(viewport.minDepth >= 0.0f && viewport.minDepth <= 1.0f);
+    assert(viewport.maxDepth >= 0.0f && viewport.maxDepth <= 1.0f);
+    assert(_commandBuffer);
+
     vk::Viewport viewportInfo = {};
     viewportInfo.setX(viewport.x);
     viewportInfo.setY(viewport.y);
@@ -60,13 +82,21 @@ void VulkanCommandBuffer::setViewport(const Viewport& viewport) const
 
 void VulkanCommandBuffer::beginRenderPass(const RenderPassBeginInfo& renderPassInfo) const
 {
+    CHRZONE_RENDERER;
+
+    assert(renderPassInfo.renderPassId);
+    assert(renderPassInfo.frameBufferId);
+    assert(renderPassInfo.renderAreaExtent.x >= 0);
+    assert(renderPassInfo.renderAreaExtent.y >= 0);
+    assert(_commandBuffer);
+
     std::array<vk::ClearValue, 2> clearValues {};
-    clearValues[0].setColor({ std::array<float, 4> { 1.0f, 0.0f, 0.0f, 1.0f } });
+    clearValues[0].setColor({ std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f } });
     clearValues[1].setDepthStencil({ 1.0f, 0 });
 
     vk::RenderPassBeginInfo renderPassBeginInfo = {};
-    renderPassBeginInfo.setRenderPass(*static_cast<const vk::RenderPass*>(renderPassInfo.renderPassId));
-    renderPassBeginInfo.setFramebuffer(*static_cast<const vk::Framebuffer*>(renderPassInfo.frameBufferId));
+    renderPassBeginInfo.setRenderPass(renderPassInfo.renderPassId);
+    renderPassBeginInfo.setFramebuffer(renderPassInfo.frameBufferId);
     renderPassBeginInfo.setRenderArea(
         vk::Rect2D({ renderPassInfo.renderAreaOffset.x, renderPassInfo.renderAreaOffset.y },
             { renderPassInfo.renderAreaExtent.x, renderPassInfo.renderAreaExtent.y }));
@@ -74,7 +104,14 @@ void VulkanCommandBuffer::beginRenderPass(const RenderPassBeginInfo& renderPassI
     _commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 }
 
-void VulkanCommandBuffer::endRenderPass() const { _commandBuffer.endRenderPass(); }
+void VulkanCommandBuffer::endRenderPass() const
+{
+    CHRZONE_RENDERER;
+
+    assert(_commandBuffer);
+
+    _commandBuffer.endRenderPass();
+}
 
 void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount) const
 {
@@ -82,6 +119,7 @@ void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCoun
 
     assert(indexCount > 0);
     assert(instanceCount > 0);
+    assert(_commandBuffer);
 
     CHRLOG_TRACE("Draw indexed: index count={}, instance count={}", indexCount, instanceCount);
 
@@ -89,87 +127,78 @@ void VulkanCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCoun
     _commandBuffer.drawIndexed(indexCount, instanceCount, 0, 0, 0);
 }
 
-void VulkanCommandBuffer::bindPipeline(const PipelineRef& pipeline)
+void VulkanCommandBuffer::bindPipeline(PipelineId pipelineId) const
 {
     CHRZONE_RENDERER;
 
-    assert(pipeline);
+    assert(pipelineId);
+    assert(_commandBuffer);
 
     CHRLOG_TRACE("Bind pipeline");
 
-    // cast the pipeline to vulkan pipeline
-    const auto vulkanPipeline = static_cast<VulkanPipeline*>(pipeline.get());
-
     // bind the pipeline
-    _commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, vulkanPipeline->pipeline());
-
-    // keep track of the current pipeline layout
-    _currentPipelineLayout = vulkanPipeline->pipelineLayout();
+    _commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipelineId);
 }
 
-void VulkanCommandBuffer::bindVertexBuffer(const VertexBufferRef& vertexBuffer) const
+void VulkanCommandBuffer::bindVertexBuffer(VertexBufferId vertexBufferId, uint64_t offset) const
 {
     CHRZONE_RENDERER;
 
-    assert(vertexBuffer);
+    assert(vertexBufferId);
+    assert(_commandBuffer);
 
     CHRLOG_TRACE("Bind vertex buffer");
 
-    // cast the vertex buffer to vulkan vertex buffer
-    const auto vulkanVertexBuffer = static_cast<VulkanVertexBuffer*>(vertexBuffer.get());
-
     // bind the vertex buffer
-    _commandBuffer.bindVertexBuffers(0, vulkanVertexBuffer->buffer(), vk::DeviceSize(0));
+    _commandBuffer.bindVertexBuffers(0, vertexBufferId, offset);
 }
 
-void VulkanCommandBuffer::bindVertexBuffers(const VertexBuffersRef& vertexBuffers) const
+void VulkanCommandBuffer::bindVertexBuffers(
+    const std::vector<VertexBufferId>& vertexBuffers, const std::vector<uint64_t>& offsets) const
 {
     CHRZONE_RENDERER;
 
-    assert(vertexBuffers);
+    assert(!vertexBuffers.empty());
+    assert(!offsets.empty());
+    assert(vertexBuffers.size() == offsets.size());
+    assert(_commandBuffer);
 
     CHRLOG_TRACE("Bind vertex buffers");
 
-    // cast the vertex buffer to vulkan vertex buffer
-    const auto vulkanVertexBuffers = static_cast<VulkanVertexBuffers*>(vertexBuffers.get());
-
     // bind the vertex buffer
-    _commandBuffer.bindVertexBuffers(0, vulkanVertexBuffers->buffers(), vulkanVertexBuffers->offsets());
+    _commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
 }
 
-void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferRef& indexBuffer, IndexType indexType) const
+void VulkanCommandBuffer::bindIndexBuffer(const IndexBufferId indexBufferId, IndexType indexType, uint64_t offset) const
 {
     CHRZONE_RENDERER;
 
-    assert(indexBuffer);
+    assert(indexBufferId);
+    assert(_commandBuffer);
 
     CHRLOG_TRACE("Bind index buffer");
 
-    // cast the index buffer to vulkan index buffer
-    const auto vulkanIndexBuffer = static_cast<VulkanIndexBuffer*>(indexBuffer.get());
-
     // bind the index buffer
-    _commandBuffer.bindIndexBuffer(
-        vulkanIndexBuffer->buffer(), vk::DeviceSize(0), VulkanEnums::indexTypeToVulkan(indexType));
+    _commandBuffer.bindIndexBuffer(indexBufferId, offset, VulkanEnums::indexTypeToVulkan(indexType));
 }
 
-void VulkanCommandBuffer::bindDescriptorSet(const DescriptorSetRef& descriptorSet, uint32_t index) const
+void VulkanCommandBuffer::bindDescriptorSet(
+    DescriptorSetId descriptorSetId, PipelineLayoutId pipelineLayoutId, uint32_t index) const
 {
     CHRZONE_RENDERER;
 
-    assert(descriptorSet);
+    assert(descriptorSetId);
+    assert(pipelineLayoutId);
+    assert(index >= 0 && index < 4); // max 4 descriptor sets
 
     CHRLOG_TRACE("Bind descriptor set: index={}", index);
 
-    // cast the descriptor set to vulkan descriptor set
-    const auto vulkanDescriptorSet = static_cast<VulkanDescriptorSet*>(descriptorSet.get());
-
     // bind the descriptor set
     _commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics, _currentPipelineLayout, index, vulkanDescriptorSet->descriptorSet(), nullptr);
+        vk::PipelineBindPoint::eGraphics, pipelineLayoutId, index, descriptorSetId, nullptr);
 }
 
-void VulkanCommandBuffer::beginDebugLabel(const char* name, glm::vec4 color) const
+void VulkanCommandBuffer::beginDebugLabel(const std::string& name, glm::vec4 color) const
 {
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
     VulkanUtils::beginDebugLabel(_commandBuffer, name, color);
@@ -183,16 +212,16 @@ void VulkanCommandBuffer::endDebugLabel() const
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
-void VulkanCommandBuffer::insertDebugLabel(const char* name, glm::vec4 color) const
+void VulkanCommandBuffer::insertDebugLabel(const std::string& name, glm::vec4 color) const
 {
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
     VulkanUtils::insertDebugLabel(_commandBuffer, name, color);
 #endif // VULKAN_ENABLE_DEBUG_MARKER
 }
 
-CommandBufferRef VulkanCommandBuffer::create(const char* debugName)
+CommandBufferRef VulkanCommandBuffer::create(const std::string& name)
 {
-    return std::make_shared<ConcreteVulkanCommandBuffer>(debugName);
+    return std::make_shared<ConcreteVulkanCommandBuffer>(name);
 }
 
 } // namespace chronicle

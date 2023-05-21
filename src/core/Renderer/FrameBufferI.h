@@ -20,10 +20,11 @@ public:
 
     /// @brief Factory for create a new frame buffer.
     /// @param frameBufferInfo Informations used to create the frame buffer.
+    /// @param name Frame buffer name.
     /// @return The frame buffer.
-    [[nodiscard]] static FrameBufferRef create(const FrameBufferInfo& frameBufferInfo)
+    [[nodiscard]] static FrameBufferRef create(const FrameBufferInfo& frameBufferInfo, const std::string& name)
     {
-        return T::create(frameBufferInfo);
+        return T::create(frameBufferInfo, name);
     }
 
 private:

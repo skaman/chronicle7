@@ -574,15 +574,14 @@ vk::SurfaceFormatKHR VulkanUtils::chooseSwapSurfaceFormat(const std::vector<vk::
 
     assert(availableFormats.size() > 0);
 
-    using enum vk::Format;
-
     // if no available format is defined, just return a default
-    if (availableFormats.size() == 1 && availableFormats[0].format == eUndefined)
-        return { eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
+    if (availableFormats.size() == 1 && availableFormats[0].format == vk::Format::eUndefined)
+        return { vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
 
     // check and return the first available format that match
     for (const auto& availableFormat : availableFormats) {
-        if (availableFormat.format == eB8G8R8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+        if (availableFormat.format == vk::Format::eB8G8R8A8Unorm
+            && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
             return availableFormat;
     }
 
@@ -596,14 +595,12 @@ vk::PresentModeKHR VulkanUtils::chooseSwapPresentMode(const std::vector<vk::Pres
 
     assert(availablePresentModes.size() > 0);
 
-    using enum vk::PresentModeKHR;
-
     // check the best presentation mode
-    vk::PresentModeKHR bestMode = eFifo;
+    vk::PresentModeKHR bestMode = vk::PresentModeKHR::eFifo;
     for (const auto& availablePresentMode : availablePresentModes) {
-        if (availablePresentMode == eMailbox)
+        if (availablePresentMode == vk::PresentModeKHR::eMailbox)
             return availablePresentMode;
-        else if (availablePresentMode == eImmediate)
+        else if (availablePresentMode == vk::PresentModeKHR::eImmediate)
             bestMode = availablePresentMode;
     }
     return bestMode;
@@ -658,10 +655,8 @@ vk::Format VulkanUtils::findSupportedFormat(
 
 vk::Format VulkanUtils::findDepthFormat()
 {
-    using enum vk::Format;
-
-    return findSupportedFormat({ eD32Sfloat, eD32SfloatS8Uint, eD24UnormS8Uint }, vk::ImageTiling::eOptimal,
-        vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+    return findSupportedFormat({ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
+        vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
 bool VulkanUtils::hasStencilComponent(vk::Format format)
@@ -700,92 +695,59 @@ vk::SampleCountFlagBits VulkanUtils::getMaxUsableSampleCount()
     return vk::SampleCountFlagBits::e1;
 }
 
-void VulkanUtils::cleanupGarbageCollector(std::vector<GarbageCollectorData>& data)
+void VulkanUtils::setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const std::string& name)
 {
-    using enum chronicle::GarbageType;
-
-    // cycle all items and clean them
-    for (const auto& item : data) {
-        switch (item.type) {
-        case pipeline:
-            VulkanContext::device.destroyPipeline(item.pipeline);
-            break;
-        case pipelineLayout:
-            VulkanContext::device.destroyPipelineLayout(item.pipelineLayout);
-            break;
-        case buffer:
-            VulkanContext::device.destroyBuffer(item.buffer);
-            break;
-        case deviceMemory:
-            VulkanContext::device.freeMemory(item.deviceMemory);
-            break;
-        case descriptorSetLayout:
-            VulkanContext::device.destroyDescriptorSetLayout(item.descriptorSetLayout);
-            break;
-        default:
-            break;
-        }
-    }
-
-    // clear the vector
-    data.clear();
-}
-
-void VulkanUtils::setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const char* name)
-{
-    if (name == nullptr)
+    if (name.empty())
         return;
 
     VkDebugUtilsObjectNameInfoEXT objectNameInfo = {};
     objectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     objectNameInfo.objectType = (VkObjectType)objectType;
     objectNameInfo.objectHandle = handle;
-    objectNameInfo.pObjectName = name;
+    objectNameInfo.pObjectName = name.c_str();
     objectNameInfo.pNext = nullptr;
 
     setDebugUtilsObjectNameEXT(VulkanContext::instance, VulkanContext::device, &objectNameInfo);
 }
 
-void VulkanUtils::setDebugObjectName(vk::Buffer buffer, const char* name)
+void VulkanUtils::setDebugObjectName(vk::Buffer buffer, const std::string& name)
 {
-    if (name == nullptr)
-        return;
-
     setDebugObjectName(vk::ObjectType::eBuffer, (uint64_t)(VkBuffer)buffer, name);
 }
 
-void VulkanUtils::setDebugObjectName(vk::CommandBuffer commandBuffer, const char* name)
+void VulkanUtils::setDebugObjectName(vk::CommandBuffer commandBuffer, const std::string& name)
 {
-    if (name == nullptr)
-        return;
-
     setDebugObjectName(vk::ObjectType::eCommandBuffer, (uint64_t)(VkCommandBuffer)commandBuffer, name);
 }
 
-void VulkanUtils::setDebugObjectName(vk::DescriptorSet descriptorSet, const char* name)
+void VulkanUtils::setDebugObjectName(vk::DescriptorSet descriptorSet, const std::string& name)
 {
-    if (name == nullptr)
-        return;
-
     setDebugObjectName(vk::ObjectType::eDescriptorSet, (uint64_t)(VkDescriptorSet)descriptorSet, name);
 }
 
-void VulkanUtils::setDebugObjectName(vk::Pipeline pipeline, const char* name)
+void VulkanUtils::setDebugObjectName(vk::Pipeline pipeline, const std::string& name)
 {
-    if (name == nullptr)
-        return;
-
     setDebugObjectName(vk::ObjectType::ePipeline, (uint64_t)(VkPipeline)pipeline, name);
 }
 
-void VulkanUtils::beginDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color)
+void VulkanUtils::setDebugObjectName(vk::Framebuffer framebuffer, const std::string& name)
 {
-    if (name == nullptr)
+    setDebugObjectName(vk::ObjectType::eFramebuffer, (uint64_t)(VkFramebuffer)framebuffer, name);
+}
+
+void VulkanUtils::setDebugObjectName(vk::RenderPass renderPass, const std::string& name)
+{
+    setDebugObjectName(vk::ObjectType::eRenderPass, (uint64_t)(VkRenderPass)renderPass, name);
+}
+
+void VulkanUtils::beginDebugLabel(vk::CommandBuffer commandBuffer, const std::string& name, glm::vec4 color)
+{
+    if (name.empty())
         return;
 
     VkDebugUtilsLabelEXT debugLabelInfo = {};
     debugLabelInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-    debugLabelInfo.pLabelName = name;
+    debugLabelInfo.pLabelName = name.c_str();
     debugLabelInfo.color[0] = color.r;
     debugLabelInfo.color[1] = color.g;
     debugLabelInfo.color[2] = color.b;
@@ -801,14 +763,14 @@ void VulkanUtils::endDebugLabel(vk::CommandBuffer commandBuffer)
     cmdEndDebugUtilsLabelEXT(VulkanContext::instance, commandBuffer);
 }
 
-void VulkanUtils::insertDebugLabel(vk::CommandBuffer commandBuffer, const char* name, glm::vec4 color)
+void VulkanUtils::insertDebugLabel(vk::CommandBuffer commandBuffer, const std::string& name, glm::vec4 color)
 {
-    if (name == nullptr)
+    if (name.empty())
         return;
 
     VkDebugUtilsLabelEXT debugLabelInfo = {};
     debugLabelInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-    debugLabelInfo.pLabelName = name;
+    debugLabelInfo.pLabelName = name.c_str();
     debugLabelInfo.color[0] = color.r;
     debugLabelInfo.color[1] = color.g;
     debugLabelInfo.color[2] = color.b;
