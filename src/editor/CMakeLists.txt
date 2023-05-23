@@ -1,13 +1,13 @@
 find_package(Python REQUIRED COMPONENTS Interpreter)
 
 add_executable(chronicle-editor
+    "Widgets/DockArea.cpp"
     "Widgets/DockArea.h"
-    "Widgets/DockArea.cc"
+    "Widgets/DockPanel.cpp"
     "Widgets/DockPanel.h"
-    "Widgets/DockPanel.cc"
-    "main.cc"
+    "main.cpp"
+    "MainWindow.cpp"
     "MainWindow.h"
-    "MainWindow.cc"
     "Resources.h"
 )
 

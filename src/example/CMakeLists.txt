@@ -1,5 +1,5 @@
 add_executable(chronicle-example
-    "main.cc"
+    "main.cpp"
 )
 
 set_property(TARGET chronicle-example PROPERTY CXX_STANDARD 20)
