@@ -15,16 +15,16 @@ MainWindow::MainWindow()
 {
     Storage::init();
     Platform::init();
-    Renderer::init();
+    RenderContext::init();
 
     registerResources();
 }
 
 MainWindow::~MainWindow()
 {
-    Renderer::waitIdle();
+    RenderContext::waitIdle();
 
-    Renderer::deinit();
+    RenderContext::deinit();
     Platform::deinit();
 }
 
@@ -33,9 +33,9 @@ void MainWindow::run()
     double delta;
 
     while (Platform::poll(delta)) {
-        if (!Renderer::beginFrame())
+        if (!RenderContext::beginFrame())
             continue;
-        Renderer::beginRenderPass();
+        RenderContext::beginRenderPass();
 
         DockArea::draw([]() {
             /*
@@ -56,8 +56,8 @@ void MainWindow::run()
             ImGui::ShowDemoWindow();
         });
 
-        Renderer::endRenderPass();
-        Renderer::endFrame();
+        RenderContext::endRenderPass();
+        RenderContext::endFrame();
     }
 }
 

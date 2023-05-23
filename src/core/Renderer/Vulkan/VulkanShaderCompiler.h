@@ -5,16 +5,17 @@
 
 #include "pch.h"
 
-#include "Renderer/ShaderCompilerI.h"
+#include "Renderer/BaseShaderCompiler.h"
 
 #include <shaderc/shaderc.hpp>
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref ShaderCompilerI
-class VulkanShaderCompiler : public ShaderCompilerI<VulkanShaderCompiler>, private NonCopyable<VulkanShaderCompiler> {
+/// @brief Vulkan implementation for @ref BaseShaderCompiler
+class VulkanShaderCompiler : public BaseShaderCompiler<VulkanShaderCompiler>,
+                             private NonCopyable<VulkanShaderCompiler> {
 public:
-    /// @brief @see ShaderCompilerI#compile
+    /// @brief @see BaseShaderCompiler#compile
     [[nodiscard]] static ShaderRef compile(const ShaderCompilerOptions& options);
 
 private:

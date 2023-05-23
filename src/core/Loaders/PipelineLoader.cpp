@@ -3,7 +3,7 @@
 
 #include "PipelineLoader.h"
 
-#include "Renderer/PipelineInfo.h"
+#include "Renderer/Data/PipelineInfo.h"
 
 namespace chronicle {
 

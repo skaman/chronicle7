@@ -5,12 +5,12 @@
 
 #include "pch.h"
 
-#include "Renderer/FrameBufferI.h"
+#include "Renderer/BaseFrameBuffer.h"
 
 namespace chronicle {
 
 /// @brief Vulkan implementation for @ref FrameBufferI
-class VulkanFrameBuffer : public FrameBufferI<VulkanFrameBuffer>, private NonCopyable<VulkanFrameBuffer> {
+class VulkanFrameBuffer : public BaseFrameBuffer<VulkanFrameBuffer>, private NonCopyable<VulkanFrameBuffer> {
 protected:
     /// @brief Constructor.
     /// @param frameBufferInfo Informations used to create the frame buffer.
@@ -21,10 +21,10 @@ public:
     /// @brief Destructor.
     ~VulkanFrameBuffer();
 
-    /// @brief @see FrameBufferI#frameBufferId
+    /// @brief @see BaseFrameBuffer#frameBufferId
     [[nodiscard]] FrameBufferId frameBufferId() const { return _framebuffer; }
 
-    /// @brief @see FrameBufferI#create
+    /// @brief @see BaseFrameBuffer#create
     [[nodiscard]] static FrameBufferRef create(const FrameBufferInfo& frameBufferInfo, const std::string& name);
 
 private:

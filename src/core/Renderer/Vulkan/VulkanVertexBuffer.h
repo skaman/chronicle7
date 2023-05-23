@@ -5,12 +5,12 @@
 
 #include "pch.h"
 
-#include "Renderer/VertexBufferI.h"
+#include "Renderer/BaseVertexBuffer.h"
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref VertexBufferI
-class VulkanVertexBuffer : public VertexBufferI<VulkanVertexBuffer>, private NonCopyable<VulkanVertexBuffer> {
+/// @brief Vulkan implementation for @ref BaseVertexBuffer
+class VulkanVertexBuffer : public BaseVertexBuffer<VulkanVertexBuffer>, private NonCopyable<VulkanVertexBuffer> {
 protected:
     /// @brief Default constructor.
     explicit VulkanVertexBuffer(const uint8_t* src, size_t size, const std::string& name);
@@ -22,10 +22,10 @@ public:
     /// @brief @see IndexBufferI#vertexBufferId
     [[nodiscard]] VertexBufferId vertexBufferId() const { return _buffer; }
 
-    /// @brief @see VertexBufferI#create
+    /// @brief @see BaseVertexBuffer#create
     [[nodiscard]] static VertexBufferRef create(const std::vector<uint8_t>& data, const std::string& name);
 
-    /// @brief @see VertexBufferI#create
+    /// @brief @see BaseVertexBuffer#create
     [[nodiscard]] static VertexBufferRef create(const uint8_t* src, size_t size, const std::string& name);
 
 private:

@@ -5,13 +5,13 @@
 
 #include "pch.h"
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace chronicle {
 
 /// @brief Object used to handle a vertex buffer.
 /// @tparam T Type with implementation.
-template <class T> class VertexBufferI {
+template <class T> class BaseVertexBuffer {
 public:
     /// @brief Get the vertex buffer handle ID
     /// @return Vertex buffer ID
@@ -37,7 +37,7 @@ public:
     }
 
 private:
-    VertexBufferI() = default;
+    BaseVertexBuffer() = default;
     friend T;
 };
 

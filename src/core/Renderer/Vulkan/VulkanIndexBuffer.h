@@ -5,12 +5,12 @@
 
 #include "pch.h"
 
-#include "Renderer/IndexBufferI.h"
+#include "Renderer/BaseIndexBuffer.h"
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref IndexBufferI
-class VulkanIndexBuffer : public IndexBufferI<VulkanIndexBuffer>, private NonCopyable<VulkanIndexBuffer> {
+/// @brief Vulkan implementation for @ref BaseIndexBuffer
+class VulkanIndexBuffer : public BaseIndexBuffer<VulkanIndexBuffer>, private NonCopyable<VulkanIndexBuffer> {
 protected:
     /// @brief Default constructor.
     explicit VulkanIndexBuffer(const uint8_t* src, size_t size, const std::string& name);
@@ -19,13 +19,13 @@ public:
     /// @brief Destructor.
     ~VulkanIndexBuffer();
 
-    /// @brief @see IndexBufferI#indexBufferId
+    /// @brief @see BaseIndexBuffer#indexBufferId
     [[nodiscard]] IndexBufferId indexBufferId() const { return _buffer; }
 
-    /// @brief @see IndexBufferI#create
+    /// @brief @see BaseIndexBuffer#create
     [[nodiscard]] static IndexBufferRef create(const std::vector<uint8_t>& data, const std::string& name);
 
-    /// @brief @see IndexBufferI#create
+    /// @brief @see BaseIndexBuffer#create
     [[nodiscard]] static IndexBufferRef create(const uint8_t* src, size_t size, const std::string& name);
 
 private:

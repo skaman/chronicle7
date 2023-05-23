@@ -5,8 +5,8 @@
 
 #include "pch.h"
 
-#include "Renderer/Common.h"
-#include "Renderer/RendererError.h"
+#include "Renderer/Common/Common.h"
+#include "Renderer/Common/RendererError.h"
 
 namespace chronicle {
 

@@ -5,14 +5,14 @@
 
 #include "pch.h"
 
-#include "Common.h"
-#include "FrameBufferInfo.h"
+#include "Common/Common.h"
+#include "Data/FrameBufferInfo.h"
 
 namespace chronicle {
 
 /// @brief Object used to handle a frame buffer.
 /// @tparam T Type with implementation.
-template <class T> class FrameBufferI {
+template <class T> class BaseFrameBuffer {
 public:
     /// @brief Get the frame buffer handle ID
     /// @return Frame buffer ID
@@ -28,7 +28,7 @@ public:
     }
 
 private:
-    FrameBufferI() = default;
+    BaseFrameBuffer() = default;
     friend T;
 };
 

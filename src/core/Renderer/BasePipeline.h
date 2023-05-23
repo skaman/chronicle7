@@ -5,14 +5,14 @@
 
 #include "pch.h"
 
-#include "Common.h"
-#include "PipelineInfo.h"
+#include "Common/Common.h"
+#include "Data/PipelineInfo.h"
 
 namespace chronicle {
 
 /// @brief Object used to handle a graphic pipeline.
 /// @tparam T Type with implementation.
-template <class T> class PipelineI {
+template <class T> class BasePipeline {
 public:
     /// @brief Get the pipeline handle ID
     /// @return Pipeline ID
@@ -32,7 +32,7 @@ public:
     }
 
 private:
-    PipelineI() = default;
+    BasePipeline() = default;
     friend T;
 };
 

@@ -5,10 +5,9 @@
 
 #include "pch.h"
 
-#include "Common.h"
-
-#include "PipelineInfo.h"
-#include "TextureInfo.h"
+#include "Common/Common.h"
+#include "Data/PipelineInfo.h"
+#include "Data/TextureInfo.h"
 
 namespace chronicle {
 
@@ -16,7 +15,7 @@ class App;
 
 /// @brief GPU renderer.
 /// @tparam T Type with implementation.
-template <class T> class RenderContextI {
+template <class T> class BaseRenderContext {
 public:
     /// @brief Initialized the renderer.
     ///        This must be called after the platform initialization.
@@ -94,7 +93,7 @@ public:
     [[nodiscard]] static DescriptorSetLayout descriptorSetLayout() { return T::descriptorSetLayout(); }
 
 private:
-    RenderContextI() = default;
+    BaseRenderContext() = default;
     friend T;
 };
 

@@ -5,13 +5,13 @@
 
 #include "pch.h"
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace chronicle {
 
 /// @brief Object used to handle an index buffer.
 /// @tparam T Type with implementation.
-template <class T> class IndexBufferI {
+template <class T> class BaseIndexBuffer {
 public:
     /// @brief Get the index buffer handle ID
     /// @return Index buffer ID
@@ -37,7 +37,7 @@ public:
     }
 
 private:
-    IndexBufferI() = default;
+    BaseIndexBuffer() = default;
     friend T;
 };
 

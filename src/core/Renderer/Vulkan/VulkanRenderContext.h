@@ -5,47 +5,47 @@
 
 #include "pch.h"
 
-#include "Renderer/RenderContextI.h"
+#include "Renderer/BaseRenderContext.h"
 #include "VulkanCommon.h"
 #include "VulkanEnums.h"
 #include "VulkanUtils.h"
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref RenderContextI
-class VulkanRenderContext : public RenderContextI<VulkanRenderContext>, private NonCopyable<VulkanRenderContext> {
+/// @brief Vulkan implementation for @ref BaseRenderContext
+class VulkanRenderContext : public BaseRenderContext<VulkanRenderContext>, private NonCopyable<VulkanRenderContext> {
 public:
-    /// @brief @see RenderContextI#init
+    /// @brief @see BaseRenderContext#init
     static void init();
 
-    /// @brief @see RenderContextI#deinit
+    /// @brief @see BaseRenderContext#deinit
     static void deinit();
 
-    /// @brief @see RenderContextI#waitIdle
+    /// @brief @see BaseRenderContext#waitIdle
     static void waitIdle();
 
-    /// @brief @see RenderContextI#invalidateSwapChain
+    /// @brief @see BaseRenderContext#invalidateSwapChain
     static void invalidateSwapChain() { VulkanContext::swapChainInvalidated = true; }
 
-    /// @brief @see RenderContextI#beginFrame
+    /// @brief @see BaseRenderContext#beginFrame
     static bool beginFrame();
 
-    /// @brief @see RenderContextI#endFrame
+    /// @brief @see BaseRenderContext#endFrame
     static void endFrame();
 
-    /// @brief @see RenderContextI#beginRenderPass
+    /// @brief @see BaseRenderContext#beginRenderPass
     static void beginRenderPass();
 
-    /// @brief @see RenderContextI#endRenderPass
+    /// @brief @see BaseRenderContext#endRenderPass
     static void endRenderPass();
 
-    /// @brief @see RenderContextI#debugShowLines
+    /// @brief @see BaseRenderContext#debugShowLines
     [[nodiscard]] static bool debugShowLines();
 
-    /// @brief @see RenderContextI#setDebugShowLines
+    /// @brief @see BaseRenderContext#setDebugShowLines
     static void setDebugShowLines(bool enabled);
 
-    /// @brief @see RenderContextI#descriptorSet
+    /// @brief @see BaseRenderContext#descriptorSet
     [[nodiscard]] static const DescriptorSetRef& descriptorSet(uint32_t index)
     {
         assert(index >= 0);
@@ -54,43 +54,43 @@ public:
         return VulkanContext::framesData[index].descriptorSet;
     }
 
-    /// @brief @see RenderContextI#descriptorSet
+    /// @brief @see BaseRenderContext#descriptorSet
     [[nodiscard]] static const DescriptorSetRef& descriptorSet()
     {
         return VulkanContext::framesData[VulkanContext::currentFrame].descriptorSet;
     }
 
-    /// @brief @see RenderContextI#commandBuffer
+    /// @brief @see BaseRenderContext#commandBuffer
     [[nodiscard]] static const CommandBufferRef& commandBuffer()
     {
         return VulkanContext::framesData[VulkanContext::currentFrame].commandBuffer;
     }
 
-    /// @brief @see RenderContextI#width
+    /// @brief @see BaseRenderContext#width
     [[nodiscard]] static uint32_t width() { return VulkanContext::swapChainExtent.width; }
 
-    /// @brief @see RenderContextI#height
+    /// @brief @see BaseRenderContext#height
     [[nodiscard]] static uint32_t height() { return VulkanContext::swapChainExtent.height; }
 
-    /// @brief @see RenderContextI#maxFramesInFlight
+    /// @brief @see BaseRenderContext#maxFramesInFlight
     [[nodiscard]] static uint32_t maxFramesInFlight() { return VulkanContext::maxFramesInFlight; }
 
-    /// @brief @see RenderContextI#currentFrame
+    /// @brief @see BaseRenderContext#currentFrame
     [[nodiscard]] static uint32_t currentFrame() { return VulkanContext::currentFrame; }
 
-    /// @brief @see RenderContextI#swapChainImageFormat
+    /// @brief @see BaseRenderContext#swapChainImageFormat
     [[nodiscard]] static Format swapChainImageFormat()
     {
         return VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat);
     }
 
-    /// @brief @see RenderContextI#findDepthFormat
+    /// @brief @see BaseRenderContext#findDepthFormat
     [[nodiscard]] static Format findDepthFormat()
     {
         return VulkanEnums::formatFromVulkan(VulkanUtils::findDepthFormat());
     }
 
-    /// @brief @see RenderContextI#descriptorSetLayout
+    /// @brief @see BaseRenderContext#descriptorSetLayout
     [[nodiscard]] static DescriptorSetLayout descriptorSetLayout();
 };
 

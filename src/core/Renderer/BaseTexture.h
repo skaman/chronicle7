@@ -5,16 +5,16 @@
 
 #include "pch.h"
 
-#include "Common.h"
-#include "RendererError.h"
+#include "Common/Common.h"
+#include "Common/RendererError.h"
 #include "Storage/Storage.h"
-#include "TextureInfo.h"
+#include "Data/TextureInfo.h"
 
 namespace chronicle {
 
 /// @brief Object used to handle a texture.
 /// @tparam T Type with implementation.
-template <class T> class TextureI {
+template <class T> class BaseTexture {
 public:
     /// @brief Get the texture handle ID
     /// @return Texture ID
@@ -86,7 +86,7 @@ public:
     }
 
 private:
-    TextureI() = default;
+    BaseTexture() = default;
     friend T;
 };
 

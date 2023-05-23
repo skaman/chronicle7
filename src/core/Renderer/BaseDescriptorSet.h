@@ -5,13 +5,13 @@
 
 #include "pch.h"
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace chronicle {
 
 /// @brief Object used to manage a descriptor set.
 /// @tparam T Type with implementation.
-template <class T> class DescriptorSetI {
+template <class T> class BaseDescriptorSet {
 public:
     /// @brief Get the name for the descriptor set.
     /// @return Descriptor set name.
@@ -56,7 +56,7 @@ public:
     [[nodiscard]] static DescriptorSetRef create(const std::string& name) { return T::create(name); }
 
 private:
-    DescriptorSetI() = default;
+    BaseDescriptorSet() = default;
     friend T;
 };
 

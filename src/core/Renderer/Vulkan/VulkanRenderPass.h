@@ -5,12 +5,12 @@
 
 #include "pch.h"
 
-#include "Renderer/RenderPassI.h"
+#include "Renderer/BaseRenderPass.h"
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref RenderPassI
-class VulkanRenderPass : public RenderPassI<VulkanRenderPass>, private NonCopyable<VulkanRenderPass> {
+/// @brief Vulkan implementation for @ref BaseRenderPass
+class VulkanRenderPass : public BaseRenderPass<VulkanRenderPass>, private NonCopyable<VulkanRenderPass> {
 protected:
     /// @brief Constructor.
     /// @param renderPassInfo Informations used to create the render pass.
@@ -21,19 +21,19 @@ public:
     /// @brief Destructor.
     ~VulkanRenderPass();
 
-    /// @brief @see RenderPassI#renderPassId
+    /// @brief @see BaseRenderPass#renderPassId
     [[nodiscard]] RenderPassId renderPassId() const { return _renderPass; }
 
-    /// @brief @see RenderPassI#hash
+    /// @brief @see BaseRenderPass#hash
     [[nodiscard]] size_t hash() const { return _hash; };
 
-    /// @brief @see RenderPassI#format
+    /// @brief @see BaseRenderPass#format
     [[nodiscard]] Format format() const { return _format; };
 
-    /// @brief @see RenderPassI#msaa
+    /// @brief @see BaseRenderPass#msaa
     [[nodiscard]] MSAA msaa() const { return _msaa; };
 
-    /// @brief @see RenderPassI#create
+    /// @brief @see BaseRenderPass#create
     [[nodiscard]] static RenderPassRef create(const RenderPassInfo& renderPassInfo, const std::string& name);
 
 private:

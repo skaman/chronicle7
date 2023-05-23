@@ -5,14 +5,14 @@
 
 #include "pch.h"
 
-#include "Common.h"
-#include "RenderPassInfo.h"
+#include "Common/Common.h"
+#include "Data/RenderPassInfo.h"
 
 namespace chronicle {
 
 /// @brief Object used to handle a render pass.
 /// @tparam T Type with implementation.
-template <class T> class RenderPassI {
+template <class T> class BaseRenderPass {
 public:
     /// @brief Get the render pass handle ID
     /// @return Render pass ID
@@ -40,7 +40,7 @@ public:
     }
 
 private:
-    RenderPassI() = default;
+    BaseRenderPass() = default;
     friend T;
 };
 

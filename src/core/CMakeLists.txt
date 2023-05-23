@@ -27,6 +27,8 @@ endfunction()
 
 add_library(chronicle-core
     "pch.cpp"
+
+    # assets
     "Assets/old/MeshAsset.cpp"
     "Assets/old/MeshAsset.h"
     "Assets/old/ShaderAsset.cpp"
@@ -37,39 +39,34 @@ add_library(chronicle-core
     "Assets/Mesh.h"
     "Assets/Material.cpp"
     "Assets/Material.h"
+
+    # loaders
     "Loaders/AssetLoader.cpp"
     "Loaders/AssetLoader.h"
     "Loaders/PipelineLoader.cpp"
     "Loaders/PipelineLoader.h"
     "Loaders/ShaderLoader.cpp"
     "Loaders/ShaderLoader.h"
+
+    # platform
     "Platform/Platform.h"
     "Platform/PlatformI.h"
-    "Platform/Common.h"
     "Platform/GLFW/GLFWPlatform.cpp"
     "Platform/GLFW/GLFWPlatform.h"
     "Platform/GLFW/GLFWCommon.h"
-    "Renderer/CommandBufferI.h"
-    "Renderer/Common.h"
-    "Renderer/DescriptorSetI.h"
-    "Renderer/DescriptorSetLayout.h"
-    "Renderer/Enums.h"
-    "Renderer/FrameBufferI.h"
-    "Renderer/FrameBufferInfo.h"
-    "Renderer/IndexBufferI.h"
-    "Renderer/PipelineI.h"
-    "Renderer/PipelineInfo.h"
-    "Renderer/Renderer.h"
-    "Renderer/RendererError.h"
-    "Renderer/RenderContextI.h"
-    "Renderer/RenderPassI.h"
-    "Renderer/RenderPassInfo.h"
-    "Renderer/ShaderCompilerI.h"
-    "Renderer/ShaderI.h"
-    "Renderer/TextureI.h"
-    "Renderer/TextureInfo.h"
-    "Renderer/VertexBufferI.h"
-    "Renderer/VertexBufferInfo.h"
+
+    # renderer
+    "Renderer/Common/Common.h"
+    "Renderer/Common/Enums.h"
+    "Renderer/Common/RendererError.h"
+
+    "Renderer/Data/DescriptorSetLayout.h"
+    "Renderer/Data/FrameBufferInfo.h"
+    "Renderer/Data/PipelineInfo.h"
+    "Renderer/Data/RenderPassInfo.h"
+    "Renderer/Data/TextureInfo.h"
+    "Renderer/Data/VertexBufferInfo.h"
+
     "Renderer/Vulkan/VulkanCommandBuffer.cpp"
     "Renderer/Vulkan/VulkanCommandBuffer.h"
     "Renderer/Vulkan/VulkanCommon.h"
@@ -103,6 +100,21 @@ add_library(chronicle-core
     "Renderer/Vulkan/VulkanUtils.h"
     "Renderer/Vulkan/VulkanVertexBuffer.cpp"
     "Renderer/Vulkan/VulkanVertexBuffer.h"
+
+    "Renderer/BaseCommandBuffer.h"
+    "Renderer/BaseDescriptorSet.h"
+    "Renderer/BaseFrameBuffer.h"
+    "Renderer/BaseIndexBuffer.h"
+    "Renderer/BasePipeline.h"
+    "Renderer/BaseRenderContext.h"
+    "Renderer/BaseRenderPass.h"
+    "Renderer/BaseShader.h"
+    "Renderer/BaseShaderCompiler.h"
+    "Renderer/BaseTexture.h"
+    "Renderer/BaseVertexBuffer.h"
+    "Renderer/Renderer.h"
+
+    # storage
     "Storage/Storage.cpp"
     "Storage/Storage.h"
     "Utils/Camera.cpp"

@@ -5,12 +5,12 @@
 
 #include "pch.h"
 
-#include "Renderer/CommandBufferI.h"
+#include "Renderer/BaseCommandBuffer.h"
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref CommandBufferI
-class VulkanCommandBuffer : public CommandBufferI<VulkanCommandBuffer>, private NonCopyable<VulkanCommandBuffer> {
+/// @brief Vulkan implementation for @ref BaseCommandBuffer
+class VulkanCommandBuffer : public BaseCommandBuffer<VulkanCommandBuffer>, private NonCopyable<VulkanCommandBuffer> {
 protected:
     /// @brief Default constructor.
     /// @param debugName Debug name.
@@ -20,56 +20,56 @@ public:
     /// @brief Destructor.
     ~VulkanCommandBuffer() = default;
 
-    /// @brief @see CommandBufferI#name
+    /// @brief @see BaseCommandBuffer#name
     [[nodiscard]] std::string name() const { return _name; }
 
-    /// @brief @see CommandBufferI#begin
+    /// @brief @see BaseCommandBuffer#begin
     void begin() const;
 
-    /// @brief @see CommandBufferI#end
+    /// @brief @see BaseCommandBuffer#end
     void end() const;
 
-    /// @brief @see CommandBufferI#setViewport
+    /// @brief @see BaseCommandBuffer#setViewport
     void setViewport(const ViewportInfo& viewport) const;
 
-    /// @brief @see CommandBufferI#beginRenderPass
+    /// @brief @see BaseCommandBuffer#beginRenderPass
     void beginRenderPass(const RenderPassBeginInfo& renderPassInfo) const;
 
-    /// @brief @see CommandBufferI#endRenderPass
+    /// @brief @see BaseCommandBuffer#endRenderPass
     void endRenderPass() const;
 
-    /// @brief @see CommandBufferI#drawIndexed
+    /// @brief @see BaseCommandBuffer#drawIndexed
     void drawIndexed(uint32_t indexCount, uint32_t instanceCount) const;
 
-    /// @brief @see CommandBufferI#bindPipeline
+    /// @brief @see BaseCommandBuffer#bindPipeline
     void bindPipeline(PipelineId pipelineId) const;
 
-    /// @brief @see CommandBufferI#bindVertexBuffer
+    /// @brief @see BaseCommandBuffer#bindVertexBuffer
     void bindVertexBuffer(VertexBufferId vertexBufferId, uint64_t offset) const;
 
-    /// @brief @see CommandBufferI#bindVertexBuffers
+    /// @brief @see BaseCommandBuffer#bindVertexBuffers
     void bindVertexBuffers(
         const std::vector<VertexBufferId>& vertexBuffers, const std::vector<uint64_t>& offsets) const;
 
-    /// @brief @see CommandBufferI#bindIndexBuffer
+    /// @brief @see BaseCommandBuffer#bindIndexBuffer
     void bindIndexBuffer(IndexBufferId indexBufferId, IndexType indexType, uint64_t offset) const;
 
-    /// @brief @see CommandBufferI#bindDescriptorSet
+    /// @brief @see BaseCommandBuffer#bindDescriptorSet
     void bindDescriptorSet(DescriptorSetId descriptorSetId, PipelineLayoutId pipelineLayoutId, uint32_t index) const;
 
-    /// @brief @see CommandBufferI#beginDebugLabel
+    /// @brief @see BaseCommandBuffer#beginDebugLabel
     void beginDebugLabel(const std::string& name, glm::vec4 color) const;
 
-    /// @brief @see CommandBufferI#endDebugLabel
+    /// @brief @see BaseCommandBuffer#endDebugLabel
     void endDebugLabel() const;
 
-    /// @brief @see CommandBufferI#insertDebugLabel
+    /// @brief @see BaseCommandBuffer#insertDebugLabel
     void insertDebugLabel(const std::string& name, glm::vec4 color) const;
 
-    /// @brief @see CommandBufferI#commandBufferId
+    /// @brief @see BaseCommandBuffer#commandBufferId
     [[nodiscard]] CommandBufferId commandBufferId() const { return _commandBuffer; }
 
-    /// @brief @see CommandBufferI#create
+    /// @brief @see BaseCommandBuffer#create
     /// @param name Command buffer name.
     [[nodiscard]] static CommandBufferRef create(const std::string& name);
 

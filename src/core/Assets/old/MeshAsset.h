@@ -5,8 +5,8 @@
 
 #include "pch.h"
 
-#include "Renderer/Common.h"
-#include "Renderer/VertexBufferInfo.h"
+#include "Renderer/Common/Common.h"
+#include "Renderer/Data/VertexBufferInfo.h"
 
 namespace chronicle {
 

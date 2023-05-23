@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "Renderer/DescriptorSetI.h"
+#include "Renderer/BaseDescriptorSet.h"
 
 #include "VulkanCommon.h"
 #include "VulkanEnums.h"
@@ -35,8 +35,8 @@ struct VulkanDescriptorSetBindingInfo {
     };
 };
 
-/// @brief Vulkan implementation for @ref DescriptorSetI
-class VulkanDescriptorSet : public DescriptorSetI<VulkanDescriptorSet>, private NonCopyable<VulkanDescriptorSet> {
+/// @brief Vulkan implementation for @ref BaseDescriptorSet
+class VulkanDescriptorSet : public BaseDescriptorSet<VulkanDescriptorSet>, private NonCopyable<VulkanDescriptorSet> {
 protected:
     /// @brief Default constructor.
     /// @param name Debug name.
@@ -46,13 +46,13 @@ public:
     /// @brief Destructor.
     ~VulkanDescriptorSet();
 
-    /// @brief @see DescriptorSetI#name
+    /// @brief @see BaseDescriptorSet#name
     [[nodiscard]] std::string name() const { return _name; }
 
-    /// @brief @see DescriptorSetI#descriptorSetId
+    /// @brief @see BaseDescriptorSet#descriptorSetId
     [[nodiscard]] DescriptorSetId descriptorSetId() const { return _descriptorSet; }
 
-    /// @brief @see DescriptorSetI#addUniform
+    /// @brief @see BaseDescriptorSet#addUniform
     template <class T> void addUniform(entt::hashed_string::hash_type id, ShaderStage stage)
     {
         assert(stage != ShaderStage::none);
@@ -95,7 +95,7 @@ public:
         _descriptorSetsBindingInfo.push_back(descriptorSetBinding);
     }
 
-    /// @brief @see DescriptorSetI#addSampler
+    /// @brief @see BaseDescriptorSet#addSampler
     void addSampler(ShaderStage stage, const TextureRef texture)
     {
         assert(stage != ShaderStage::none);
@@ -121,16 +121,16 @@ public:
         _descriptorSetsBindingInfo.push_back(descriptorSetBinding);
     }
 
-    /// @brief @see DescriptorSetI#setUniform
+    /// @brief @see BaseDescriptorSet#setUniform
     template <class T> void setUniform(entt::hashed_string::hash_type id, const T& data)
     {
         std::memcpy(_buffersMapped[id], &data, sizeof(T));
     }
 
-    /// @brief @see DescriptorSetI#build
+    /// @brief @see BaseDescriptorSet#build
     void build();
 
-    /// @brief @see DescriptorSetI#create
+    /// @brief @see BaseDescriptorSet#create
     /// @param name Name.
     [[nodiscard]] static DescriptorSetRef create(const std::string& name);
 

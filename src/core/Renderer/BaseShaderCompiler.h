@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace chronicle {
 
@@ -16,7 +16,7 @@ struct ShaderCompilerOptions {
 
 /// @brief Object used to compile shaders.
 /// @tparam T Type with implementation.
-template <class T> class ShaderCompilerI {
+template <class T> class BaseShaderCompiler {
 public:
     /// @brief Compile a shader source with SPIR-V.
     /// @param options Shader compiler options.
@@ -24,7 +24,7 @@ public:
     [[nodiscard]] static ShaderRef compile(const ShaderCompilerOptions& options) { return T::compile(options); }
 
 private:
-    ShaderCompilerI() = default;
+    BaseShaderCompiler() = default;
     friend T;
 };
 

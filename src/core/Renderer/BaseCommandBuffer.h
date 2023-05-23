@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace chronicle {
 
@@ -30,7 +30,7 @@ struct RenderPassBeginInfo {
 
 /// @brief Object used to record command which can be sebsequently submitted to GPU for execution.
 /// @tparam T Type with implementation.
-template <class T> class CommandBufferI {
+template <class T> class BaseCommandBuffer {
 public:
     /// @brief Get the name for the command buffer.
     /// @return Command buffer name.
@@ -126,7 +126,7 @@ public:
     [[nodiscard]] CommandBufferId commandBufferId() const { return CRTP_CONST_THIS->commandBufferId(); }
 
 private:
-    CommandBufferI() = default;
+    BaseCommandBuffer() = default;
     friend T;
 };
 

@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "Renderer/PipelineI.h"
+#include "Renderer/BasePipeline.h"
 #include "VulkanCommon.h"
 #include "VulkanEvents.h"
 
@@ -17,8 +17,8 @@ struct DescriptorSetLayoutData {
     std::vector<vk::DescriptorSetLayoutBinding> bindings = {}; ///< Descriptor set layout bindings
 };
 
-/// @brief Vulkan implementation for @ref PipelineI
-class VulkanPipeline : public PipelineI<VulkanPipeline>, private NonCopyable<VulkanPipeline> {
+/// @brief Vulkan implementation for @ref BasePipeline
+class VulkanPipeline : public BasePipeline<VulkanPipeline>, private NonCopyable<VulkanPipeline> {
 protected:
     /// @brief Default constructor.
     /// @param pipelineInfo Informations used to create a new pipeline.
@@ -29,13 +29,13 @@ public:
     /// @brief Destructor.
     ~VulkanPipeline();
 
-    /// @brief @see PipelineI#pipelineId
+    /// @brief @see BasePipeline#pipelineId
     [[nodiscard]] PipelineId pipelineId() const { return _graphicsPipeline; }
 
-    /// @brief @see PipelineI#pipelineLayoutId
+    /// @brief @see BasePipeline#pipelineLayoutId
     [[nodiscard]] PipelineLayoutId pipelineLayoutId() const { return _pipelineLayout; }
 
-    /// @brief @see PipelineI#create
+    /// @brief @see BasePipeline#create
     [[nodiscard]] static PipelineRef create(const PipelineInfo& pipelineInfo, const std::string& name);
 
 private:

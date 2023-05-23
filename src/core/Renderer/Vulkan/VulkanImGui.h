@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "Renderer/Common.h"
+#include "Renderer/Common/Common.h"
 
 namespace chronicle {
 

@@ -5,14 +5,14 @@
 
 #include "pch.h"
 
-#include "Common.h"
-#include "DescriptorSetLayout.h"
+#include "Common/Common.h"
+#include "Data/DescriptorSetLayout.h"
 
 namespace chronicle {
 
 /// @brief Object used to handle a shader.
 /// @tparam T Type with implementation.
-template <class T> class ShaderI {
+template <class T> class BaseShader {
 public:
     /// @brief Get the descriptor set layouts used by the shader.
     /// @return Descriptor set layouts.
@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    ShaderI() = default;
+    BaseShader() = default;
     friend T;
 };
 

@@ -5,12 +5,12 @@
 
 #include "pch.h"
 
-#include "Renderer/TextureI.h"
+#include "Renderer/BaseTexture.h"
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref TextureI
-class VulkanTexture : public TextureI<VulkanTexture>, private NonCopyable<VulkanTexture> {
+/// @brief Vulkan implementation for @ref BaseTexture
+class VulkanTexture : public BaseTexture<VulkanTexture>, private NonCopyable<VulkanTexture> {
 protected:
     /// @brief Construct the sampled texture.
     /// @param textureInfo Informations used to create the texture.
@@ -40,25 +40,25 @@ public:
     /// @brief Destructor.
     ~VulkanTexture();
 
-    /// @brief @see TextureI#width
+    /// @brief @see BaseTexture#width
     [[nodiscard]] uint32_t width() const { return _width; }
 
-    /// @brief @see TextureI#height
+    /// @brief @see BaseTexture#height
     [[nodiscard]] uint32_t height() const { return _height; }
 
-    /// @brief @see TextureI#textureId
+    /// @brief @see BaseTexture#textureId
     [[nodiscard]] TextureId textureId() const { return _imageView; }
 
-    /// @brief @see TextureI#samplerId
+    /// @brief @see BaseTexture#samplerId
     [[nodiscard]] SamplerId samplerId() const { return _sampler; }
 
-    /// @brief @see TextureI#createSampled
+    /// @brief @see BaseTexture#createSampled
     [[nodiscard]] static TextureRef createSampled(const SampledTextureInfo& textureInfo, const std::string& name);
 
-    /// @brief @see TextureI#createColor
+    /// @brief @see BaseTexture#createColor
     [[nodiscard]] static TextureRef createColor(const ColorTextureInfo& textureInfo, const std::string& name);
 
-    /// @brief @see TextureI#createDepth
+    /// @brief @see BaseTexture#createDepth
     [[nodiscard]] static TextureRef createDepth(const DepthTextureInfo& textureInfo, const std::string& name);
 
     /// @brief Factory for create a texture from an existing image (swapchain image).

@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "Renderer/ShaderI.h"
+#include "Renderer/BaseShader.h"
 
 #pragma warning(push)
 #pragma warning(disable : 26439)
@@ -14,8 +14,8 @@
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref ShaderI
-class VulkanShader : public ShaderI<VulkanShader>, private NonCopyable<VulkanShader> {
+/// @brief Vulkan implementation for @ref BaseShader
+class VulkanShader : public BaseShader<VulkanShader>, private NonCopyable<VulkanShader> {
 protected:
     /// @brief Default constructor.
     /// @param codes Shaders data compiled with SPIR-V.
@@ -28,16 +28,16 @@ public:
     /// @brief Destructor.
     ~VulkanShader();
 
-    /// @brief @see ShaderI#descriptorSetLayouts
+    /// @brief @see BaseShader#descriptorSetLayouts
     [[nodiscard]] std::vector<DescriptorSetLayout> descriptorSetLayouts() const { return _descriptorSetsLayout; }
 
-    /// @brief @see ShaderI#stages
+    /// @brief @see BaseShader#stages
     [[nodiscard]] std::vector<ShaderStage> stages() const { return _stages; };
 
-    /// @brief @see ShaderI#hash
+    /// @brief @see BaseShader#hash
     [[nodiscard]] size_t hash() const { return _hash; };
 
-    /// @brief @see ShaderI#entryPoint
+    /// @brief @see BaseShader#entryPoint
     [[nodiscard]] const std::string& entryPoint(ShaderStage stage) const { return _entryPoints.at(stage); }
 
     /// @brief Get the vulkan handle for the shader module.
