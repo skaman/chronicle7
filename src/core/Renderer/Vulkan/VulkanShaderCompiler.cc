@@ -9,28 +9,65 @@
 
 namespace chronicle {
 
+struct VulkanShaderFileInfo {
+    std::string content;
+};
+
+class VulkanShaderIncluder : public shaderc::CompileOptions::IncluderInterface {
+public:
+    shaderc_include_result* GetInclude(const char* requested_source, shaderc_include_type type,
+        const char* requesting_source, size_t include_depth) override
+    {
+        std::string filename
+            = type == shaderc_include_type_standard ? fmt::format(":/{}", requested_source) : requested_source;
+
+        if (!Storage::exists(filename))
+            return makeErrorIncludeResult("Cannot find or open include file.");
+
+        try {
+            auto content = Storage::readString(filename);
+            auto info = new VulkanShaderFileInfo();
+            info->content = std::move(content);
+            return new shaderc_include_result { requested_source, std::strlen(requested_source), info->content.data(),
+                info->content.size(), info };
+        } catch (const StorageError& ex) {
+            return makeErrorIncludeResult(ex.what());
+        }
+    }
+
+    void ReleaseInclude(shaderc_include_result* data) override
+    {
+        if (data->user_data != nullptr)
+            delete data->user_data;
+    }
+
+private:
+    shaderc_include_result* makeErrorIncludeResult(const char* message)
+    {
+        return new shaderc_include_result { "", 0, message, strlen(message) };
+    }
+};
+
 ShaderRef VulkanShaderCompiler::compile(const ShaderCompilerOptions& options)
 {
+    assert(!options.filename.empty());
+
+    auto shaderLanguage = detectShaderLanguage(options.filename);
+    if (!shaderLanguage)
+        throw RendererError(fmt::format("Unsupport shader language for file {}.", options.filename));
+
     auto sourceCode = Storage::readString(options.filename);
+    assert(!sourceCode.empty());
 
     std::unordered_map<ShaderStage, std::vector<uint8_t>> codes;
     std::unordered_map<ShaderStage, std::string> entryPoints;
 
-    magic_enum::enum_for_each<ShaderStage>([&codes, &entryPoints, &options, &sourceCode](auto val) {
-        constexpr ShaderStage shaderStage = val;
+    std::array<ShaderStage, 2> stages = { ShaderStage::vertex, ShaderStage::fragment };
 
-        if (shaderStage == ShaderStage::none || shaderStage == ShaderStage::_entt_enum_as_bitmask) {
-            return;
-        }
-
-        auto entryPoint = getEntryPoint(sourceCode, shaderStage);
-        if (entryPoint.empty()) {
-            return;
-        }
-
-        codes[shaderStage] = compile(sourceCode, options, shaderStage, entryPoint);
-        entryPoints[shaderStage] = entryPoint;
-    });
+    for (const auto stage : stages) {
+        codes[stage] = compile(sourceCode, shaderLanguage.value(), options, stage, "main");
+        entryPoints[stage] = "main";
+    }
 
     return VulkanShader::create(codes, entryPoints, std::hash<ShaderCompilerOptions>()(options));
 }
@@ -49,38 +86,60 @@ shaderc_shader_kind VulkanShaderCompiler::getSpirvShader(ShaderStage stage)
     }
 }
 
-std::string VulkanShaderCompiler::getEntryPoint(const std::string& sourceCode, ShaderStage shaderStage)
+std::optional<shaderc_source_language> VulkanShaderCompiler::detectShaderLanguage(const std::string_view& filename)
 {
-    std::regex regex;
+    if (filename.ends_with(".hlsl"))
+        return shaderc_source_language_hlsl;
+    if (filename.ends_with(".glsl"))
+        return shaderc_source_language_glsl;
+    return std::optional<shaderc_source_language>();
+}
 
-    switch (shaderStage) {
-    case ShaderStage::fragment:
-        regex = std::regex(".*#pragma fragment (.*)");
-        break;
-    case ShaderStage::vertex:
-        regex = std::regex(".*#pragma vertex (.*)");
-        break;
-    case ShaderStage::compute:
-        regex = std::regex(".*#pragma compute (.*)");
-        break;
-    default:
-        return {};
-    }
-
-    std::stringstream stream(sourceCode);
-    std::string line;
+ShaderStage VulkanShaderCompiler::detectPragmaStage(const std::string& line)
+{
+    auto regex = std::regex("#pragma stage:(.*)");
     std::smatch match;
-    while (std::getline(stream, line, '\n')) {
-        if (std::regex_search(line, match, regex)) {
-            return match[1];
-        }
-    }
+    if (std::regex_search(line, match, regex)) {
+        if (match[1] == "all")
+            return ShaderStage::all;
+        else if (match[1] == "fragment")
+            return ShaderStage::fragment;
+        else if (match[1] == "vertex")
+            return ShaderStage::vertex;
+        else if (match[1] == "compute")
+            return ShaderStage::compute;
 
-    return {};
+        CHRLOG_ERROR("Invalid shader stage {}", match[1].str());
+    }
+    return ShaderStage::none;
+}
+
+std::string VulkanShaderCompiler::cleanSourceFromOtherStages(const std::string& source, ShaderStage shaderStage)
+{
+    ShaderStage currentShaderStage = ShaderStage::all;
+
+    std::string result {};
+    std::stringstream stream(source);
+    std::string line;
+    while (std::getline(stream, line, '\n')) {
+        auto lineStage = detectPragmaStage(line);
+        if (lineStage != ShaderStage::none) {
+            currentShaderStage = lineStage;
+            result.append("\n");
+            continue;
+        }
+
+        if (!!(currentShaderStage & shaderStage)) {
+            result.append(line);
+        }
+        result.append("\n");
+    }
+    return result;
 }
 
 std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourceCode,
-    const ShaderCompilerOptions& options, ShaderStage shaderStage, const std::string& entryPoint)
+    shaderc_source_language shaderLanguage, const ShaderCompilerOptions& options, ShaderStage shaderStage,
+    const std::string& entryPoint)
 {
     shaderc::Compiler spirvCompiler = {};
     shaderc::CompileOptions spirvOptions = {};
@@ -90,9 +149,10 @@ std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourc
     spirvOptions.SetOptimizationLevel(shaderc_optimization_level_performance);
 #else
     spirvOptions.SetOptimizationLevel(shaderc_optimization_level_zero);
-#endif
-    spirvOptions.SetSourceLanguage(shaderc_source_language_hlsl);
     spirvOptions.SetGenerateDebugInfo();
+#endif
+    spirvOptions.SetSourceLanguage(shaderLanguage);
+    spirvOptions.SetIncluder(std::make_unique<VulkanShaderIncluder>());
 
     switch (shaderStage) {
     case ShaderStage::fragment:
@@ -112,8 +172,14 @@ std::vector<uint8_t> VulkanShaderCompiler::compile(const std::string_view& sourc
         spirvOptions.AddMacroDefinition(macrodDefition);
     }
 
-    auto spirvCompilerResult = spirvCompiler.CompileGlslToSpv(sourceCode.data(), sourceCode.size(),
-        getSpirvShader(shaderStage), options.filename.c_str(), entryPoint.c_str(), spirvOptions);
+    auto preprocessResult = spirvCompiler.PreprocessGlsl(
+        sourceCode.data(), sourceCode.size(), getSpirvShader(shaderStage), options.filename.c_str(), spirvOptions);
+    auto preprocessContent = std::string { preprocessResult.cbegin(), preprocessResult.cend() };
+
+    preprocessContent = cleanSourceFromOtherStages(preprocessContent, shaderStage);
+
+    auto spirvCompilerResult = spirvCompiler.CompileGlslToSpv(
+        preprocessContent, getSpirvShader(shaderStage), options.filename.c_str(), entryPoint.c_str(), spirvOptions);
 
     std::stringstream streamMessage(spirvCompilerResult.GetErrorMessage());
     std::string segment;

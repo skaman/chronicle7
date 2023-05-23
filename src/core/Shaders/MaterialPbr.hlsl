@@ -1,8 +1,9 @@
 // Copyright (c) 2023 Sandro Cavazzoni
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
-#pragma vertex mainVertex
-#pragma fragment mainFragment
+#include <test.hlslh>
+
+#pragma stage : all
 
 struct VSInput
 {
@@ -97,7 +98,9 @@ Texture2D<float4> emissiveTexture : register(t5, space1);
 //    
 //}
 
-VSOutput mainVertex(VSInput input)
+#pragma stage : vertex
+
+VSOutput main(VSInput input)
 {
     VSOutput output = (VSOutput) 0;
     output.Pos = mul(ubo.projectionMatrix, mul(ubo.viewMatrix, mul(ubo.modelMatrix, float4(input.Position.xyz, 1.0))));
@@ -105,6 +108,8 @@ VSOutput mainVertex(VSInput input)
     output.Normal = input.Normal;
     return output;
 }
+
+#pragma stage : fragment
 
 float3 lin2rgb(float3 lin)
 {
@@ -120,7 +125,7 @@ inline float4 getBaseColor(float2 texCoord)
 #endif
 }
 
-float4 mainFragment(in VSOutput input) : SV_TARGET0
+float4 main(in VSOutput input) : SV_TARGET0
 {
     float flux = 1.0f;
     float3 lightPos = float3(500.0f, 300.0f, 100.0f);

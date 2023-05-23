@@ -9,6 +9,12 @@ extern const size_t bfont_ttf_len;
 extern const uint8_t MaterialPbr_hlsl[];
 extern const size_t MaterialPbr_hlsl_len;
 
+extern const uint8_t MaterialPbr_glsl[];
+extern const size_t MaterialPbr_glsl_len;
+
+extern const uint8_t test_hlslh[];
+extern const size_t test_hlslh_len;
+
 namespace chronicle {
 
 struct StorageContext {
@@ -21,6 +27,18 @@ void Storage::init()
 
     registerFileData("bfont.ttf", bfont_ttf, bfont_ttf_len);
     registerFileData("MaterialPbr.hlsl", MaterialPbr_hlsl, MaterialPbr_hlsl_len);
+    registerFileData("MaterialPbr.glsl", MaterialPbr_glsl, MaterialPbr_glsl_len);
+    registerFileData("test.hlslh", test_hlslh, test_hlslh_len);
+}
+
+bool Storage::exists(const std::string& filename)
+{
+    CHRZONE_STORAGE;
+
+    if (StorageContext::embeddedAssets.contains(filename))
+        return true;
+
+    return std::filesystem::exists(filename);
 }
 
 std::vector<uint8_t> Storage::readBytes(const std::string& filename)

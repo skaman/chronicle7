@@ -21,6 +21,8 @@ class Storage {
 public:
     static void init();
 
+    [[nodiscard]] static bool exists(const std::string& filename);
+
     [[nodiscard]] static std::vector<uint8_t> readBytes(const std::string& filename);
     [[nodiscard]] static std::string readString(const std::string& filename);
 

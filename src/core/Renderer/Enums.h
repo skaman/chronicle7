@@ -14,6 +14,8 @@ enum class ShaderStage {
     vertex = 0x02,
     compute = 0x04,
 
+    all = none | fragment | vertex | compute,
+
     _entt_enum_as_bitmask
 };
 

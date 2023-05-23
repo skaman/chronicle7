@@ -151,7 +151,9 @@ target_precompile_headers(chronicle-core
 embed_asset(chronicle-core
     SOURCES
         "bfont.ttf"
+        "Shaders/test.hlslh"
         "Shaders/MaterialPbr.hlsl"
+        "Shaders/MaterialPbr.glsl"
 )
 
 if(WIN32)
