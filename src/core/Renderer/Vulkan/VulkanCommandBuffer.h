@@ -30,7 +30,7 @@ public:
     void end() const;
 
     /// @brief @see CommandBufferI#setViewport
-    void setViewport(const Viewport& viewport) const;
+    void setViewport(const ViewportInfo& viewport) const;
 
     /// @brief @see CommandBufferI#beginRenderPass
     void beginRenderPass(const RenderPassBeginInfo& renderPassInfo) const;

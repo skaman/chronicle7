@@ -224,7 +224,7 @@ void GLFWPlatform::framebufferSizeCallback([[maybe_unused]] GLFWwindow* window, 
     GLFWContext::width = width;
     GLFWContext::height = height;
 
-    Renderer::invalidateSwapChain();
+    RenderContext::invalidateSwapChain();
 }
 
 void GLFWPlatform::cursorPositionCallback([[maybe_unused]] GLFWwindow* window, double xpos, double ypos)

@@ -16,7 +16,7 @@ class App;
 
 /// @brief GPU renderer.
 /// @tparam T Type with implementation.
-template <class T> class RendererI {
+template <class T> class RenderContextI {
 public:
     /// @brief Initialized the renderer.
     ///        This must be called after the platform initialization.
@@ -94,7 +94,7 @@ public:
     [[nodiscard]] static DescriptorSetLayout descriptorSetLayout() { return T::descriptorSetLayout(); }
 
 private:
-    RendererI() = default;
+    RenderContextI() = default;
     friend T;
 };
 

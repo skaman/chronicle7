@@ -1,7 +1,7 @@
 // Copyright (c) 2023 Sandro Cavazzoni
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
-#include "VulkanRenderer.h"
+#include "VulkanRenderContext.h"
 
 #include "VulkanCommandBuffer.h"
 #include "VulkanEvents.h"
@@ -14,7 +14,7 @@
 
 namespace chronicle {
 
-void VulkanRenderer::init()
+void VulkanRenderContext::init()
 {
     CHRLOG_INFO("Renderer init");
 
@@ -25,7 +25,7 @@ void VulkanRenderer::init()
     VulkanImGui::init();
 }
 
-void VulkanRenderer::deinit()
+void VulkanRenderContext::deinit()
 {
     CHRZONE_RENDERER;
 
@@ -38,7 +38,7 @@ void VulkanRenderer::deinit()
     VulkanInstance::deinit();
 }
 
-void VulkanRenderer::waitIdle()
+void VulkanRenderContext::waitIdle()
 {
     CHRZONE_RENDERER;
 
@@ -48,7 +48,7 @@ void VulkanRenderer::waitIdle()
     VulkanContext::device.waitIdle();
 }
 
-bool VulkanRenderer::beginFrame()
+bool VulkanRenderContext::beginFrame()
 {
     CHRZONE_RENDERER;
 
@@ -88,7 +88,7 @@ bool VulkanRenderer::beginFrame()
     return true;
 }
 
-void VulkanRenderer::endFrame()
+void VulkanRenderContext::endFrame()
 {
     CHRZONE_RENDERER;
 
@@ -136,7 +136,7 @@ void VulkanRenderer::endFrame()
     FrameMark;
 }
 
-void VulkanRenderer::beginRenderPass()
+void VulkanRenderContext::beginRenderPass()
 {
     CHRZONE_RENDERER;
 
@@ -160,7 +160,7 @@ void VulkanRenderer::beginRenderPass()
         .maxDepth = 1.0f });
 }
 
-void VulkanRenderer::endRenderPass()
+void VulkanRenderContext::endRenderPass()
 {
     CHRZONE_RENDERER;
 
@@ -173,9 +173,9 @@ void VulkanRenderer::endRenderPass()
     commandBuffer()->endRenderPass();
 }
 
-bool VulkanRenderer::debugShowLines() { return VulkanContext::debugShowLines; }
+bool VulkanRenderContext::debugShowLines() { return VulkanContext::debugShowLines; }
 
-void VulkanRenderer::setDebugShowLines(bool enabled)
+void VulkanRenderContext::setDebugShowLines(bool enabled)
 {
     // set the debug show lines if needed
     if (VulkanContext::debugShowLines != enabled) {
@@ -184,7 +184,7 @@ void VulkanRenderer::setDebugShowLines(bool enabled)
     }
 }
 
-DescriptorSetLayout VulkanRenderer::descriptorSetLayout()
+DescriptorSetLayout VulkanRenderContext::descriptorSetLayout()
 {
     DescriptorSetLayout descriptorSetLayout = {};
     descriptorSetLayout.setNumber = 0;

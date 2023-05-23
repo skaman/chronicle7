@@ -15,14 +15,14 @@ Scene::Scene(const std::string& name)
     CHRZONE_SCENE;
 
     // create command buffers
-    //_commandBuffers.resize(Renderer::maxFramesInFlight());
-    // for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
+    //_commandBuffers.resize(RenderContext::maxFramesInFlight());
+    // for (auto i = 0; i < RenderContext::maxFramesInFlight(); i++) {
     //    auto debugName = std::format("Scene {} command buffer (frame {})", _name, i);
     //    _commandBuffers[i] = VulkanCommandBuffer::create(debugName.c_str());
     //}
 
-    _imageFormat = Renderer::swapChainImageFormat();
-    _depthFormat = Renderer::findDepthFormat();
+    _imageFormat = RenderContext::swapChainImageFormat();
+    _depthFormat = RenderContext::findDepthFormat();
     _msaa = MSAA::sampleCount8;
     _width = 1024;
     _height = 768;
@@ -98,7 +98,7 @@ Scene::Scene(const std::string& name)
 void Scene::render(CommandBufferRef commandBuffer)
 {
     // start
-    auto currentFrame = Renderer::currentFrame();
+    auto currentFrame = RenderContext::currentFrame();
 
     // begin render pass
     // TODO: add local cache for renderpass id and frame buffer id
@@ -128,7 +128,7 @@ void Scene::render(CommandBufferRef commandBuffer)
         commandBuffer->bindVertexBuffers(_mesh->vertexBufferIds(i), _mesh->vertexBufferOffsets(i));
         commandBuffer->bindIndexBuffer(_mesh->indexBufferId(i), _mesh->indexType(i));
         commandBuffer->bindDescriptorSet(
-            Renderer::descriptorSet()->descriptorSetId(), _mesh->pipeline(i)->pipelineLayoutId(), 0);
+            RenderContext::descriptorSet()->descriptorSetId(), _mesh->pipeline(i)->pipelineLayoutId(), 0);
         commandBuffer->bindDescriptorSet(
             _mesh->material(i)->descriptorSet()->descriptorSetId(), _mesh->pipeline(i)->pipelineLayoutId(), 1);
         commandBuffer->drawIndexed(_mesh->indicesCount(i), 1);
@@ -140,7 +140,7 @@ void Scene::render(CommandBufferRef commandBuffer)
     _ubo.view = _camera.view();
     _ubo.proj = _camera.projection();
 
-    Renderer::descriptorSet()->setUniform<UniformBufferObject>("ubo"_hs, _ubo);
+    RenderContext::descriptorSet()->setUniform<UniformBufferObject>("ubo"_hs, _ubo);
 
     // end
     commandBuffer->endRenderPass();

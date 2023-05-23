@@ -68,7 +68,7 @@ private:
     /// @brief Create the descriptor pool.
     static void createDescriptorPool();
 
-    friend class VulkanRenderer;
+    friend class VulkanRenderContext;
 };
 
 } // namespace chronicle

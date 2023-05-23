@@ -7,7 +7,7 @@
 #include "VulkanIndexBuffer.h"
 #include "VulkanInstance.h"
 #include "VulkanPipeline.h"
-#include "VulkanRenderer.h"
+#include "VulkanRenderContext.h"
 #include "VulkanVertexBuffer.h"
 
 namespace chronicle {
@@ -56,7 +56,7 @@ void VulkanCommandBuffer::end() const
     _commandBuffer.end();
 }
 
-void VulkanCommandBuffer::setViewport(const Viewport& viewport) const
+void VulkanCommandBuffer::setViewport(const ViewportInfo& viewport) const
 {
     CHRZONE_RENDERER;
 

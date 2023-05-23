@@ -469,7 +469,7 @@ MeshRef AssetLoader::createMesh(const tinygltf::Model& gltfModel, const tinygltf
         pipelineInfo.shader = ShaderLoader::load(shaderCompilerOptions);
         pipelineInfo.renderPass = renderPass;
         pipelineInfo.vertexBuffers = submesh.vertexBuffersInfo;
-        pipelineInfo.descriptorSetsLayout.push_back(Renderer::descriptorSetLayout());
+        pipelineInfo.descriptorSetsLayout.push_back(RenderContext::descriptorSetLayout());
         pipelineInfo.descriptorSetsLayout.push_back(descriptorLayout);
         submesh.pipeline = PipelineLoader::load(pipelineInfo, "test"); // TODO: handle debug name
 

@@ -64,9 +64,9 @@ public:
     {
         try {
             if (VulkanGCContext::queues.empty()) {
-                VulkanGCContext::queues.resize(Renderer::maxFramesInFlight());
+                VulkanGCContext::queues.resize(RenderContext::maxFramesInFlight());
             }
-            auto& queue = VulkanGCContext::queues[Renderer::currentFrame()];
+            auto& queue = VulkanGCContext::queues[RenderContext::currentFrame()];
             queue.emplace_back(data);
         } catch (const std::exception& e) {
             CHRLOG_ERROR("Memory leak: {}", e.what());
@@ -78,7 +78,7 @@ public:
         if (VulkanGCContext::queues.empty())
             return;
 
-        auto& queue = VulkanGCContext::queues[Renderer::currentFrame()];
+        auto& queue = VulkanGCContext::queues[RenderContext::currentFrame()];
         cleanup(queue);
     }
 

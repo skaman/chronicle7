@@ -5,47 +5,47 @@
 
 #include "pch.h"
 
-#include "Renderer/RendererI.h"
+#include "Renderer/RenderContextI.h"
 #include "VulkanCommon.h"
 #include "VulkanEnums.h"
 #include "VulkanUtils.h"
 
 namespace chronicle {
 
-/// @brief Vulkan implementation for @ref RendererI
-class VulkanRenderer : public RendererI<VulkanRenderer>, private NonCopyable<VulkanRenderer> {
+/// @brief Vulkan implementation for @ref RenderContextI
+class VulkanRenderContext : public RenderContextI<VulkanRenderContext>, private NonCopyable<VulkanRenderContext> {
 public:
-    /// @brief @see RendererI#init
+    /// @brief @see RenderContextI#init
     static void init();
 
-    /// @brief @see RendererI#deinit
+    /// @brief @see RenderContextI#deinit
     static void deinit();
 
-    /// @brief @see RendererI#waitIdle
+    /// @brief @see RenderContextI#waitIdle
     static void waitIdle();
 
-    /// @brief @see RendererI#invalidateSwapChain
+    /// @brief @see RenderContextI#invalidateSwapChain
     static void invalidateSwapChain() { VulkanContext::swapChainInvalidated = true; }
 
-    /// @brief @see RendererI#beginFrame
+    /// @brief @see RenderContextI#beginFrame
     static bool beginFrame();
 
-    /// @brief @see RendererI#endFrame
+    /// @brief @see RenderContextI#endFrame
     static void endFrame();
 
-    /// @brief @see RendererI#beginRenderPass
+    /// @brief @see RenderContextI#beginRenderPass
     static void beginRenderPass();
 
-    /// @brief @see RendererI#endRenderPass
+    /// @brief @see RenderContextI#endRenderPass
     static void endRenderPass();
 
-    /// @brief @see RendererI#debugShowLines
+    /// @brief @see RenderContextI#debugShowLines
     [[nodiscard]] static bool debugShowLines();
 
-    /// @brief @see RendererI#setDebugShowLines
+    /// @brief @see RenderContextI#setDebugShowLines
     static void setDebugShowLines(bool enabled);
 
-    /// @brief @see RendererI#descriptorSet
+    /// @brief @see RenderContextI#descriptorSet
     [[nodiscard]] static const DescriptorSetRef& descriptorSet(uint32_t index)
     {
         assert(index >= 0);
@@ -54,43 +54,43 @@ public:
         return VulkanContext::framesData[index].descriptorSet;
     }
 
-    /// @brief @see RendererI#descriptorSet
+    /// @brief @see RenderContextI#descriptorSet
     [[nodiscard]] static const DescriptorSetRef& descriptorSet()
     {
         return VulkanContext::framesData[VulkanContext::currentFrame].descriptorSet;
     }
 
-    /// @brief @see RendererI#commandBuffer
+    /// @brief @see RenderContextI#commandBuffer
     [[nodiscard]] static const CommandBufferRef& commandBuffer()
     {
         return VulkanContext::framesData[VulkanContext::currentFrame].commandBuffer;
     }
 
-    /// @brief @see RendererI#width
+    /// @brief @see RenderContextI#width
     [[nodiscard]] static uint32_t width() { return VulkanContext::swapChainExtent.width; }
 
-    /// @brief @see RendererI#height
+    /// @brief @see RenderContextI#height
     [[nodiscard]] static uint32_t height() { return VulkanContext::swapChainExtent.height; }
 
-    /// @brief @see RendererI#maxFramesInFlight
+    /// @brief @see RenderContextI#maxFramesInFlight
     [[nodiscard]] static uint32_t maxFramesInFlight() { return VulkanContext::maxFramesInFlight; }
 
-    /// @brief @see RendererI#currentFrame
+    /// @brief @see RenderContextI#currentFrame
     [[nodiscard]] static uint32_t currentFrame() { return VulkanContext::currentFrame; }
 
-    /// @brief @see RendererI#swapChainImageFormat
+    /// @brief @see RenderContextI#swapChainImageFormat
     [[nodiscard]] static Format swapChainImageFormat()
     {
         return VulkanEnums::formatFromVulkan(VulkanContext::swapChainImageFormat);
     }
 
-    /// @brief @see RendererI#findDepthFormat
+    /// @brief @see RenderContextI#findDepthFormat
     [[nodiscard]] static Format findDepthFormat()
     {
         return VulkanEnums::formatFromVulkan(VulkanUtils::findDepthFormat());
     }
 
-    /// @brief @see RendererI#descriptorSetLayout
+    /// @brief @see RenderContextI#descriptorSetLayout
     [[nodiscard]] static DescriptorSetLayout descriptorSetLayout();
 };
 

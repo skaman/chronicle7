@@ -23,7 +23,7 @@ public:
     {
         Storage::init();
         Platform::init();
-        Renderer::init();
+        RenderContext::init();
 
         Platform::dispatcher().sink<CursorPositionEvent>().connect<&ExampleApp::onCursorPosition>(this);
         Platform::dispatcher().sink<MouseButtonEvent>().connect<&ExampleApp::onMouseButton>(this);
@@ -35,8 +35,8 @@ public:
         //_mesh2 = test.meshes[0];
 
         // descriptor sets
-        for (auto i = 0; i < Renderer::maxFramesInFlight(); i++) {
-            const auto& descriptorSet = Renderer::descriptorSet(i);
+        for (auto i = 0; i < RenderContext::maxFramesInFlight(); i++) {
+            const auto& descriptorSet = RenderContext::descriptorSet(i);
             // descriptorSet->addSampler(ShaderStage::fragment, _texture->texture());
             descriptorSet->build();
         }
@@ -59,14 +59,14 @@ public:
         Platform::dispatcher().sink<MouseButtonEvent>().disconnect<&ExampleApp::onMouseButton>(this);
         Platform::dispatcher().sink<KeyEvent>().disconnect<&ExampleApp::onKeyPress>(this);
 
-        Renderer::waitIdle();
+        RenderContext::waitIdle();
 
         // ImGui_ImplVulkan_RemoveTexture(_imTexture);
 
         //_mesh2.reset();
         _scene.reset();
 
-        Renderer::deinit();
+        RenderContext::deinit();
         Platform::deinit();
     }
 
@@ -77,16 +77,16 @@ public:
         // std::vector<CommandBufferId> commandBuffers(1);
 
         while (Platform::poll(delta)) {
-            if (!Renderer::beginFrame())
+            if (!RenderContext::beginFrame())
                 continue;
 
-            _scene->render(Renderer::commandBuffer());
+            _scene->render(RenderContext::commandBuffer());
 
-            Renderer::beginRenderPass();
+            RenderContext::beginRenderPass();
 
             // commandBuffers[0] = _scene->commandBufferId();
 
-            if (float aspect = static_cast<float>(Renderer::width()) / static_cast<float>(Renderer::height());
+            if (float aspect = static_cast<float>(RenderContext::width()) / static_cast<float>(RenderContext::height());
                 _camera.aspect() != aspect) {
                 _camera.setAspect(aspect);
                 _camera.recalculateProjection();
@@ -116,10 +116,10 @@ public:
             _ubo.view = _camera.view();
             _ubo.proj = _camera.projection();
 
-            Renderer::descriptorSet()->setUniform<UniformBufferObject>("ubo"_hs, _ubo);
+            RenderContext::descriptorSet()->setUniform<UniformBufferObject>("ubo"_hs, _ubo);
 
-            Renderer::endRenderPass();
-            Renderer::endFrame();
+            RenderContext::endRenderPass();
+            RenderContext::endFrame();
         }
     }
 
@@ -187,7 +187,7 @@ public:
         ImGui::Text("Framerate: %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         static bool enabled = false;
         if (ImGui::Checkbox("Show debug lines", &enabled)) {
-            Renderer::setDebugShowLines(enabled);
+            RenderContext::setDebugShowLines(enabled);
         }
         ImGui::Image(_imTexture, ImVec2 { 1024, 768 });
 

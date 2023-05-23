@@ -10,22 +10,22 @@
 namespace chronicle {
 
 /// @brief Structure specifying a viewport.
-struct Viewport {
+struct ViewportInfo {
 public:
-    float x; ///< The viewport upper left corner X.
-    float y; ///< The viewport upper left corner Y.
-    float width; ///< The viewport width.
-    float height; ///< The viewport height.
-    float minDepth; ///< The viewport min depth.
-    float maxDepth; ///< The viewport max depth.
+    float x {}; ///< The viewport upper left corner X.
+    float y {}; ///< The viewport upper left corner Y.
+    float width {}; ///< The viewport width.
+    float height {}; ///< The viewport height.
+    float minDepth {}; ///< The viewport min depth.
+    float maxDepth {}; ///< The viewport max depth.
 };
 
 /// @brief Structure specifying render pass begin information.
 struct RenderPassBeginInfo {
-    RenderPassId renderPassId; ///< The render pass to begin an instance of.
-    FrameBufferId frameBufferId; ///< The framebuffer containing the attachments that are used with the render pass.
-    glm::i32vec2 renderAreaOffset; ///< The offset for the render area that is affected by the render pass instance.
-    glm::u32vec2 renderAreaExtent; ///< The extent for the render area that is affected by the render pass instance.
+    RenderPassId renderPassId {}; ///< The render pass to begin an instance of.
+    FrameBufferId frameBufferId {}; ///< The framebuffer containing the attachments that are used with the render pass.
+    glm::i32vec2 renderAreaOffset {}; ///< The offset for the render area that is affected by the render pass instance.
+    glm::u32vec2 renderAreaExtent {}; ///< The extent for the render area that is affected by the render pass instance.
 };
 
 /// @brief Object used to record command which can be sebsequently submitted to GPU for execution.
@@ -44,7 +44,7 @@ public:
 
     /// @brief Set the viewport for the command buffer.
     /// @param viewport Structure specifying a viewport.
-    void setViewport(const Viewport& viewport) const { CRTP_CONST_THIS->setViewport(viewport); }
+    void setViewport(const ViewportInfo& viewport) const { CRTP_CONST_THIS->setViewport(viewport); }
 
     /// @brief Begin a new render pass.
     /// @param renderPassInfo Structure specifying render pass begin information.
