@@ -25,102 +25,18 @@ function(embed_asset target)
     endforeach()
 endfunction()
 
-add_library(chronicle-core
+add_library(chronicle-core "")
+
+add_subdirectory(Assets)
+add_subdirectory(Loaders)
+add_subdirectory(Platform)
+add_subdirectory(Renderer)
+add_subdirectory(Storage)
+add_subdirectory(Utils)
+
+target_sources(chronicle-core
+PRIVATE
     "pch.cpp"
-
-    # assets
-    "Assets/old/MeshAsset.cpp"
-    "Assets/old/MeshAsset.h"
-    "Assets/old/ShaderAsset.cpp"
-    "Assets/old/ShaderAsset.h"
-    "Assets/old/TextureAsset.cpp"
-    "Assets/old/TextureAsset.h"
-    "Assets/Mesh.cpp"
-    "Assets/Mesh.h"
-    "Assets/Material.cpp"
-    "Assets/Material.h"
-
-    # loaders
-    "Loaders/AssetLoader.cpp"
-    "Loaders/AssetLoader.h"
-    "Loaders/PipelineLoader.cpp"
-    "Loaders/PipelineLoader.h"
-    "Loaders/ShaderLoader.cpp"
-    "Loaders/ShaderLoader.h"
-
-    # platform
-    "Platform/Platform.h"
-    "Platform/PlatformI.h"
-    "Platform/GLFW/GLFWPlatform.cpp"
-    "Platform/GLFW/GLFWPlatform.h"
-    "Platform/GLFW/GLFWCommon.h"
-
-    # renderer
-    "Renderer/Common/Common.h"
-    "Renderer/Common/Enums.h"
-    "Renderer/Common/RendererError.h"
-
-    "Renderer/Data/DescriptorSetLayout.h"
-    "Renderer/Data/FrameBufferInfo.h"
-    "Renderer/Data/PipelineInfo.h"
-    "Renderer/Data/RenderPassInfo.h"
-    "Renderer/Data/TextureInfo.h"
-    "Renderer/Data/VertexBufferInfo.h"
-
-    "Renderer/Vulkan/VulkanCommandBuffer.cpp"
-    "Renderer/Vulkan/VulkanCommandBuffer.h"
-    "Renderer/Vulkan/VulkanCommon.h"
-    "Renderer/Vulkan/VulkanDescriptorSet.cpp"
-    "Renderer/Vulkan/VulkanDescriptorSet.h"
-    "Renderer/Vulkan/VulkanEnums.h"
-    "Renderer/Vulkan/VulkanEvents.h"
-    "Renderer/Vulkan/VulkanExtensions.h"
-    "Renderer/Vulkan/VulkanFrameBuffer.cpp"
-    "Renderer/Vulkan/VulkanFrameBuffer.h"
-    "Renderer/Vulkan/VulkanGC.h"
-    "Renderer/Vulkan/VulkanImGui.cpp"
-    "Renderer/Vulkan/VulkanImGui.h"
-    "Renderer/Vulkan/VulkanIndexBuffer.cpp"
-    "Renderer/Vulkan/VulkanIndexBuffer.h"
-    "Renderer/Vulkan/VulkanInstance.cpp"
-    "Renderer/Vulkan/VulkanInstance.h"
-    "Renderer/Vulkan/VulkanPipeline.cpp"
-    "Renderer/Vulkan/VulkanPipeline.h"
-    "Renderer/Vulkan/VulkanRenderContext.cpp"
-    "Renderer/Vulkan/VulkanRenderContext.h"
-    "Renderer/Vulkan/VulkanRenderPass.cpp"
-    "Renderer/Vulkan/VulkanRenderPass.h"
-    "Renderer/Vulkan/VulkanShaderCompiler.cpp"
-    "Renderer/Vulkan/VulkanShaderCompiler.h"
-    "Renderer/Vulkan/VulkanShader.cpp"
-    "Renderer/Vulkan/VulkanShader.h"
-    "Renderer/Vulkan/VulkanTexture.cpp"
-    "Renderer/Vulkan/VulkanTexture.h"
-    "Renderer/Vulkan/VulkanUtils.cpp"
-    "Renderer/Vulkan/VulkanUtils.h"
-    "Renderer/Vulkan/VulkanVertexBuffer.cpp"
-    "Renderer/Vulkan/VulkanVertexBuffer.h"
-
-    "Renderer/BaseCommandBuffer.h"
-    "Renderer/BaseDescriptorSet.h"
-    "Renderer/BaseFrameBuffer.h"
-    "Renderer/BaseIndexBuffer.h"
-    "Renderer/BasePipeline.h"
-    "Renderer/BaseRenderContext.h"
-    "Renderer/BaseRenderPass.h"
-    "Renderer/BaseShader.h"
-    "Renderer/BaseShaderCompiler.h"
-    "Renderer/BaseTexture.h"
-    "Renderer/BaseVertexBuffer.h"
-    "Renderer/Renderer.h"
-
-    # storage
-    "Storage/Storage.cpp"
-    "Storage/Storage.h"
-    "Utils/Camera.cpp"
-    "Utils/Camera.h"
-    "Utils/Scene.cpp"
-    "Utils/Scene.h"
 
     # IMGUI
     "../../vendor/imgui/imgui.cpp"

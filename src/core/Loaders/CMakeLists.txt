@@ -1,0 +1,9 @@
+target_sources(chronicle-core
+PRIVATE
+    "AssetLoader.cpp"
+    "AssetLoader.h"
+    "PipelineLoader.cpp"
+    "PipelineLoader.h"
+    "ShaderLoader.cpp"
+    "ShaderLoader.h"
+)
