@@ -8,7 +8,7 @@
 #ifdef VULKAN_RENDERER
 
 #include "Vulkan/VulkanCommandBuffer.h"
-#include "Vulkan/VulkanDescriptorSet.h"
+#include "Vulkan/VulkanDescriptorSetOld.h"
 #include "Vulkan/VulkanIndexBuffer.h"
 #include "Vulkan/VulkanFrameBuffer.h"
 #include "Vulkan/VulkanPipeline.h"

@@ -188,11 +188,19 @@ DescriptorSetLayout VulkanRenderContext::descriptorSetLayout()
 {
     DescriptorSetLayout descriptorSetLayout = {};
     descriptorSetLayout.setNumber = 0;
-    descriptorSetLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 0,
-        .descriptorType = DescriptorType::uniformBuffer,
-        .descriptorCount = 1,
-        .stageFlags = ShaderStage::vertex });
-    return descriptorSetLayout;
+    // descriptorSetLayout.bindings.emplace_back(DescriptorSetLayoutBinding { .binding = 0,
+    //     .descriptorType = DescriptorType::uniformBuffer,
+    //     .descriptorCount = 1,
+    //     .stageFlags = ShaderStage::vertex });
+    return { .setNumber = 0,
+        .bindings = { { 0,
+            {
+                .binding = 0,
+                .descriptorSet = 0,
+                .descriptorType = DescriptorType::uniformBuffer,
+                .name = "UniformBufferObject",
+                .stages = ShaderStage::vertex,
+            } } } };
 }
 
 } // namespace chronicle

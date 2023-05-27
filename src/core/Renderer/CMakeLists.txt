@@ -5,14 +5,13 @@ add_subdirectory(Vulkan)
 target_sources(chronicle-core
 PRIVATE
     "BaseCommandBuffer.h"
-    "BaseDescriptorSet.h"
+    "BaseDescriptorSetOld.h"
     "BaseFrameBuffer.h"
     "BaseIndexBuffer.h"
     "BasePipeline.h"
     "BaseRenderContext.h"
     "BaseRenderPass.h"
     "BaseShader.h"
-    "BaseShaderCompiler.h"
     "BaseTexture.h"
     "BaseVertexBuffer.h"
     "Renderer.h"

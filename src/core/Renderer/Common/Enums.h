@@ -97,6 +97,42 @@ enum class Format {
     D24UnormS8Uint
 };
 
+enum class Type {
+    unknown,
+
+    // scalars
+    scalarBool,
+    scalarInt,
+    scalarUInt,
+    scalarFloat,
+    scalarDouble,
+
+    // vectors
+    vectorInt2,
+    vectorInt3,
+    vectorInt4,
+    vectorUInt2,
+    vectorUInt3,
+    vectorUInt4,
+    vectorFloat2,
+    vectorFloat3,
+    vectorFloat4,
+    vectorDouble2,
+    vectorDouble3,
+    vectorDouble4,
+
+    // matrices
+    matrix2x2,
+    matrix2x3,
+    matrix2x4,
+    matrix3x2,
+    matrix3x3,
+    matrix3x4,
+    matrix4x2,
+    matrix4x3,
+    matrix4x4,
+};
+
 /// @brief Specifies the type of a descriptor in a descriptor set.
 enum class DescriptorType {
     unknown,

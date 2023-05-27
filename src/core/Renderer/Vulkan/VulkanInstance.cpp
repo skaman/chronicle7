@@ -4,7 +4,6 @@
 #include "VulkanInstance.h"
 
 #include "VulkanCommandBuffer.h"
-#include "VulkanDescriptorSet.h"
 #include "VulkanExtensions.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanGC.h"

@@ -5,13 +5,11 @@
 
 #include "pch.h"
 
-#include "Renderer/Renderer.h"
-
 namespace chronicle {
 
-class ShaderLoader {
-public:
-    [[nodiscard]] static ShaderRef load(const ShaderInfo& options);
+struct ShaderInfo {
+    std::string filename = {};
+    std::vector<std::string> macroDefinitions = {};
 };
 
 } // namespace chronicle

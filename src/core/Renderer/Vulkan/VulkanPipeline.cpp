@@ -226,12 +226,12 @@ std::vector<vk::DescriptorSetLayout> VulkanPipeline::getVulkanDescriptorSetsLayo
     for (uint32_t i = 0; i < descriptorSetsLayout.size(); i++) {
         const auto& shaderDescriptorSetLayout = descriptorSetsLayout[i];
         std::vector<vk::DescriptorSetLayoutBinding> bindings = {};
-        for (const auto& shaderBinding : shaderDescriptorSetLayout.bindings) {
+        for (const auto& [_, shaderBinding] : shaderDescriptorSetLayout.bindings) {
             vk::DescriptorSetLayoutBinding binding = {};
             binding.setBinding(shaderBinding.binding);
             binding.setDescriptorType(VulkanEnums::descriptorTypeFromVulkan(shaderBinding.descriptorType));
-            binding.setDescriptorCount(shaderBinding.descriptorCount);
-            binding.setStageFlags(VulkanEnums::shaderStageFlagsToVulkan(shaderBinding.stageFlags));
+            binding.setDescriptorCount(1); // TODO: this is the array size?
+            binding.setStageFlags(VulkanEnums::shaderStageFlagsToVulkan(shaderBinding.stages));
             bindings.push_back(binding);
         }
 

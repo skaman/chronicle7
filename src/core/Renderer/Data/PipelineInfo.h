@@ -5,13 +5,13 @@
 
 #include "pch.h"
 
-#include "Common/Common.h"
 #include "DescriptorSetLayout.h"
+#include "Renderer/Common/Common.h"
 #include "VertexBufferInfo.h"
 
 #ifdef VULKAN_RENDERER
-#include "Vulkan/VulkanShader.h"
-#include "Vulkan/VulkanRenderPass.h"
+#include "Renderer/Vulkan/VulkanRenderPass.h"
+#include "Renderer/Vulkan/VulkanShader.h"
 #endif
 
 namespace chronicle {
@@ -36,14 +36,14 @@ struct PipelineInfo {
 template <> struct std::hash<chronicle::PipelineInfo> {
     std::size_t operator()(const chronicle::PipelineInfo& data) const noexcept
     {
-        std::size_t h = data.shader->hash();
-        std::hash_add(h, data.renderPass->hash());
+        std::size_t h = data.renderPass->hash();
         for (const auto& vertexBuffer : data.vertexBuffers) {
             std::hash_combine(h, vertexBuffer);
         }
-        for (const auto& descriptorSetLayout : data.descriptorSetsLayout) {
-            std::hash_combine(h, descriptorSetLayout);
-        }
+        //for (const auto& descriptorSetLayout : data.descriptorSetsLayout) {
+        //    std::hash_combine(h, descriptorSetLayout);
+        //}
+        // TODO: control and restore hash
         return h;
     }
 };

@@ -1,6 +1,7 @@
-find_package(Vulkan REQUIRED COMPONENTS glslc shaderc_combined)
+find_package(Vulkan REQUIRED COMPONENTS glslc shaderc_combined SPIRV-Tools)
 find_package(Python REQUIRED COMPONENTS Interpreter)
-find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
+
+#find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
 function(embed_asset target)
     cmake_parse_arguments(PARSE_ARGV 1 arg "" "" "SOURCES")
@@ -92,12 +93,23 @@ elseif(UNIX)
     target_compile_definitions(chronicle-core PUBLIC CHRPLATFORM_LINUX)
 endif()
 
+# Add SPIRV-Cross from local vulkan SDK
+cmake_path(GET Vulkan_SPIRV-Tools_LIBRARY PARENT_PATH Vulkan_LIBRARY_PATH)
+add_library(Vulkan::SPIRV-Cross STATIC IMPORTED)
+set_target_properties(Vulkan::SPIRV-Cross
+    PROPERTIES
+        IMPORTED_LOCATION_DEBUG "${Vulkan_LIBRARY_PATH}/spirv-cross-cored.lib"
+        IMPORTED_LOCATION "${Vulkan_LIBRARY_PATH}/spirv-cross-core.lib"
+)
+
 target_link_libraries(chronicle-core
     PUBLIC
         glfw
         Vulkan::Headers
         Vulkan::Vulkan
         Vulkan::shaderc_combined
+        Vulkan::SPIRV-Tools
+        Vulkan::SPIRV-Cross
         EnTT::EnTT
         spdlog::spdlog
         glm::glm

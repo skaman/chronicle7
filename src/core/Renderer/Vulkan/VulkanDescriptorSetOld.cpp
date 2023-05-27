@@ -1,7 +1,7 @@
 // Copyright (c) 2023 Sandro Cavazzoni
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
-#include "VulkanDescriptorSet.h"
+#include "VulkanDescriptorSetOld.h"
 
 #include "VulkanGC.h"
 #include "VulkanInstance.h"

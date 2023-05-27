@@ -7,22 +7,13 @@
 
 #include "Renderer/BaseShader.h"
 
-#pragma warning(push)
-#pragma warning(disable : 26439)
-#include <spirv-reflect/spirv_reflect.h>
-#pragma warning(pop)
-
 namespace chronicle {
 
 /// @brief Vulkan implementation for @ref BaseShader
 class VulkanShader : public BaseShader<VulkanShader>, private NonCopyable<VulkanShader> {
 protected:
     /// @brief Default constructor.
-    /// @param codes Shaders data compiled with SPIR-V.
-    /// @param entryPoints Shaders entry points.
-    /// @param hash Hash of the configuration used to create the shader.
-    explicit VulkanShader(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
-        const std::unordered_map<ShaderStage, std::string>& entryPoints, size_t hash);
+    explicit VulkanShader(const ShaderInfo& shaderInfo);
 
 public:
     /// @brief Destructor.
@@ -33,9 +24,6 @@ public:
 
     /// @brief @see BaseShader#stages
     [[nodiscard]] std::vector<ShaderStage> stages() const { return _stages; };
-
-    /// @brief @see BaseShader#hash
-    [[nodiscard]] size_t hash() const { return _hash; };
 
     /// @brief @see BaseShader#entryPoint
     [[nodiscard]] const std::string& entryPoint(ShaderStage stage) const { return _entryPoints.at(stage); }
@@ -55,30 +43,13 @@ public:
     /// @param entryPoints Shaders entry points.
     /// @param hash Hash of the configuration used to create the shader.
     /// @return The shader.
-    [[nodiscard]] static ShaderRef create(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& codes,
-        const std::unordered_map<ShaderStage, std::string>& entryPoints, size_t hash);
+    [[nodiscard]] static ShaderRef create(const ShaderInfo& shaderInfo);
 
 private:
     std::unordered_map<ShaderStage, vk::ShaderModule> _shaderModules {}; ///< Shader modules mapped for stages.
     std::unordered_map<ShaderStage, std::string> _entryPoints {}; ///< Shader entry points.
     std::vector<DescriptorSetLayout> _descriptorSetsLayout {}; ///< Descriptor sets layout.
     std::vector<ShaderStage> _stages {}; ///< Shader stages.
-    size_t _hash {}; ///< Hash of the configuration used to create the shader.
-
-    /// @brief Get the descriptor sets layout data from SPIR-V code of a single shader.
-    /// @param code Shaders SPIR-V code.
-    /// @return Descriptor sets layout data.
-    [[nodiscard]] static std::vector<DescriptorSetLayout> getDescriptorSetsLayout(const std::vector<uint8_t>& code);
-
-    /// @brief Get the descriptor type from a SPIR-V reflect type.
-    /// @param spvDescriptorType SPIR-V reflect type.
-    /// @return Descriptor type.
-    [[nodiscard]] static DescriptorType getDescriptorType(SpvReflectDescriptorType spvDescriptorType);
-
-    /// @brief Get the shader stage from a SPIR-V reflect type.
-    /// @param spvShaderStage SPIR-V reflect type.
-    /// @return Shader stage.
-    [[nodiscard]] static ShaderStage getShaderStage(SpvReflectShaderStageFlagBits spvShaderStage);
 };
 
 } // namespace chronicle

@@ -1,6 +1,6 @@
 #version 450 core
 
-#pragma stage : all
+#pragma stage:all
 
 struct VertexOutput
 {
@@ -9,7 +9,7 @@ struct VertexOutput
     vec3 normal;
 };
 
-#pragma stage : vertex
+#pragma stage:vertex
 
 // inputs
 layout(location = 0) in vec3 a_Position;
@@ -37,7 +37,7 @@ void main()
     gl_Position = ubo.projectionMatrix * ubo.viewMatrix * ubo.modelMatrix * vec4(a_Position, 1.0);
 }
 
-#pragma stage : fragment
+#pragma stage:fragment
 
 // inputs
 layout(location = 0) in VertexOutput vertexInput;
@@ -46,10 +46,10 @@ layout(location = 0) in VertexOutput vertexInput;
 layout(location = 0) out vec4 outColor;
 
 // uniforms
-layout(binding = 0, set = 1) uniform UniformBufferObject {
+layout(binding = 0, set = 1) uniform MaterialBufferObject {
     vec4 baseColorFactor;
     float metallicFactor;
-    float roughnessFactor;
+    float roughnessFactor[5];
     vec3 emissiveFactor;
     uint alphaMode;
     float alphaCutoff;
@@ -86,6 +86,7 @@ vec4 getBaseColor(vec2 texCoord)
 }
 
 void main() {
+    float roughnessFactor = materialUbo.roughnessFactor[0];
     //outColor = vec4(vertexInput.texCoord0, 1.0f, 1.0f);
-    outColor = getBaseColor(vertexInput.texCoord0);
+    outColor = getBaseColor(vertexInput.texCoord0);// * materialUbo.alphaCutoff;
 }

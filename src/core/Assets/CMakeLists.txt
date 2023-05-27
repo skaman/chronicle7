@@ -4,4 +4,4 @@ PRIVATE
     "Mesh.h"
     "Material.cpp"
     "Material.h"
-)
+ "../Renderer/Data/ShaderInfo.h")
