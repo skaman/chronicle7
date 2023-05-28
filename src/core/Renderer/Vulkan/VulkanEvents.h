@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Events for debug show lines state changed
 struct DebugShowLinesEvent { };

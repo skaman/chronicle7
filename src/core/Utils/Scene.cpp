@@ -140,7 +140,7 @@ void Scene::render(CommandBufferRef commandBuffer)
     _ubo.view = _camera.view();
     _ubo.proj = _camera.projection();
 
-    RenderContext::descriptorSet()->setUniform<UniformBufferObject>("ubo"_hs, _ubo);
+    RenderContext::descriptorSet()->setUniform<internal::vulkan::UniformBufferObject>("ubo"_hs, _ubo);
 
     // end
     commandBuffer->endRenderPass();

@@ -32,27 +32,29 @@ template <class T> class BaseTexture;
 template <class T> class BaseVertexBuffer;
 
 #ifdef VULKAN_RENDERER
-class VulkanCommandBuffer;
-class VulkanDescriptorSet;
-class VulkanFrameBuffer;
-class VulkanIndexBuffer;
-class VulkanPipeline;
-class VulkanRenderContext;
-class VulkanRenderPass;
-class VulkanShader;
-class VulkanTexture;
-class VulkanVertexBuffer;
+namespace internal::vulkan {
+    class VulkanCommandBuffer;
+    class VulkanDescriptorSet;
+    class VulkanFrameBuffer;
+    class VulkanIndexBuffer;
+    class VulkanPipeline;
+    class VulkanRenderContext;
+    class VulkanRenderPass;
+    class VulkanShader;
+    class VulkanTexture;
+    class VulkanVertexBuffer;
+} // namespace internal::vulkan
 
-using CommandBuffer = BaseCommandBuffer<VulkanCommandBuffer>;
-using DescriptorSet = BaseDescriptorSet<VulkanDescriptorSet>;
-using FrameBuffer = BaseFrameBuffer<VulkanFrameBuffer>;
-using IndexBuffer = BaseIndexBuffer<VulkanIndexBuffer>;
-using Pipeline = BasePipeline<VulkanPipeline>;
-using RenderContext = BaseRenderContext<VulkanRenderContext>;
-using RenderPass = BaseRenderPass<VulkanRenderPass>;
-using Shader = BaseShader<VulkanShader>;
-using Texture = BaseTexture<VulkanTexture>;
-using VertexBuffer = BaseVertexBuffer<VulkanVertexBuffer>;
+using CommandBuffer = BaseCommandBuffer<internal::vulkan::VulkanCommandBuffer>;
+using DescriptorSet = BaseDescriptorSet<internal::vulkan::VulkanDescriptorSet>;
+using FrameBuffer = BaseFrameBuffer<internal::vulkan::VulkanFrameBuffer>;
+using IndexBuffer = BaseIndexBuffer<internal::vulkan::VulkanIndexBuffer>;
+using Pipeline = BasePipeline<internal::vulkan::VulkanPipeline>;
+using RenderContext = BaseRenderContext<internal::vulkan::VulkanRenderContext>;
+using RenderPass = BaseRenderPass<internal::vulkan::VulkanRenderPass>;
+using Shader = BaseShader<internal::vulkan::VulkanShader>;
+using Texture = BaseTexture<internal::vulkan::VulkanTexture>;
+using VertexBuffer = BaseVertexBuffer<internal::vulkan::VulkanVertexBuffer>;
 #endif
 
 using CommandBufferRef = std::shared_ptr<CommandBuffer>;

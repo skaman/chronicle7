@@ -6,7 +6,7 @@
 #include "VulkanCommon.h"
 #include "VulkanUtils.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 CHR_CONCRETE(VulkanFrameBuffer);
 

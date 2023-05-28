@@ -9,7 +9,7 @@
 #include "VulkanCommon.h"
 #include "VulkanEvents.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Data structure that contain descriptor set informations read from the shader itself with spirv-reflect.
 struct DescriptorSetLayoutData {

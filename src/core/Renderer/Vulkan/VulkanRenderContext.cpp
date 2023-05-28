@@ -12,7 +12,7 @@
 #include "VulkanRenderPass.h"
 #include "VulkanUtils.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 void VulkanRenderContext::init()
 {

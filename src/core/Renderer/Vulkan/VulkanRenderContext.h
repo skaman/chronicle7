@@ -10,7 +10,7 @@
 #include "VulkanEnums.h"
 #include "VulkanUtils.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref BaseRenderContext
 class VulkanRenderContext : public BaseRenderContext<VulkanRenderContext>, private NonCopyable<VulkanRenderContext> {

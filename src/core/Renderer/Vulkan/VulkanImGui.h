@@ -7,7 +7,7 @@
 
 #include "Renderer/Common/Common.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief ImGui context
 struct VulkanImGuiContext {

@@ -7,7 +7,7 @@
 
 #include "Renderer/BaseIndexBuffer.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref BaseIndexBuffer
 class VulkanIndexBuffer : public BaseIndexBuffer<VulkanIndexBuffer>, private NonCopyable<VulkanIndexBuffer> {

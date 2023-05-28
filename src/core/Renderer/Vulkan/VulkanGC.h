@@ -7,6 +7,8 @@
 
 #include "Renderer/Renderer.h"
 
+namespace chronicle::internal::vulkan {
+
 /// @brief Entry types for garbage collector.
 enum class GCType { pipeline, pipelineLayout, buffer, deviceMemory, descriptorSetLayout };
 
@@ -51,8 +53,6 @@ struct GCData {
     {
     }
 };
-
-namespace chronicle {
 
 struct VulkanGCContext {
     static inline std::vector<std::vector<GCData>> queues {};

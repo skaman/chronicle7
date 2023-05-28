@@ -7,7 +7,7 @@
 
 #include "Renderer/BaseFrameBuffer.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref FrameBufferI
 class VulkanFrameBuffer : public BaseFrameBuffer<VulkanFrameBuffer>, private NonCopyable<VulkanFrameBuffer> {

@@ -7,7 +7,7 @@
 
 #include "VulkanCommon.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 class VulkanEnums {
 public:

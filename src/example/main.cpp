@@ -8,7 +8,7 @@
 #include <Loaders/AssetLoader.h>
 #include <Platform/Platform.h>
 #include <Renderer/Renderer.h>
-#include <Storage/Storage.h>
+#include <Storage/StorageContext.h>
 #include <Utils/Camera.h>
 #include <Utils/Scene.h>
 
@@ -21,7 +21,7 @@ class ExampleApp {
 public:
     void init()
     {
-        Storage::init();
+        StorageContext::init();
         Platform::init();
         RenderContext::init();
 
@@ -68,6 +68,7 @@ public:
 
         RenderContext::deinit();
         Platform::deinit();
+        StorageContext::deinit();
     }
 
     void run()
@@ -77,6 +78,7 @@ public:
         // std::vector<CommandBufferId> commandBuffers(1);
 
         while (Platform::poll(delta)) {
+            StorageContext::poll();
             if (!RenderContext::beginFrame())
                 continue;
 
@@ -116,7 +118,7 @@ public:
             _ubo.view = _camera.view();
             _ubo.proj = _camera.projection();
 
-            RenderContext::descriptorSet()->setUniform<UniformBufferObject>("ubo"_hs, _ubo);
+            RenderContext::descriptorSet()->setUniform<internal::vulkan::UniformBufferObject>("ubo"_hs, _ubo);
 
             RenderContext::endRenderPass();
             RenderContext::endFrame();
@@ -198,7 +200,7 @@ private:
     SceneRef _scene;
     // MeshRef _mesh2;
 
-    UniformBufferObject _ubo {};
+    internal::vulkan::UniformBufferObject _ubo {};
 
     bool _isMovingCamera = false;
     Camera _camera;

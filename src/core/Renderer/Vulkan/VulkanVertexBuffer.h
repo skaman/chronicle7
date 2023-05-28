@@ -7,7 +7,7 @@
 
 #include "Renderer/BaseVertexBuffer.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref BaseVertexBuffer
 class VulkanVertexBuffer : public BaseVertexBuffer<VulkanVertexBuffer>, private NonCopyable<VulkanVertexBuffer> {

@@ -17,7 +17,7 @@
 
 using namespace entt::literals;
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 const std::vector<const char*> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 

@@ -47,6 +47,7 @@
 #include <glm/gtx/transform.hpp>
 
 // entt
+#define ENTT_USE_ATOMIC
 #include <entt/entt.hpp>
 
 // tiny gltf
@@ -60,6 +61,9 @@
 
 // stb
 #include <stb/stb_image.h>
+
+// efsw
+#include <efsw/include/efsw/efsw.hpp>
 
 // imgui
 #define IM_VEC2_CLASS_EXTRA                                                                                            \
@@ -98,6 +102,7 @@
 // std lib
 #include <bit>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -105,7 +110,6 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <filesystem>
 
 // logs
 
@@ -209,6 +213,9 @@ protected:
     // disallow copy assignment
     NonCopyable& operator=(const NonCopyable&) = delete;
 };
+
+// vector to strings
+std::string join(const std::vector<std::string>& data);
 
 } // namespace chronicle
 

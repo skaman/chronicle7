@@ -11,7 +11,7 @@
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross/spirv_cross.hpp>
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 struct ShaderCompilerOptions {
     std::string filename {};

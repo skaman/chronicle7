@@ -7,7 +7,7 @@
 
 #include "Renderer/BaseShader.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref BaseShader
 class VulkanShader : public BaseShader<VulkanShader>, private NonCopyable<VulkanShader> {
@@ -17,7 +17,7 @@ protected:
 
 public:
     /// @brief Destructor.
-    ~VulkanShader();
+    ~VulkanShader() override;
 
     /// @brief @see BaseShader#descriptorSetLayouts
     [[nodiscard]] std::vector<DescriptorSetLayout> descriptorSetLayouts() const { return _descriptorSetsLayout; }
@@ -27,6 +27,9 @@ public:
 
     /// @brief @see BaseShader#entryPoint
     [[nodiscard]] const std::string& entryPoint(ShaderStage stage) const { return _entryPoints.at(stage); }
+
+    /// @brief @see BaseShader#reload
+    void reload();
 
     /// @brief Get the vulkan handle for the shader module.
     /// @param stage Shader stage.
@@ -50,6 +53,8 @@ private:
     std::unordered_map<ShaderStage, std::string> _entryPoints {}; ///< Shader entry points.
     std::vector<DescriptorSetLayout> _descriptorSetsLayout {}; ///< Descriptor sets layout.
     std::vector<ShaderStage> _stages {}; ///< Shader stages.
+
+    void cleanup();
 };
 
-} // namespace chronicle
+} // namespace chronicle::internal::vulkan

@@ -7,7 +7,7 @@
 
 #include "Renderer/BaseRenderPass.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref BaseRenderPass
 class VulkanRenderPass : public BaseRenderPass<VulkanRenderPass>, private NonCopyable<VulkanRenderPass> {

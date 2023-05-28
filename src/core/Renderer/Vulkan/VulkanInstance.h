@@ -7,7 +7,7 @@
 
 #include "VulkanCommon.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Handle all the base resources initialization required for vulkan renderer.
 class VulkanInstance {

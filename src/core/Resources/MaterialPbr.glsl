@@ -8,7 +8,7 @@ struct VertexOutput
     vec2 texCoord1;
     vec3 normal;
 };
-
+ 
 #pragma stage:vertex
 
 // inputs
@@ -65,7 +65,7 @@ layout(binding = 2, set = 1) uniform sampler2D metallicRoughnessSampler;
 #endif
 
 #ifdef HAS_NORMAL_TEXTURE
-layout(binding = 3, set = 1) uniform sampler2D normalSampler;
+layout(binding = 3, set = 1) uniform sampler2D normalSampler; 
 #endif
 
 #ifdef HAS_OCCLUSION_TEXTURE
@@ -85,8 +85,18 @@ vec4 getBaseColor(vec2 texCoord)
 #endif
 }
 
+vec4 getNormal(vec2 texCoord)
+{
+#ifdef HAS_NORMAL_TEXTURE
+    return texture(normalSampler, texCoord);
+#else
+    return vec4(1.0f);
+#endif
+}
+
 void main() {
     float roughnessFactor = materialUbo.roughnessFactor[0];
+    //float test = getNormal(vertexInput.texCoord0);
     //outColor = vec4(vertexInput.texCoord0, 1.0f, 1.0f);
     outColor = getBaseColor(vertexInput.texCoord0);// * materialUbo.alphaCutoff;
 }

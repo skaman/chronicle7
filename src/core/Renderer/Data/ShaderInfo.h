@@ -13,3 +13,15 @@ struct ShaderInfo {
 };
 
 } // namespace chronicle
+
+template <> struct std::hash<chronicle::ShaderInfo> {
+    std::size_t operator()(const chronicle::ShaderInfo& data) const noexcept
+    {
+        std::size_t h = 0;
+        std::hash_combine(h, data.filename);
+        for (const auto& macroDefinition : data.macroDefinitions) {
+            std::hash_combine(h, macroDefinition);
+        }
+        return h;
+    }
+};

@@ -3,11 +3,11 @@
 
 #include "VulkanShaderCompiler.h"
 
-#include "Storage/Storage.h"
+#include "Storage/StorageContext.h"
 #include "VulkanCommon.h"
 #include "VulkanShader.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 struct VulkanShaderFileInfo {
     std::string content;
@@ -18,14 +18,12 @@ public:
     shaderc_include_result* GetInclude(const char* requested_source, shaderc_include_type type,
         const char* requesting_source, size_t include_depth) override
     {
-        std::string filename
-            = type == shaderc_include_type_standard ? fmt::format(":/{}", requested_source) : requested_source;
-
-        if (!Storage::exists(filename))
+        if (!StorageContext::exists(requested_source))
             return makeErrorIncludeResult("Cannot find or open include file.");
 
         try {
-            auto content = Storage::readString(filename);
+            auto file = StorageContext::file(requested_source);
+            auto content = file.readAllText();
             auto info = new VulkanShaderFileInfo();
             info->content = std::move(content);
             return new shaderc_include_result { requested_source, std::strlen(requested_source), info->content.data(),
@@ -56,7 +54,8 @@ ShaderCompilerResult VulkanShaderCompiler::compile(const ShaderCompilerOptions& 
     if (!shaderLanguage)
         throw RendererError(fmt::format("Unsupport shader language for file {}.", options.filename));
 
-    auto sourceCode = Storage::readString(options.filename);
+    auto file = StorageContext::file(options.filename);
+    auto sourceCode = file.readAllText();
     assert(!sourceCode.empty());
 
     std::unordered_map<ShaderStage, std::vector<uint8_t>> codes;

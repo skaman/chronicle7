@@ -429,7 +429,7 @@ MeshRef AssetLoader::createMesh(const tinygltf::Model& gltfModel, const tinygltf
 
         // create pipeline
         ShaderInfo shaderInfo = {};
-        shaderInfo.filename = ":/MaterialPbr.glsl";
+        shaderInfo.filename = "Built-In/MaterialPbr.glsl";
         if (submesh.material->haveBaseColorTexture()) {
             shaderInfo.macroDefinitions.emplace_back("HAS_BASE_COLOR_TEXTURE");
             descriptorLayout.bindings[1] = DescriptorSetLayoutBinding { .binding = 1,

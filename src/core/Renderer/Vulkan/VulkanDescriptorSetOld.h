@@ -12,7 +12,7 @@
 #include "VulkanTexture.h"
 #include "VulkanUtils.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Binding data for uniform buffer.
 struct UniformStateBindingData {

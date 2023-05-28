@@ -7,7 +7,7 @@
 
 #include "Renderer/BaseCommandBuffer.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref BaseCommandBuffer
 class VulkanCommandBuffer : public BaseCommandBuffer<VulkanCommandBuffer>, private NonCopyable<VulkanCommandBuffer> {

@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief vkCreateDebugUtilsMessengerEXT.
 /// @param instance The instance the messenger will be used with.

@@ -7,7 +7,7 @@
 
 #include "Renderer/BaseTexture.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Vulkan implementation for @ref BaseTexture
 class VulkanTexture : public BaseTexture<VulkanTexture>, private NonCopyable<VulkanTexture> {

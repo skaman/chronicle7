@@ -5,9 +5,9 @@
 
 #include "pch.h"
 
-#include "Renderer/Renderer.h"
-#include "Loaders/AssetLoader.h"
 #include "Camera.h"
+#include "Loaders/AssetLoader.h"
+#include "Renderer/Renderer.h"
 
 namespace chronicle {
 
@@ -33,7 +33,7 @@ public:
 
 private:
     std::string _name = {};
-    //std::vector<CommandBufferRef> _commandBuffers = {};
+    // std::vector<CommandBufferRef> _commandBuffers = {};
 
     Format _imageFormat = {};
     Format _depthFormat = {};
@@ -48,7 +48,7 @@ private:
     FrameBufferRef _frameBuffer = {};
 
     MeshRef _mesh = {};
-    UniformBufferObject _ubo {};
+    internal::vulkan::UniformBufferObject _ubo {};
     Camera _camera;
 };
 

@@ -8,6 +8,7 @@
 #include "Common/Common.h"
 #include "Data/DescriptorSetLayout.h"
 #include "Renderer/Data/ShaderInfo.h"
+#include "Storage/StorageContext.h"
 
 namespace chronicle {
 
@@ -31,10 +32,40 @@ public:
     /// @return Entry point.
     [[nodiscard]] const std::string& entryPoint(ShaderStage stage) const { return CRTP_CONST_THIS->entryPoint(stage); }
 
-    [[nodiscard]] static ShaderRef create(const ShaderInfo& shaderInfo) { return T::create(shaderInfo); }
+    [[nodiscard]] static ShaderRef create(const ShaderInfo& shaderInfo)
+    {
+        auto hash = std::hash<ShaderInfo>()(shaderInfo);
+        if (auto shader = _cache[hash].lock()) {
+            return shader;
+        }
+        auto shader = T::create(shaderInfo);
+        _cache[hash] = shader;
+        return shader;
+    }
+
+protected:
+    void reload() { return CRTP_THIS->reload(); };
 
 private:
-    BaseShader() = default;
+    ShaderInfo _shaderInfo {};
+
+    explicit BaseShader(const ShaderInfo& shaderInfo)
+        : _shaderInfo(shaderInfo)
+    {
+        StorageContext::sink<FileChangeEvent>().connect<&BaseShader::onFileChanged>(this);
+    }
+
+    virtual ~BaseShader() { StorageContext::sink<FileChangeEvent>().disconnect<&BaseShader::onFileChanged>(this); }
+
+    void onFileChanged(const FileChangeEvent& evn)
+    {
+        if (evn.action != FileChangeAction::deleted && evn.filename == _shaderInfo.filename) {
+            reload();
+        }
+    }
+
+    static inline std::unordered_map<size_t, std::weak_ptr<Shader>> _cache = {};
+
     friend T;
 };
 

@@ -3,7 +3,7 @@
 
 #include "VulkanPipeline.h"
 
-#include "Storage/Storage.h"
+#include "Storage/StorageContext.h"
 
 #include "VulkanEnums.h"
 #include "VulkanGC.h"
@@ -12,7 +12,7 @@
 #include "VulkanShader.h"
 #include "VulkanUtils.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 CHR_CONCRETE(VulkanPipeline);
 

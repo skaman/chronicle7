@@ -7,13 +7,13 @@
 
 #include <Platform/Platform.h>
 #include <Renderer/Renderer.h>
-#include <Storage/Storage.h>
+#include <Storage/StorageContext.h>
 
 namespace chronicle::editor {
 
 MainWindow::MainWindow()
 {
-    Storage::init();
+    StorageContext::init();
     Platform::init();
     RenderContext::init();
 
@@ -26,6 +26,7 @@ MainWindow::~MainWindow()
 
     RenderContext::deinit();
     Platform::deinit();
+    StorageContext::deinit();
 }
 
 void MainWindow::run()
@@ -63,10 +64,10 @@ void MainWindow::run()
 
 void MainWindow::registerResources()
 {
-    Storage::registerFileData("WindowClose.png", WindowClose_png, WindowClose_png_len);
-    Storage::registerFileData("WindowRestore.png", WindowRestore_png, WindowRestore_png_len);
-    Storage::registerFileData("WindowMaximize.png", WindowMaximize_png, WindowMaximize_png_len);
-    Storage::registerFileData("WindowMinimize.png", WindowMinimize_png, WindowMinimize_png_len);
+    //Storage::registerFileData("WindowClose.png", WindowClose_png, WindowClose_png_len);
+    //Storage::registerFileData("WindowRestore.png", WindowRestore_png, WindowRestore_png_len);
+    //Storage::registerFileData("WindowMaximize.png", WindowMaximize_png, WindowMaximize_png_len);
+    //Storage::registerFileData("WindowMinimize.png", WindowMinimize_png, WindowMinimize_png_len);
 }
 
 } // namespace chronicle::editor

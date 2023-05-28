@@ -4,7 +4,7 @@
 #include "VulkanImGui.h"
 
 #include "Platform/Platform.h"
-#include "Storage/Storage.h"
+#include "Storage/StorageContext.h"
 #include "VulkanCommandBuffer.h"
 #include "VulkanCommon.h"
 #include "VulkanRenderPass.h"
@@ -17,7 +17,7 @@
 
 #include <backends/imgui_impl_vulkan.h>
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief ImGui callback for check the vulkan result
 /// @param err Vulkan result
@@ -68,7 +68,8 @@ void VulkanImGui::init()
     style.ScaleAllSizes(scaling);
 
     // setup the font
-    auto fontData = Storage::readBytes(":/bfont.ttf");
+    auto fontFile = StorageContext::file("Built-In/bfont.ttf");
+    auto fontData = fontFile.readAllBytes();
     ImFontConfig font_cfg;
     font_cfg.SizePixels = 11.0f * scaling;
     io.Fonts->AddFontFromMemoryTTF((void*)(fontData.data()), static_cast<int>(fontData.size()), 11.0f * scaling);

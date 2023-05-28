@@ -13,13 +13,13 @@ struct PipelineLoaderContext {
 
 PipelineRef PipelineLoader::load(const PipelineInfo& pipelineInfo, const char* debugName)
 {
-    auto hash = std::hash<PipelineInfo>()(pipelineInfo);
-    if (auto pipeline = PipelineLoaderContext::cache[hash].lock()) {
-        return pipeline;
-    }
+    //auto hash = std::hash<PipelineInfo>()(pipelineInfo);
+    //if (auto pipeline = PipelineLoaderContext::cache[hash].lock()) {
+    //    return pipeline;
+    //}
 
     auto pipeline = Pipeline::create(pipelineInfo, debugName);
-    PipelineLoaderContext::cache[hash] = pipeline;
+    //PipelineLoaderContext::cache[hash] = pipeline;
     return pipeline;
 }
 

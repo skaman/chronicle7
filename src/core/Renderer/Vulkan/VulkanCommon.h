@@ -8,7 +8,7 @@
 #include "Renderer/Common/Common.h"
 #include "Renderer/Common/RendererError.h"
 
-namespace chronicle {
+namespace chronicle::internal::vulkan {
 
 /// @brief Data structure for find queue families.
 struct VulkanQueueFamilyIndices {

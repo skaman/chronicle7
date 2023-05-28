@@ -57,6 +57,7 @@ target_compile_definitions(chronicle-core
     PUBLIC
         RENDERER=VULKAN
         PLATFORM=GLFW
+        RESOURCES_DEBUG_PATH="${CMAKE_CURRENT_SOURCE_DIR}"
     PRIVATE
         $<$<CONFIG:Debug>:VULKAN_ENABLE_DEBUG_MARKER>
 )
@@ -77,13 +78,13 @@ target_precompile_headers(chronicle-core
         "pch.h"
 )
 
-embed_asset(chronicle-core
-    SOURCES
-        "bfont.ttf"
-        "Shaders/test.hlslh"
-        "Shaders/MaterialPbr.hlsl"
-        "Shaders/MaterialPbr.glsl"
-)
+#embed_asset(chronicle-core
+#    SOURCES
+#        "bfont.ttf"
+#        "Shaders/test.hlslh"
+#        "Shaders/MaterialPbr.hlsl"
+#        "Shaders/MaterialPbr.glsl"
+#)
 
 if(WIN32)
     target_compile_definitions(chronicle-core PUBLIC CHRPLATFORM_WINDOWS)
@@ -116,6 +117,6 @@ target_link_libraries(chronicle-core
         tinygltf
         tinyobjloader
         Tracy::TracyClient
-        spirv-reflect-static
         magic_enum::magic_enum
+        efsw
 )

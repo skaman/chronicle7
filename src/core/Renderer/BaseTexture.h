@@ -7,7 +7,7 @@
 
 #include "Common/Common.h"
 #include "Common/RendererError.h"
-#include "Storage/Storage.h"
+#include "Storage/StorageContext.h"
 #include "Data/TextureInfo.h"
 
 namespace chronicle {
@@ -62,7 +62,7 @@ public:
 
         // TODO: need a lot of performance improvements
 
-        auto data = Storage::readBytes(filename);
+        auto data = StorageContext::readBytes(filename);
 
         stbi_uc* pixels = stbi_load_from_memory(
             data.data(), static_cast<int>(data.size()), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
