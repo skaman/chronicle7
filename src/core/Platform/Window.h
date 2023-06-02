@@ -4,14 +4,14 @@
 #pragma once
 
 #ifdef CHR_PLATFORM_WIN32
-#include "Win32/Win32Platform.h"
+#include "Win32/Win32Window.h"
 #endif // CHR_PLATFORM_WIN32
 
 namespace chronicle::platform
 {
 
 #ifdef CHR_PLATFORM_WIN32
-using Platform = IPlatform<internal::win32::Win32Platform>;
+using Window = IWindow<internal::win32::Win32Window>;
 #endif // CHR_PLATFORM_WIN32
 
-} // namespace chronicle
+}

@@ -1,8 +1,7 @@
 # http://clang-format-configurator.site/
 
 ---
-BasedOnStyle: WebKit
+BasedOnStyle: Microsoft
 ColumnLimit: 120
-FixNamespaceComments: true
 
 ...

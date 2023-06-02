@@ -31,3 +31,9 @@
 [submodule "vendor/efsw"]
 	path = vendor/efsw
 	url = https://github.com/SpartanJ/efsw.git
+[submodule "vendor/concurrentqueue"]
+	path = vendor/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git
+[submodule "vendor/readerwriterqueue"]
+	path = vendor/readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue.git

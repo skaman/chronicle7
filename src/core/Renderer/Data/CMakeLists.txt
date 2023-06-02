@@ -1,9 +1,0 @@
-target_sources(chronicle-core
-PRIVATE
-    "DescriptorSetLayout.h"
-    "FrameBufferInfo.h"
-    "PipelineInfo.h"
-    "RenderPassInfo.h"
-    "TextureInfo.h"
-    "VertexBufferInfo.h"
-)

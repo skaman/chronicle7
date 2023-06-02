@@ -9,10 +9,10 @@ target_include_directories(chronicle-example
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_precompile_headers(chronicle-example
-  PUBLIC
-    "pch.h"
-)
+#target_precompile_headers(chronicle-example
+#  PUBLIC
+#    "pch.h"
+#)
 
 target_link_libraries(chronicle-example
     PUBLIC

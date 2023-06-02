@@ -1,7 +1,9 @@
-add_subdirectory(GLFW)
+add_subdirectory(Interfaces)
+add_subdirectory(Win32)
 
 target_sources(chronicle-core
 PRIVATE
+    
     "Platform.h"
-    "PlatformI.h"
+    "Window.h"
 )

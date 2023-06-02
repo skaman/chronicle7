@@ -36,3 +36,9 @@ add_subdirectory(tracy)
 
 # Add Entropia File System Watcher
 add_subdirectory(efsw)
+
+# Concurrent Queue
+add_subdirectory(concurrentqueue)
+
+# Single Reader Single Writer Queue
+add_subdirectory(readerwriterqueue)

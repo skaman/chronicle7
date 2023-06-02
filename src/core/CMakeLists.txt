@@ -1,44 +1,16 @@
-find_package(Vulkan REQUIRED COMPONENTS glslc shaderc_combined SPIRV-Tools)
-find_package(Python REQUIRED COMPONENTS Interpreter)
-
-#find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
-
-function(embed_asset target)
-    cmake_parse_arguments(PARSE_ARGV 1 arg "" "" "SOURCES")
-    foreach(source ${arg_SOURCES})
-        # Get short filename
-        string(REGEX MATCH "([^/]+)$" filename ${source})
-        # Replace filename spaces & extension separator for C compatibility
-        string(REGEX REPLACE "\\.| |-" "_" filename ${filename})
-
-        set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/foo.cc PROPERTIES GENERATED 1)
-        add_custom_command(
-            OUTPUT ${filename}.cc
-            DEPENDS ${source}
-            COMMAND
-                ${Python_EXECUTABLE}
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../embed_file.py"
-                ${filename}
-                "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
-            COMMENT "Embedding asset ${source}"
-        )
-        target_sources(${target} PRIVATE "${filename}.cc")
-    endforeach()
-endfunction()
+find_package(Vulkan REQUIRED COMPONENTS shaderc_combined SPIRV-Tools)
 
 add_library(chronicle-core "")
 
-add_subdirectory(Assets)
-add_subdirectory(Loaders)
+add_subdirectory(Common)
+add_subdirectory(Graphics)
 add_subdirectory(Platform)
-add_subdirectory(Renderer)
-add_subdirectory(Storage)
-add_subdirectory(Utils)
 
 target_sources(chronicle-core
 PRIVATE
-    "pch.cpp"
-
+    "Chronicle.cpp"
+    "Chronicle.h"
+    
     # IMGUI
     "../../vendor/imgui/imgui.cpp"
     "../../vendor/imgui/imgui_demo.cpp"
@@ -55,9 +27,7 @@ set_property(TARGET chronicle-core PROPERTY CXX_STANDARD 20)
 
 target_compile_definitions(chronicle-core
     PUBLIC
-        RENDERER=VULKAN
-        PLATFORM=GLFW
-        RESOURCES_DEBUG_PATH="${CMAKE_CURRENT_SOURCE_DIR}"
+        CHR_GRAPHICS_VULKAN
     PRIVATE
         $<$<CONFIG:Debug>:VULKAN_ENABLE_DEBUG_MARKER>
 )
@@ -75,8 +45,22 @@ target_include_directories(chronicle-core
 
 target_precompile_headers(chronicle-core
     PUBLIC
-        "pch.h"
+        "Common/Common.h"
+
+        <string>
+        <memory>
+        <stdexcept>
+        <algorithm>
+        <vector>
+        <unordered_map>
+        <vulkan/vulkan.hpp>
+        <spdlog/spdlog.h>
 )
+
+#target_precompile_headers(chronicle-core
+#    PUBLIC
+#        "pch.h"
+#)
 
 #embed_asset(chronicle-core
 #    SOURCES
@@ -87,11 +71,11 @@ target_precompile_headers(chronicle-core
 #)
 
 if(WIN32)
-    target_compile_definitions(chronicle-core PUBLIC CHRPLATFORM_WINDOWS)
+    target_compile_definitions(chronicle-core PUBLIC CHR_PLATFORM_WIN32 VK_USE_PLATFORM_WIN32_KHR )
 elseif(APPLE)
-    target_compile_definitions(chronicle-core PUBLIC CHRPLATFORM_MACOS)
+    target_compile_definitions(chronicle-core PUBLIC CHR_PLATFORM_MACOS)
 elseif(UNIX)
-    target_compile_definitions(chronicle-core PUBLIC CHRPLATFORM_LINUX)
+    target_compile_definitions(chronicle-core PUBLIC CHR_PLATFORM_LINUX)
 endif()
 
 # Add SPIRV-Cross from local vulkan SDK
