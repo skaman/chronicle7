@@ -20,8 +20,6 @@ class Win32Window : public IWindow<Win32Window>, private NonCopyable<Win32Window
     ~Win32Window();
 
   public:
-    static std::shared_ptr<Win32Window> create(const WindowCreateInfo &createInfo);
-
     void publishEvents()
     {
         _dispatcher.update();
@@ -31,6 +29,13 @@ class Win32Window : public IWindow<Win32Window>, private NonCopyable<Win32Window
     {
         return _dispatcher.template sink<Type>();
     }
+
+    void *hwnd() const
+    {
+        return _hwnd;
+    }
+
+    static std::shared_ptr<Win32Window> create(const WindowCreateInfo &createInfo);
 
   private:
     HWND _hwnd{};

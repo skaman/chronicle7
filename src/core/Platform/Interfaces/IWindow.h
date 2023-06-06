@@ -32,6 +32,11 @@ template <class T> class IWindow
         return CRTP_THIS->template sink<Type>();
     }
 
+    void *hwnd() const
+    {
+        return CRTP_CONST_THIS->hwnd();
+    }
+
     static std::shared_ptr<IWindow> create(const WindowCreateInfo &createInfo)
     {
         return T::create(createInfo);

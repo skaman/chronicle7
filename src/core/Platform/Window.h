@@ -14,4 +14,4 @@ namespace chronicle::platform
 using Window = IWindow<internal::win32::Win32Window>;
 #endif // CHR_PLATFORM_WIN32
 
-}
+} // namespace chronicle::platform

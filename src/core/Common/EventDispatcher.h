@@ -283,7 +283,11 @@ template <typename THandlerProxy> class BasicDispatcher
 
 /// @brief Dispatcher for single producer, single consumer events.
 using DispatcherReaderWriter = BasicDispatcher<DispatcherHandlerProxyReaderWriter>;
+
+/// @brief Dispatcher for concurrent events.
 using DispatcherConcurrent = BasicDispatcher<DispatcherHandlerProxyConcurrent>;
+
+/// @brief Dispatcher for single thread events.
 using Dispatcher = BasicDispatcher<DispatcherHandlerProxyVector>;
 
 } // namespace chronicle

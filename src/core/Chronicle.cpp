@@ -7,15 +7,23 @@
 #include "Graphics/System.h"
 #include "Platform/Platform.h"
 
+using namespace magic_enum::bitwise_operators;
+
 namespace chronicle
 {
 
 void Chronicle::init()
 {
-    CHRLOG_INFO("{}", 12);
-
     platform::Platform::init();
     graphics::System::init({.enableDebug = true});
+
+    auto device = graphics::System::requestDevice({.hwnd = platform::Platform::defaultWindow().hwnd()});
+    auto commandBuffer = device->createCommandEncoder();
+    auto buffer = device->createBuffer(
+        {.bufferUsage = graphics::BufferUsageFlags::eMapWrite | graphics::BufferUsageFlags::eCopySrc, .size = 1024});
+    auto buffer2 = device->createBuffer(
+        {.bufferUsage = graphics::BufferUsageFlags::eCopyDst | graphics::BufferUsageFlags::eIndex, .size = 1024});
+
     platform::Platform::defaultWindow().sink<platform::WindowCloseEvent>().connect<&Chronicle::onWindowClose>();
 }
 

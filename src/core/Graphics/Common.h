@@ -8,6 +8,19 @@
 namespace chronicle::graphics
 {
 
+/// @brief Informations used to initialize the graphic system.
+struct SystemInitInfo
+{
+    std::string applicationName{"Chronicle"}; /// Application name.
+    bool enableDebug{};                       /// Enable graphic debug informations.
+};
+
+/// @brief Informations used to request a graphic device.
+struct RequestDeviceInfo
+{
+    void *hwnd{}; /// Window handler that the device should need to be compatible to.
+};
+
 class GraphicsError : public std::runtime_error
 {
   public:
@@ -18,4 +31,4 @@ class GraphicsError : public std::runtime_error
     }
 };
 
-} // namespace chronicle::platform
+} // namespace chronicle::graphics

@@ -14,4 +14,4 @@ namespace chronicle::platform
 using Platform = IPlatform<internal::win32::Win32Platform>;
 #endif // CHR_PLATFORM_WIN32
 
-} // namespace chronicle
+} // namespace chronicle::platform
