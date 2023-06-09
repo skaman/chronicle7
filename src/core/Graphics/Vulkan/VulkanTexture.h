@@ -18,6 +18,9 @@ class VulkanTexture final : public Texture, private NonCopyable<VulkanTexture>
     explicit VulkanTexture(std::shared_ptr<VulkanDevice> device, const TextureCreateInfo &textureCreateInfo);
     ~VulkanTexture() override;
 
+    [[nodiscard]] std::shared_ptr<TextureView> createTextureView(
+        const TextureViewCreateInfo &textureViewCreateInfo) const override;
+
     std::string_view name() const override
     {
         return _name;

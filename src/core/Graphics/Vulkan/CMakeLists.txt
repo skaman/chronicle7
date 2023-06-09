@@ -7,6 +7,8 @@ PRIVATE
     "VulkanCommon.h"
     "VulkanDevice.cpp"
     "VulkanDevice.h"
+    "VulkanSampler.cpp"
+    "VulkanSampler.h"
     "VulkanSystem.cpp"
     "VulkanSystem.h"
     "VulkanTexture.cpp"

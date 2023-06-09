@@ -5,6 +5,7 @@
 
 #include "VulkanCommon.h"
 #include "VulkanDevice.h"
+#include "VulkanTextureView.h"
 
 #include <magic_enum_flags.hpp>
 
@@ -60,6 +61,11 @@ VulkanTexture::~VulkanTexture()
     auto logcalDevice = _device->vulkanLogicalDevice();
     logcalDevice.destroyImage(_vulkanImage);
     logcalDevice.freeMemory(_vulkanMemory);
+}
+
+std::shared_ptr<TextureView> VulkanTexture::createTextureView(const TextureViewCreateInfo &textureViewCreateInfo) const
+{
+    return std::make_shared<VulkanTextureView>(_device, _vulkanImage, textureViewCreateInfo);
 }
 
 } // namespace chronicle::graphics::internal::vulkan

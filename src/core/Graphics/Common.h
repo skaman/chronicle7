@@ -10,7 +10,7 @@
 namespace chronicle::graphics
 {
 
-enum class TextureFormat
+enum class TextureFormat : uint32_t
 {
     // 8-bit formats
     eR8Unorm,
@@ -124,7 +124,7 @@ enum class TextureFormat
     eAstc12x12SrgbBlock,
 };
 
-enum class TextureViewDimension
+enum class TextureViewDimension : uint32_t
 {
     /// @brief The texture is viewed as a 1-dimensional image.
     e1D,
@@ -136,7 +136,7 @@ enum class TextureViewDimension
     e3D,
 };
 
-enum class TextureUsageFlags : std::uint32_t
+enum class TextureUsageFlags : uint32_t
 {
     eCopySrc = 1 << 2,
     eCopyDst = 1 << 3,
@@ -146,7 +146,7 @@ enum class TextureUsageFlags : std::uint32_t
     eDepthAttachment = 1 << 7
 };
 
-enum class TextureSampleCount
+enum class TextureSampleCount : uint32_t
 {
     e1,
     e2,
@@ -157,12 +157,43 @@ enum class TextureSampleCount
     e64
 };
 
-enum class TextureAspect
+enum class TextureAspect : uint32_t
 {
     eColor,
     eStencilOnly,
     eDepthOnly,
     eDepthAndStencil
+};
+
+enum class AddressMode : uint32_t
+{
+    eClampToEdge,
+    eRepeat,
+    eMirrorRepeat
+};
+
+enum class FilterMode : uint32_t
+{
+    eNearest,
+    eLinear
+};
+
+enum class MipmapFilterMode : uint32_t
+{
+    eNearest,
+    eLinear
+};
+
+enum class CompareFunction : uint32_t
+{
+    eNever,
+    eLess,
+    eEqual,
+    eLessEqual,
+    eGreater,
+    eNotEqual,
+    eGreaterEqual,
+    eAlways
 };
 
 /// @brief Informations used to initialize the graphic system.

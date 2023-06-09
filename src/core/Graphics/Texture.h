@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common.h"
+#include "TextureView.h"
 
 namespace chronicle::graphics
 {
@@ -28,6 +29,9 @@ class Texture
 {
   public:
     virtual ~Texture() = default;
+
+    virtual [[nodiscard]] std::shared_ptr<TextureView> createTextureView(
+        const TextureViewCreateInfo &textureViewCreateInfo) const = 0;
 
     virtual std::string_view name() const = 0;
     virtual uint32_t width() const = 0;

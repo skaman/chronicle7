@@ -235,4 +235,78 @@ inline vk::ImageAspectFlags convertAspect(TextureAspect aspect)
     return vk::ImageAspectFlagBits::eColor;
 }
 
+inline vk::SamplerAddressMode convertSamplerAddressMode(AddressMode addressMode)
+{
+    switch (addressMode)
+    {
+    case AddressMode::eClampToEdge:
+        return vk::SamplerAddressMode::eClampToEdge;
+    case AddressMode::eRepeat:
+        return vk::SamplerAddressMode::eRepeat;
+    case AddressMode::eMirrorRepeat:
+        return vk::SamplerAddressMode::eMirroredRepeat;
+    }
+
+    CHRLOG_ERROR("Unsupported address mode: {}", magic_enum::enum_name(addressMode));
+
+    return vk::SamplerAddressMode::eClampToEdge;
+}
+
+inline vk::Filter convertFilter(FilterMode filterMode)
+{
+    switch (filterMode)
+    {
+    case FilterMode::eNearest:
+        return vk::Filter::eNearest;
+    case FilterMode::eLinear:
+        return vk::Filter::eLinear;
+    }
+
+    CHRLOG_ERROR("Unsupported filter mode: {}", magic_enum::enum_name(filterMode));
+
+    return vk::Filter::eNearest;
+}
+
+inline vk::SamplerMipmapMode convertSamplerMipmap(MipmapFilterMode mipmapFilterMode)
+{
+    switch (mipmapFilterMode)
+    {
+    case MipmapFilterMode::eNearest:
+        return vk::SamplerMipmapMode::eNearest;
+    case MipmapFilterMode::eLinear:
+        return vk::SamplerMipmapMode::eLinear;
+    }
+
+    CHRLOG_ERROR("Unsupported mipmap filter mode: {}", magic_enum::enum_name(mipmapFilterMode));
+
+    return vk::SamplerMipmapMode::eNearest;
+}
+
+inline vk::CompareOp converCompareOp(CompareFunction compareFunction)
+{
+    switch (compareFunction)
+    {
+    case CompareFunction::eNever:
+        return vk::CompareOp::eNever;
+    case CompareFunction::eLess:
+        return vk::CompareOp::eLess;
+    case CompareFunction::eEqual:
+        return vk::CompareOp::eEqual;
+    case CompareFunction::eLessEqual:
+        return vk::CompareOp::eLessOrEqual;
+    case CompareFunction::eGreater:
+        return vk::CompareOp::eGreater;
+    case CompareFunction::eNotEqual:
+        return vk::CompareOp::eNotEqual;
+    case CompareFunction::eGreaterEqual:
+        return vk::CompareOp::eGreaterOrEqual;
+    case CompareFunction::eAlways:
+        return vk::CompareOp::eAlways;
+    }
+
+    CHRLOG_ERROR("Unsupported compare function: {}", magic_enum::enum_name(compareFunction));
+
+    return vk::CompareOp::eNever;
+}
+
 } // namespace chronicle::graphics::internal::vulkan

@@ -6,6 +6,7 @@ PRIVATE
     "CommandEncoder.h"
     "Common.h"
     "Device.h"
+    "Sampler.h"
     "System.h"
     "Texture.h"
     "TextureView.h"

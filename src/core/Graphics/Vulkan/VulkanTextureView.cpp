@@ -24,6 +24,10 @@ VulkanTextureView::VulkanTextureView(std::shared_ptr<VulkanDevice> device, vk::I
     vk::ImageViewCreateInfo viewInfo({}, image, convertImageViewType(_dimension), convertFormat(_format), {},
                                      subresourceRange);
     _vulkanImageView = _device->vulkanLogicalDevice().createImageView(viewInfo);
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    device->setDebugObjectName(vk::ObjectType::eImageView, (uint64_t)(VkImageView)_vulkanImageView, _name);
+#endif
 }
 
 VulkanTextureView::~VulkanTextureView()

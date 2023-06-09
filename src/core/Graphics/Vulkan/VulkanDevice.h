@@ -22,6 +22,7 @@ class VulkanDevice final : public Device, private NonCopyable<VulkanDevice>
     [[nodiscard]] std::shared_ptr<CommandEncoder> createCommandEncoder(
         const CommandEncoderCreateInfo &commandEncoderCreateInfo) const override;
     [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferCreateInfo &bufferCreateInfo) const override;
+    [[nodiscard]] std::shared_ptr<Sampler> createSampler(const SamplerCreateInfo &samplerCreateInfo) const override;
 
     void setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const std::string &name) const;
 

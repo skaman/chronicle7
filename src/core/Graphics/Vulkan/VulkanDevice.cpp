@@ -5,6 +5,7 @@
 
 #include "VulkanBuffer.h"
 #include "VulkanCommandEncoder.h"
+#include "VulkanSampler.h"
 #include "VulkanSystem.h"
 
 namespace chronicle::graphics::internal::vulkan
@@ -68,6 +69,11 @@ std::shared_ptr<CommandEncoder> VulkanDevice::createCommandEncoder(
 std::shared_ptr<Buffer> VulkanDevice::createBuffer(const BufferCreateInfo &bufferCreateInfo) const
 {
     return std::make_shared<VulkanBuffer>(_thisWeakPtr.lock(), bufferCreateInfo);
+}
+
+std::shared_ptr<Sampler> VulkanDevice::createSampler(const SamplerCreateInfo &samplerCreateInfo) const
+{
+    return std::make_shared<VulkanSampler>(_thisWeakPtr.lock(), samplerCreateInfo);
 }
 
 void VulkanDevice::setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const std::string &name) const
