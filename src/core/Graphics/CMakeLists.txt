@@ -7,4 +7,6 @@ PRIVATE
     "Common.h"
     "Device.h"
     "System.h"
+    "Texture.h"
+    "TextureView.h"
 )

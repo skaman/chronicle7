@@ -63,7 +63,7 @@ VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, const BufferCre
     // allocate memory
     vk::MemoryAllocateInfo allocInfo = {};
     allocInfo.setAllocationSize(memRequirements.size);
-    allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits, memoryProperties));
+    allocInfo.setMemoryTypeIndex(_device->findMemoryType(memRequirements.memoryTypeBits, memoryProperties));
     _memory = _device->vulkanLogicalDevice().allocateMemory(allocInfo);
 
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
@@ -90,23 +90,6 @@ VulkanBuffer::~VulkanBuffer()
 
     _device->vulkanLogicalDevice().destroyBuffer(_buffer);
     _device->vulkanLogicalDevice().freeMemory(_memory);
-}
-
-uint32_t VulkanBuffer::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const
-{
-    // get memory properties
-    auto memProperties = _device->vulkanPhysicalDevice().getMemoryProperties();
-
-    // get the first memory location with compatible flags
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-    {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-        {
-            return i;
-        }
-    }
-
-    throw GraphicsError("Failed to find suitable memory type");
 }
 
 } // namespace chronicle::graphics::internal::vulkan

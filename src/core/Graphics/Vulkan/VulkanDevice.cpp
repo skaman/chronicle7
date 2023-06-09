@@ -86,4 +86,21 @@ void VulkanDevice::setDebugObjectName(vk::ObjectType objectType, uint64_t handle
     setDebugUtilsObjectNameEXT(VulkanSystem::vulkanInstance(), _logicalDevice, &objectNameInfo);
 }
 
+uint32_t VulkanDevice::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const
+{
+    // get memory properties
+    auto memProperties = _physicalDevice.getMemoryProperties();
+
+    // get the first memory location with compatible flags
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    throw GraphicsError("Failed to find suitable memory type");
+}
+
 } // namespace chronicle::graphics::internal::vulkan

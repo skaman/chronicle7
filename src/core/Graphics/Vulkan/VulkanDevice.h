@@ -25,27 +25,29 @@ class VulkanDevice final : public Device, private NonCopyable<VulkanDevice>
 
     void setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const std::string &name) const;
 
-    vk::PhysicalDevice vulkanPhysicalDevice() const
+    uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
+
+    [[nodiscard]] vk::PhysicalDevice vulkanPhysicalDevice() const
     {
         return _physicalDevice;
     }
 
-    vk::Device vulkanLogicalDevice() const
+    [[nodiscard]] vk::Device vulkanLogicalDevice() const
     {
         return _logicalDevice;
     }
 
-    vk::CommandPool vulkanCommandPool() const
+    [[nodiscard]] vk::CommandPool vulkanCommandPool() const
     {
         return _commandPool;
     }
 
-    vk::Queue vulkanGraphicsQueue() const
+    [[nodiscard]] vk::Queue vulkanGraphicsQueue() const
     {
         return _graphicsQueue;
     }
 
-    vk::Queue vulkanPresentQueue() const
+    [[nodiscard]] vk::Queue vulkanPresentQueue() const
     {
         return _presentQueue;
     }

@@ -4,10 +4,13 @@ PRIVATE
     "VulkanBuffer.h"
     "VulkanCommandEncoder.cpp"
     "VulkanCommandEncoder.h"
-    
-    
+    "VulkanCommon.h"
     "VulkanDevice.cpp"
     "VulkanDevice.h"
     "VulkanSystem.cpp"
     "VulkanSystem.h"
+    "VulkanTexture.cpp"
+    "VulkanTexture.h"
+    "VulkanTextureView.cpp"
+    "VulkanTextureView.h"
 )

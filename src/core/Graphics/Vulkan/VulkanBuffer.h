@@ -13,15 +13,20 @@ namespace chronicle::graphics::internal::vulkan
 
 class VulkanDevice;
 
-class VulkanBuffer : public Buffer, private NonCopyable<VulkanBuffer>
+class VulkanBuffer final : public Buffer, private NonCopyable<VulkanBuffer>
 {
   public:
     explicit VulkanBuffer(std::shared_ptr<VulkanDevice> device, const BufferCreateInfo &bufferCreateInfo);
-    ~VulkanBuffer();
+    ~VulkanBuffer() override;
 
     [[nodiscard]] std::span<uint8_t> data() const override
     {
         return _memoryMap;
+    }
+
+    [[nodiscard]] vk::Buffer vulkanBuffer() const
+    {
+        return _buffer;
     }
 
   private:
@@ -31,8 +36,6 @@ class VulkanBuffer : public Buffer, private NonCopyable<VulkanBuffer>
     vk::Buffer _buffer{};
     vk::DeviceMemory _memory{};
     std::span<uint8_t> _memoryMap{};
-
-    uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 };
 
 } // namespace chronicle::graphics::internal::vulkan

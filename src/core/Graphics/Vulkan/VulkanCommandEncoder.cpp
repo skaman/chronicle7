@@ -30,14 +30,9 @@ void VulkanCommandEncoder::copyBufferToBuffer(const std::shared_ptr<Buffer> &sou
                                               const std::shared_ptr<Buffer> &destination, uint64_t destinationOffset,
                                               uint64_t size)
 {
+    vk::BufferCopy copyRegion(sourceOffset, destinationOffset, size);
+    _commandBuffer.copyBuffer(static_cast<VulkanBuffer *>(source.get())->vulkanBuffer(),
+                              static_cast<VulkanBuffer *>(destination.get())->vulkanBuffer(), copyRegion);
 }
-
-/// void VulkanCommandEncoder::copyBufferToBuffer(const std::shared_ptr<IBuffer> &source, uint64_t sourceOffset,
-///                                               const std::shared_ptr<IBuffer> &destination, uint64_t
-///                                               destinationOffset, uint64_t size)
-///{
-///     vk::BufferCopy copyRegion(sourceOffset, destinationOffset, size);
-///     //_commandBuffer.copyBuffer(source-, destination, copyRegion);
-/// }
 
 } // namespace chronicle::graphics::internal::vulkan
