@@ -136,6 +136,18 @@ enum class TextureViewDimension : uint32_t
     e3D,
 };
 
+enum class TextureDimension : uint32_t
+{
+    /// @brief The texture is viewed as a 1-dimensional image.
+    e1D,
+
+    /// @brief The texture is viewed as a 1-dimensional image.
+    e2D,
+
+    /// @brief The texture is viewed as a 3-dimensional image.
+    e3D,
+};
+
 enum class TextureUsageFlags : uint32_t
 {
     eCopySrc = 1 << 2,
@@ -196,6 +208,52 @@ enum class CompareFunction : uint32_t
     eAlways
 };
 
+enum class BufferUsageFlags : uint32_t
+{
+    eMapRead = 1 << 0,
+    eMapWrite = 1 << 1,
+    eCopySrc = 1 << 2,
+    eCopyDst = 1 << 3,
+    eIndex = 1 << 4,
+    eVertex = 1 << 5,
+    eUniform = 1 << 6
+};
+
+enum class ShaderStageFlags : uint32_t
+{
+    eVertex = 1 << 0,
+    eFragment = 1 << 1,
+    eCompute = 1 << 2
+};
+
+enum class BufferBindingType : uint32_t
+{
+    eUniform,
+    eStorage,
+    eReadOnlyStorage
+};
+
+enum class SamplerBindingType : uint32_t
+{
+    eFiltering,
+    eNonFiltering,
+    eComparision
+};
+
+enum class TextureSampleType : uint32_t
+{
+    eFloat,
+    eUnfilterableFloat,
+    eDepth,
+    eSint,
+    eUint
+};
+
+enum class StorageTextureAccess : uint32_t
+{
+    eWriteOnly
+};
+
 /// @brief Informations used to initialize the graphic system.
 struct SystemInitInfo
 {
@@ -222,6 +280,16 @@ class GraphicsError : public std::runtime_error
 } // namespace chronicle::graphics
 
 template <> struct magic_enum::customize::enum_range<chronicle::graphics::TextureUsageFlags>
+{
+    static constexpr bool is_flags = true;
+};
+
+template <> struct magic_enum::customize::enum_range<chronicle::graphics::BufferUsageFlags>
+{
+    static constexpr bool is_flags = true;
+};
+
+template <> struct magic_enum::customize::enum_range<chronicle::graphics::ShaderStageFlags>
 {
     static constexpr bool is_flags = true;
 };

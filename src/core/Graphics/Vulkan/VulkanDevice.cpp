@@ -22,7 +22,7 @@ VkResult setDebugUtilsObjectNameEXT(VkInstance instance, VkDevice device,
 }
 
 VulkanDevice::VulkanDevice(vk::PhysicalDevice physicalDevice, const VulkanQueueFamilyIndices &indices)
-    : _physicalDevice(physicalDevice)
+    : _vulkanPhysicalDevice(physicalDevice)
 {
     // prepare the device create info for every family
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
@@ -42,22 +42,34 @@ VulkanDevice::VulkanDevice(vk::PhysicalDevice physicalDevice, const VulkanQueueF
     auto layers = VulkanSystem::enabledLayers();
     auto extensions = VulkanSystem::enabledExtensions();
     vk::DeviceCreateInfo createInfo(vk::DeviceCreateFlags{}, queueCreateInfos, layers, extensions, &deviceFeatures);
-    _logicalDevice = _physicalDevice.createDevice(createInfo);
+    _vulkanLogicalDevice = _vulkanPhysicalDevice.createDevice(createInfo);
 
     // store queues
-    _graphicsQueue = _logicalDevice.getQueue(indices.graphicsFamily.value(), 0);
-    _presentQueue = _logicalDevice.getQueue(indices.presentFamily.value(), 0);
+    _vulkanGraphicsQueue = _vulkanLogicalDevice.getQueue(indices.graphicsFamily.value(), 0);
+    _vulkanPresentQueue = _vulkanLogicalDevice.getQueue(indices.presentFamily.value(), 0);
 
     // create the command pool
-    vk::CommandPoolCreateInfo poolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                       indices.graphicsFamily.value());
-    _commandPool = _logicalDevice.createCommandPool(poolInfo);
+    vk::CommandPoolCreateInfo commandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                                    indices.graphicsFamily.value());
+    _vulkanCommandPool = _vulkanLogicalDevice.createCommandPool(commandPoolCreateInfo);
+
+    // create the descriptor pool
+    std::array<vk::DescriptorPoolSize, 5> descriptorPoolSizes = {
+        vk::DescriptorPoolSize(vk::DescriptorType::eUniformBufferDynamic, 1000),
+        vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, 1000),
+        vk::DescriptorPoolSize(vk::DescriptorType::eSampler, 1000),
+        vk::DescriptorPoolSize(vk::DescriptorType::eSampledImage, 1000),
+        vk::DescriptorPoolSize(vk::DescriptorType::eStorageImage, 1000)};
+    vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo({}, static_cast<uint32_t>(1000 * descriptorPoolSizes.size()),
+                                                          descriptorPoolSizes);
+    _vulkanDescriptorPool = _vulkanLogicalDevice.createDescriptorPool(descriptorPoolCreateInfo, nullptr);
 }
 
 VulkanDevice::~VulkanDevice()
 {
-    _logicalDevice.destroyCommandPool(_commandPool);
-    _logicalDevice.destroy();
+    _vulkanLogicalDevice.destroyDescriptorPool(_vulkanDescriptorPool);
+    _vulkanLogicalDevice.destroyCommandPool(_vulkanCommandPool);
+    _vulkanLogicalDevice.destroy();
 }
 
 std::shared_ptr<CommandEncoder> VulkanDevice::createCommandEncoder(
@@ -66,14 +78,14 @@ std::shared_ptr<CommandEncoder> VulkanDevice::createCommandEncoder(
     return std::make_shared<VulkanCommandEncoder>(_thisWeakPtr.lock(), commandEncoderCreateInfo);
 }
 
-std::shared_ptr<Buffer> VulkanDevice::createBuffer(const BufferCreateInfo &bufferCreateInfo) const
+std::shared_ptr<Buffer> VulkanDevice::createBuffer(const BufferDescriptor &bufferDescriptor) const
 {
-    return std::make_shared<VulkanBuffer>(_thisWeakPtr.lock(), bufferCreateInfo);
+    return std::make_shared<VulkanBuffer>(_thisWeakPtr.lock(), bufferDescriptor);
 }
 
-std::shared_ptr<Sampler> VulkanDevice::createSampler(const SamplerCreateInfo &samplerCreateInfo) const
+std::shared_ptr<Sampler> VulkanDevice::createSampler(const SamplerDescriptor &samplerDescriptor) const
 {
-    return std::make_shared<VulkanSampler>(_thisWeakPtr.lock(), samplerCreateInfo);
+    return std::make_shared<VulkanSampler>(_thisWeakPtr.lock(), samplerDescriptor);
 }
 
 void VulkanDevice::setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const std::string &name) const
@@ -89,13 +101,13 @@ void VulkanDevice::setDebugObjectName(vk::ObjectType objectType, uint64_t handle
     objectNameInfo.pObjectName = name.c_str();
     objectNameInfo.pNext = nullptr;
 
-    setDebugUtilsObjectNameEXT(VulkanSystem::vulkanInstance(), _logicalDevice, &objectNameInfo);
+    setDebugUtilsObjectNameEXT(VulkanSystem::vulkanInstance(), _vulkanLogicalDevice, &objectNameInfo);
 }
 
 uint32_t VulkanDevice::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const
 {
     // get memory properties
-    auto memProperties = _physicalDevice.getMemoryProperties();
+    auto memProperties = _vulkanPhysicalDevice.getMemoryProperties();
 
     // get the first memory location with compatible flags
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)

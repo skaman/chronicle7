@@ -12,60 +12,80 @@
 namespace chronicle::graphics::internal::vulkan
 {
 
-VulkanTexture::VulkanTexture(std::shared_ptr<VulkanDevice> device, const TextureCreateInfo &textureCreateInfo)
-    : _device(device), _name(textureCreateInfo.name), _width(textureCreateInfo.width),
-      _height(textureCreateInfo.height), _depth(textureCreateInfo.depth), _arrayLayers(textureCreateInfo.arrayLayers),
-      _mipLevelCount(textureCreateInfo.mipLevelCount), _dimension(textureCreateInfo.dimension),
-      _format(textureCreateInfo.format), _usage(textureCreateInfo.usage), _sampleCount(textureCreateInfo.sampleCount)
+VulkanTexture::VulkanTexture(std::shared_ptr<VulkanDevice> device, const TextureDescriptor &textureDescriptor)
+    : Texture(textureDescriptor), _device(device)
 {
-    vk::Extent3D imageExtent(textureCreateInfo.width, textureCreateInfo.height, textureCreateInfo.depth);
+    // Create the texture.
+    try
+    {
+        vk::Extent3D imageExtent(descriptor().width, descriptor().height, descriptor().depth);
 
-    vk::ImageCreateInfo imageCreateInfo{};
-    imageCreateInfo.setImageType(convertImageType(textureCreateInfo.dimension));
-    imageCreateInfo.setExtent(imageExtent);
-    imageCreateInfo.setMipLevels(textureCreateInfo.mipLevelCount);
-    imageCreateInfo.setArrayLayers(textureCreateInfo.arrayLayers);
-    imageCreateInfo.setFormat(convertFormat(textureCreateInfo.format));
-    imageCreateInfo.setTiling(vk::ImageTiling::eOptimal);
-    imageCreateInfo.setInitialLayout(vk::ImageLayout::eUndefined);
-    imageCreateInfo.setUsage(convertUsage(textureCreateInfo.usage));
-    imageCreateInfo.setSharingMode(vk::SharingMode::eExclusive);
-    imageCreateInfo.setSamples(convertSamples(textureCreateInfo.sampleCount));
+        vk::ImageCreateInfo imageCreateInfo{};
+        imageCreateInfo.setImageType(convertImageType(descriptor().dimension));
+        imageCreateInfo.setExtent(imageExtent);
+        imageCreateInfo.setMipLevels(descriptor().mipLevelCount);
+        imageCreateInfo.setArrayLayers(descriptor().arrayLayers);
+        imageCreateInfo.setFormat(convertFormat(descriptor().format));
+        imageCreateInfo.setTiling(vk::ImageTiling::eOptimal);
+        imageCreateInfo.setInitialLayout(vk::ImageLayout::eUndefined);
+        imageCreateInfo.setUsage(convertUsage(descriptor().usage));
+        imageCreateInfo.setSharingMode(vk::SharingMode::eExclusive);
+        imageCreateInfo.setSamples(convertSamples(descriptor().sampleCount));
 
-    auto logicalDevice = _device->vulkanLogicalDevice();
-    _vulkanImage = logicalDevice.createImage(imageCreateInfo);
-
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-    device->setDebugObjectName(vk::ObjectType::eImage, (uint64_t)(VkImage)_vulkanImage, _name);
-#endif
-
-    // allocate memory
-    const auto memRequirements = logicalDevice.getImageMemoryRequirements(_vulkanImage);
-    vk::MemoryAllocateInfo allocInfo = {};
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.setAllocationSize(memRequirements.size);
-    allocInfo.setMemoryTypeIndex(
-        _device->findMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal));
-    _vulkanMemory = logicalDevice.allocateMemory(allocInfo, nullptr);
-
-    // bind image memory
-    logicalDevice.bindImageMemory(_vulkanImage, _vulkanMemory, 0);
+        _vulkanImage = _device->vulkanLogicalDevice().createImage(imageCreateInfo);
+    }
+    catch (const vk::Error &error)
+    {
+        throw TextureError(fmt::format("Can't create the texture: {}", error.what()));
+    }
 
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
-    device->setDebugObjectName(vk::ObjectType::eDeviceMemory, (uint64_t)(VkDeviceMemory)_vulkanMemory, _name);
+    device->setDebugObjectName(vk::ObjectType::eImage, (uint64_t)(VkImage)_vulkanImage, descriptor().name);
 #endif
+
+    /// Allocate memory.
+    try
+    {
+        const auto memRequirements = _device->vulkanLogicalDevice().getImageMemoryRequirements(_vulkanImage);
+
+        vk::MemoryAllocateInfo allocInfo(
+            memRequirements.size,
+            _device->findMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal));
+        _vulkanMemory = _device->vulkanLogicalDevice().allocateMemory(allocInfo);
+    }
+    catch (const vk::Error &error)
+    {
+        _device->vulkanLogicalDevice().destroyImage(_vulkanImage);
+        throw TextureError(fmt::format("Can't allocate memory for the buffer: {}", error.what()));
+    }
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    device->setDebugObjectName(vk::ObjectType::eDeviceMemory, (uint64_t)(VkDeviceMemory)_vulkanMemory,
+                               descriptor().name);
+#endif
+
+    /// Bind memory and texture together.
+    try
+    {
+        _device->vulkanLogicalDevice().bindImageMemory(_vulkanImage, _vulkanMemory, 0);
+    }
+    catch (const vk::Error &error)
+    {
+        _device->vulkanLogicalDevice().destroyImage(_vulkanImage);
+        _device->vulkanLogicalDevice().freeMemory(_vulkanMemory);
+        throw TextureError(fmt::format("Can't bind the texture with his memory: {}", error.what()));
+    }
 }
 
 VulkanTexture::~VulkanTexture()
 {
-    auto logcalDevice = _device->vulkanLogicalDevice();
-    logcalDevice.destroyImage(_vulkanImage);
-    logcalDevice.freeMemory(_vulkanMemory);
+    _device->vulkanLogicalDevice().destroyImage(_vulkanImage);
+    _device->vulkanLogicalDevice().freeMemory(_vulkanMemory);
 }
 
-std::shared_ptr<TextureView> VulkanTexture::createTextureView(const TextureViewCreateInfo &textureViewCreateInfo) const
+std::shared_ptr<TextureView> VulkanTexture::createTextureView(const TextureViewDescriptor &textureViewDescriptor) const
 {
-    return std::make_shared<VulkanTextureView>(_device, _vulkanImage, textureViewCreateInfo);
+    return std::make_shared<VulkanTextureView>(_device, _vulkanImage, textureViewDescriptor);
 }
 
 } // namespace chronicle::graphics::internal::vulkan

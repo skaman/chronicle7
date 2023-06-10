@@ -18,8 +18,8 @@ class Device
     virtual [[nodiscard]] std::shared_ptr<CommandEncoder> createCommandEncoder(
         const CommandEncoderCreateInfo &commandEncoderCreateInfo = {}) const = 0;
 
-    virtual [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferCreateInfo &bufferCreateInfo) const = 0;
-    virtual [[nodiscard]] std::shared_ptr<Sampler> createSampler(const SamplerCreateInfo &samplerCreateInfo) const = 0;
+    virtual [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferDescriptor &bufferDescriptor) const = 0;
+    virtual [[nodiscard]] std::shared_ptr<Sampler> createSampler(const SamplerDescriptor &samplerDescriptor) const = 0;
 };
 
 } // namespace chronicle::graphics

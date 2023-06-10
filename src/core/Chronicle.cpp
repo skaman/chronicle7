@@ -19,10 +19,10 @@ void Chronicle::init()
 
     auto device = graphics::System::requestDevice({.hwnd = platform::Platform::defaultWindow().hwnd()});
     auto commandBuffer = device->createCommandEncoder();
-    auto buffer = device->createBuffer(
-        {.bufferUsage = graphics::BufferUsageFlags::eMapWrite | graphics::BufferUsageFlags::eCopySrc, .size = 1024});
-    auto buffer2 = device->createBuffer(
-        {.bufferUsage = graphics::BufferUsageFlags::eCopyDst | graphics::BufferUsageFlags::eIndex, .size = 1024});
+    auto buffer = device->createBuffer(graphics::BufferDescriptor(
+        "Buffer 1", graphics::BufferUsageFlags::eMapWrite | graphics::BufferUsageFlags::eCopySrc, 1024));
+    auto buffer2 = device->createBuffer(graphics::BufferDescriptor(
+        "Buffer 2", graphics::BufferUsageFlags::eCopyDst | graphics::BufferUsageFlags::eIndex, 1024));
 
     platform::Platform::defaultWindow().sink<platform::WindowCloseEvent>().connect<&Chronicle::onWindowClose>();
 }

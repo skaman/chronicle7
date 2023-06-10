@@ -10,15 +10,15 @@
 namespace chronicle::graphics::internal::vulkan
 {
 
-inline vk::ImageType convertImageType(TextureViewDimension viewDimension)
+inline vk::ImageType convertImageType(TextureDimension viewDimension)
 {
     switch (viewDimension)
     {
-    case TextureViewDimension::e1D:
+    case TextureDimension::e1D:
         return vk::ImageType::e1D;
-    case TextureViewDimension::e2D:
+    case TextureDimension::e2D:
         return vk::ImageType::e2D;
-    case TextureViewDimension::e3D:
+    case TextureDimension::e3D:
         return vk::ImageType::e3D;
     }
 

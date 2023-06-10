@@ -9,37 +9,46 @@
 namespace chronicle::graphics::internal::vulkan
 {
 
-VulkanSampler::VulkanSampler(std::shared_ptr<VulkanDevice> device, const SamplerCreateInfo &samplerCreateInfo)
-    : _device(device)
+VulkanSampler::VulkanSampler(std::shared_ptr<VulkanDevice> device, const SamplerDescriptor &samplerDescriptor)
+    : Sampler(samplerDescriptor), _device(device)
 {
-    const auto properties = _device->vulkanPhysicalDevice().getProperties();
-
-    auto maxSamplerAnisotropy =
-        std::clamp(static_cast<float>(samplerCreateInfo.maxAnisotropy), 1.0f, properties.limits.maxSamplerAnisotropy);
-
-    vk::SamplerCreateInfo samplerInfo{};
-    samplerInfo.setMagFilter(convertFilter(samplerCreateInfo.magFilter));
-    samplerInfo.setMinFilter(convertFilter(samplerCreateInfo.minFilter));
-    samplerInfo.setAddressModeU(convertSamplerAddressMode(samplerCreateInfo.addressModeU));
-    samplerInfo.setAddressModeV(convertSamplerAddressMode(samplerCreateInfo.addressModeV));
-    samplerInfo.setAddressModeW(convertSamplerAddressMode(samplerCreateInfo.addressModeW));
-    samplerInfo.setAnisotropyEnable(true);
-    samplerInfo.setMaxAnisotropy(maxSamplerAnisotropy);
-    samplerInfo.setBorderColor(vk::BorderColor::eIntOpaqueBlack);
-    samplerInfo.setUnnormalizedCoordinates(false);
-    samplerInfo.setCompareEnable(samplerCreateInfo.compare.has_value());
-    if (samplerCreateInfo.compare.has_value())
+    // Create sampler.
+    try
     {
-        samplerInfo.setCompareOp(converCompareOp(samplerCreateInfo.compare.value()));
+        const auto properties = _device->vulkanPhysicalDevice().getProperties();
+
+        auto maxSamplerAnisotropy =
+            std::clamp(static_cast<float>(descriptor().maxAnisotropy), 1.0f, properties.limits.maxSamplerAnisotropy);
+
+        vk::SamplerCreateInfo samplerInfo{};
+        samplerInfo.setMagFilter(convertFilter(descriptor().magFilter));
+        samplerInfo.setMinFilter(convertFilter(descriptor().minFilter));
+        samplerInfo.setAddressModeU(convertSamplerAddressMode(descriptor().addressModeU));
+        samplerInfo.setAddressModeV(convertSamplerAddressMode(descriptor().addressModeV));
+        samplerInfo.setAddressModeW(convertSamplerAddressMode(descriptor().addressModeW));
+        samplerInfo.setAnisotropyEnable(true);
+        samplerInfo.setMaxAnisotropy(maxSamplerAnisotropy);
+        samplerInfo.setBorderColor(vk::BorderColor::eIntOpaqueBlack);
+        samplerInfo.setUnnormalizedCoordinates(false);
+        samplerInfo.setCompareEnable(descriptor().compare.has_value());
+        if (descriptor().compare.has_value())
+        {
+            samplerInfo.setCompareOp(converCompareOp(descriptor().compare.value()));
+        }
+        samplerInfo.setMipmapMode(convertSamplerMipmap(descriptor().mipmapFilter));
+        samplerInfo.setMipLodBias(0.0f);
+        samplerInfo.setMinLod(descriptor().lodMinClamp);
+        samplerInfo.setMaxLod(descriptor().lodMaxClamp);
+
+        _vulkanSampler = _device->vulkanLogicalDevice().createSampler(samplerInfo);
     }
-    samplerInfo.setMipmapMode(convertSamplerMipmap(samplerCreateInfo.mipmapFilter));
-    samplerInfo.setMipLodBias(0.0f);
-    samplerInfo.setMinLod(samplerCreateInfo.lodMinClamp);
-    samplerInfo.setMaxLod(samplerCreateInfo.lodMaxClamp);
-    _vulkanSampler = _device->vulkanLogicalDevice().createSampler(samplerInfo);
+    catch (const vk::Error &error)
+    {
+        throw SamplerError(fmt::format("Can't create sampler: {}", error.what()));
+    }
 
 #ifdef VULKAN_ENABLE_DEBUG_MARKER
-    device->setDebugObjectName(vk::ObjectType::eSampler, (uint64_t)(VkSampler)_vulkanSampler, _name);
+    device->setDebugObjectName(vk::ObjectType::eSampler, (uint64_t)(VkSampler)_vulkanSampler, descriptor().name);
 #endif
 }
 

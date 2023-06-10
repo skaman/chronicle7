@@ -2,6 +2,8 @@ add_subdirectory(Vulkan)
 
 target_sources(chronicle-core
 PRIVATE
+    "BindGroup.h"
+    "BindGroupLayout.h"
     "Buffer.h"
     "CommandEncoder.h"
     "Common.h"

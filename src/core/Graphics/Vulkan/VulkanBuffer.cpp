@@ -11,73 +11,94 @@
 namespace chronicle::graphics::internal::vulkan
 {
 
-VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, const BufferCreateInfo &bufferCreateInfo)
-    : _device(device), _name(bufferCreateInfo.name)
+VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, const BufferDescriptor &bufferDescriptor)
+    : Buffer(bufferDescriptor), _device(device)
 {
-    assert(bufferCreateInfo.size > 0);
-    assert(static_cast<int>(bufferCreateInfo.bufferUsage) != 0);
+    if (descriptor().size == 0)
+    {
+        throw BufferError("Can't create a buffer of 0 bytes");
+    }
 
-    auto isHostVisible = magic_enum::enum_flags_test_any(bufferCreateInfo.bufferUsage, BufferUsageFlags::eMapRead) ||
-                         magic_enum::enum_flags_test_any(bufferCreateInfo.bufferUsage, BufferUsageFlags::eMapWrite);
+    _isHostVisible = magic_enum::enum_flags_test_any(descriptor().usage, BufferUsageFlags::eMapRead) ||
+                     magic_enum::enum_flags_test_any(descriptor().usage, BufferUsageFlags::eMapWrite);
 
-    auto memoryProperties = isHostVisible
+    auto memoryProperties = _isHostVisible
                                 ? vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
                                 : vk::MemoryPropertyFlagBits::eDeviceLocal;
 
+    if (!_isHostVisible && descriptor().mappedAtCreation)
+    {
+        throw BufferError("Can't create a mapped buffer when it's no host accessible (see eMapRead/eMapWrite)");
+    }
+
+    // Prepare buffer usage flags.
     vk::BufferUsageFlags bufferUsage{};
-    if (magic_enum::enum_flags_test_any(bufferCreateInfo.bufferUsage, BufferUsageFlags::eCopySrc))
+    if (magic_enum::enum_flags_test_any(descriptor().usage, BufferUsageFlags::eCopySrc))
     {
         bufferUsage |= vk::BufferUsageFlagBits::eTransferSrc;
     }
-    if (magic_enum::enum_flags_test_any(bufferCreateInfo.bufferUsage, BufferUsageFlags::eCopyDst))
+    if (magic_enum::enum_flags_test_any(descriptor().usage, BufferUsageFlags::eCopyDst))
     {
         bufferUsage |= vk::BufferUsageFlagBits::eTransferDst;
     }
-    if (magic_enum::enum_flags_test_any(bufferCreateInfo.bufferUsage, BufferUsageFlags::eIndex))
+    if (magic_enum::enum_flags_test_any(descriptor().usage, BufferUsageFlags::eIndex))
     {
         bufferUsage |= vk::BufferUsageFlagBits::eIndexBuffer;
     }
-    if (magic_enum::enum_flags_test_any(bufferCreateInfo.bufferUsage, BufferUsageFlags::eVertex))
+    if (magic_enum::enum_flags_test_any(descriptor().usage, BufferUsageFlags::eVertex))
     {
         bufferUsage |= vk::BufferUsageFlagBits::eVertexBuffer;
     }
-    if (magic_enum::enum_flags_test_any(bufferCreateInfo.bufferUsage, BufferUsageFlags::eUniform))
+    if (magic_enum::enum_flags_test_any(descriptor().usage, BufferUsageFlags::eUniform))
     {
         bufferUsage |= vk::BufferUsageFlagBits::eUniformBuffer;
     }
 
-    // create buffer
-    vk::BufferCreateInfo bufferInfo = {};
-    bufferInfo.setSize(bufferCreateInfo.size);
-    bufferInfo.setUsage(bufferUsage);
-    bufferInfo.setSharingMode(vk::SharingMode::eExclusive);
-    _buffer = _device->vulkanLogicalDevice().createBuffer(bufferInfo);
-
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-    device->setDebugObjectName(vk::ObjectType::eBuffer, (uint64_t)(VkBuffer)_buffer, _name);
-#endif
-
-    // get memory requirements
-    auto memRequirements = _device->vulkanLogicalDevice().getBufferMemoryRequirements(_buffer);
-
-    // allocate memory
-    vk::MemoryAllocateInfo allocInfo = {};
-    allocInfo.setAllocationSize(memRequirements.size);
-    allocInfo.setMemoryTypeIndex(_device->findMemoryType(memRequirements.memoryTypeBits, memoryProperties));
-    _memory = _device->vulkanLogicalDevice().allocateMemory(allocInfo);
-
-#ifdef VULKAN_ENABLE_DEBUG_MARKER
-    device->setDebugObjectName(vk::ObjectType::eDeviceMemory, (uint64_t)(VkDeviceMemory)_memory, _name);
-#endif
-
-    // bind buffer memory
-    _device->vulkanLogicalDevice().bindBufferMemory(_buffer, _memory, 0);
-
-    if (isHostVisible)
+    // Create the buffer.
+    try
     {
-        auto *mappedMemory =
-            static_cast<uint8_t *>(_device->vulkanLogicalDevice().mapMemory(_memory, 0, bufferCreateInfo.size));
-        _memoryMap = std::span<uint8_t>(mappedMemory, bufferCreateInfo.size);
+        vk::BufferCreateInfo bufferInfo({}, descriptor().size, bufferUsage, vk::SharingMode::eExclusive);
+        _vulkanBuffer = _device->vulkanLogicalDevice().createBuffer(bufferInfo);
+    }
+    catch (const vk::Error &error)
+    {
+        throw BufferError(fmt::format("Can't create the buffer: {}", error.what()));
+    }
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    device->setDebugObjectName(vk::ObjectType::eBuffer, (uint64_t)(VkBuffer)_vulkanBuffer, descriptor().name);
+#endif
+
+    /// Allocate memory.
+    try
+    {
+        auto memRequirements = _device->vulkanLogicalDevice().getBufferMemoryRequirements(_vulkanBuffer);
+
+        vk::MemoryAllocateInfo allocInfo(memRequirements.size,
+                                         _device->findMemoryType(memRequirements.memoryTypeBits, memoryProperties));
+        _vulkanMemory = _device->vulkanLogicalDevice().allocateMemory(allocInfo);
+    }
+    catch (const vk::Error &error)
+    {
+        _device->vulkanLogicalDevice().destroyBuffer(_vulkanBuffer);
+        throw BufferError(fmt::format("Can't allocate memory for the buffer: {}", error.what()));
+    }
+
+#ifdef VULKAN_ENABLE_DEBUG_MARKER
+    device->setDebugObjectName(vk::ObjectType::eDeviceMemory, (uint64_t)(VkDeviceMemory)_vulkanMemory,
+                               descriptor().name);
+#endif
+
+    /// Bind memory and buffer together.
+    try
+    {
+        _device->vulkanLogicalDevice().bindBufferMemory(_vulkanBuffer, _vulkanMemory, 0);
+    }
+    catch (const vk::Error &error)
+    {
+        _device->vulkanLogicalDevice().destroyBuffer(_vulkanBuffer);
+        _device->vulkanLogicalDevice().freeMemory(_vulkanMemory);
+        throw BufferError(fmt::format("Can't bind the buffer with his memory: {}", error.what()));
     }
 }
 
@@ -85,11 +106,50 @@ VulkanBuffer::~VulkanBuffer()
 {
     if (!_memoryMap.empty())
     {
-        _device->vulkanLogicalDevice().unmapMemory(_memory);
+        _device->vulkanLogicalDevice().unmapMemory(_vulkanMemory);
     }
 
-    _device->vulkanLogicalDevice().destroyBuffer(_buffer);
-    _device->vulkanLogicalDevice().freeMemory(_memory);
+    _device->vulkanLogicalDevice().destroyBuffer(_vulkanBuffer);
+    _device->vulkanLogicalDevice().freeMemory(_vulkanMemory);
+}
+
+void VulkanBuffer::map()
+{
+    if (!_isHostVisible)
+    {
+        throw BufferError("Can't map a buffer when it's no host accessible (see eMapRead/eMapWrite)");
+    }
+
+    if (_isMapped)
+    {
+        return;
+    }
+
+    uint8_t *mappedMemory = nullptr;
+    try
+    {
+        mappedMemory =
+            static_cast<uint8_t *>(_device->vulkanLogicalDevice().mapMemory(_vulkanMemory, 0, descriptor().size));
+    }
+    catch (const vk::Error &error)
+    {
+        throw BufferError(fmt::format("Can't map the buffer: {}", error.what()));
+    }
+
+    _memoryMap = std::span<uint8_t>(mappedMemory, descriptor().size);
+    _isMapped = true;
+}
+
+void VulkanBuffer::unmap()
+{
+    if (!_isMapped)
+    {
+        return;
+    }
+
+    _device->vulkanLogicalDevice().unmapMemory(_vulkanMemory);
+    _memoryMap = std::span<uint8_t>{};
+    _isMapped = false;
 }
 
 } // namespace chronicle::graphics::internal::vulkan

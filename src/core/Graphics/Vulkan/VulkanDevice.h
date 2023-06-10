@@ -21,8 +21,8 @@ class VulkanDevice final : public Device, private NonCopyable<VulkanDevice>
 
     [[nodiscard]] std::shared_ptr<CommandEncoder> createCommandEncoder(
         const CommandEncoderCreateInfo &commandEncoderCreateInfo) const override;
-    [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferCreateInfo &bufferCreateInfo) const override;
-    [[nodiscard]] std::shared_ptr<Sampler> createSampler(const SamplerCreateInfo &samplerCreateInfo) const override;
+    [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferDescriptor &bufferDescriptor) const override;
+    [[nodiscard]] std::shared_ptr<Sampler> createSampler(const SamplerDescriptor &samplerDescriptor) const override;
 
     void setDebugObjectName(vk::ObjectType objectType, uint64_t handle, const std::string &name) const;
 
@@ -30,37 +30,43 @@ class VulkanDevice final : public Device, private NonCopyable<VulkanDevice>
 
     [[nodiscard]] vk::PhysicalDevice vulkanPhysicalDevice() const
     {
-        return _physicalDevice;
+        return _vulkanPhysicalDevice;
     }
 
     [[nodiscard]] vk::Device vulkanLogicalDevice() const
     {
-        return _logicalDevice;
+        return _vulkanLogicalDevice;
     }
 
     [[nodiscard]] vk::CommandPool vulkanCommandPool() const
     {
-        return _commandPool;
+        return _vulkanCommandPool;
+    }
+
+    [[nodiscard]] vk::DescriptorPool vulkanDescriptorPool() const
+    {
+        return _vulkanDescriptorPool;
     }
 
     [[nodiscard]] vk::Queue vulkanGraphicsQueue() const
     {
-        return _graphicsQueue;
+        return _vulkanGraphicsQueue;
     }
 
     [[nodiscard]] vk::Queue vulkanPresentQueue() const
     {
-        return _presentQueue;
+        return _vulkanPresentQueue;
     }
 
   private:
     std::weak_ptr<VulkanDevice> _thisWeakPtr{};
 
-    vk::PhysicalDevice _physicalDevice{};
-    vk::Device _logicalDevice{};
-    vk::Queue _graphicsQueue{};
-    vk::Queue _presentQueue{};
-    vk::CommandPool _commandPool{};
+    vk::PhysicalDevice _vulkanPhysicalDevice{};
+    vk::Device _vulkanLogicalDevice{};
+    vk::Queue _vulkanGraphicsQueue{};
+    vk::Queue _vulkanPresentQueue{};
+    vk::CommandPool _vulkanCommandPool{};
+    vk::DescriptorPool _vulkanDescriptorPool{};
 
     friend class VulkanSystem;
 };

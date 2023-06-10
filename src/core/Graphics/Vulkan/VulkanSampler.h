@@ -12,22 +12,28 @@ namespace chronicle::graphics::internal::vulkan
 
 class VulkanDevice;
 
+/// @brief Vulkan implementation for Sampler.
 class VulkanSampler final : public Sampler, private NonCopyable<VulkanSampler>
 {
   public:
-    explicit VulkanSampler(std::shared_ptr<VulkanDevice> device, const SamplerCreateInfo &samplerCreateInfo);
+    /// @brief Constructor.
+    /// @param device Graphic device.
+    /// @param samplerDescriptor Sampler descriptor.
+    explicit VulkanSampler(std::shared_ptr<VulkanDevice> device, const SamplerDescriptor &samplerDescriptor);
+
+    /// @brief Destructor.
     ~VulkanSampler() override;
 
-    std::string_view name() const override
+    /// @brief Returns the native vulkan sampler.
+    /// @return Vulkan sampler.
+    [[nodiscard]] vk::Sampler vulkanSampler() const
     {
-        return _name;
+        return _vulkanSampler;
     }
 
   private:
-    std::shared_ptr<VulkanDevice> _device{};
-    std::string _name{};
-
-    vk::Sampler _vulkanSampler{};
+    std::shared_ptr<VulkanDevice> _device{}; ///< Graphic device.
+    vk::Sampler _vulkanSampler{};            ///< Vulkan sampler.
 };
 
 } // namespace chronicle::graphics::internal::vulkan

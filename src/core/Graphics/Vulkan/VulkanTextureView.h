@@ -15,63 +15,26 @@ class VulkanDevice;
 class VulkanTextureView final : public TextureView, private NonCopyable<VulkanTextureView>
 {
   public:
+    /// @brief Constructor.
+    /// @param device Graphic device.
+    /// @param image Vulkan image.
+    /// @param textureViewDescriptor Texture view descriptor.
     explicit VulkanTextureView(std::shared_ptr<VulkanDevice> device, vk::Image image,
-                               const TextureViewCreateInfo &textureCreateInfo);
+                               const TextureViewDescriptor &textureViewDescriptor);
+
+    /// @brief Destructor.
     ~VulkanTextureView() override;
 
-    std::string_view name() const override
+    /// @brief Returns the native vulkan image view.
+    /// @return Vulkan image view.
+    [[nodiscard]] vk::ImageView vulkanImageView() const
     {
-        return _name;
-    }
-
-    TextureFormat format() const override
-    {
-        return _format;
-    }
-
-    TextureViewDimension dimension() const override
-    {
-        return _dimension;
-    }
-
-    TextureAspect aspect() const override
-    {
-        return _aspect;
-    }
-
-    uint32_t baseMipLevel() const override
-    {
-        return _baseMipLevel;
-    }
-
-    uint32_t mipLevelCount() const override
-    {
-        return _mipLevelCount;
-    }
-
-    uint32_t baseArrayLayer() const override
-    {
-        return _baseArrayLayer;
-    }
-
-    uint32_t arrayLayerCount() const override
-    {
-        return _arrayLayerCount;
+        return _vulkanImageView;
     }
 
   private:
-    std::shared_ptr<VulkanDevice> _device{};
-    std::string _name{};
-
-    TextureFormat _format{};
-    TextureViewDimension _dimension{TextureViewDimension::e2D};
-    TextureAspect _aspect{};
-    uint32_t _baseMipLevel{};
-    uint32_t _mipLevelCount{};
-    uint32_t _baseArrayLayer{};
-    uint32_t _arrayLayerCount{};
-
-    vk::ImageView _vulkanImageView{};
+    std::shared_ptr<VulkanDevice> _device{}; ///< Graphic device.
+    vk::ImageView _vulkanImageView{};        ///< Vulkan image view.
 };
 
 } // namespace chronicle::graphics::internal::vulkan

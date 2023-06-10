@@ -1,5 +1,9 @@
 target_sources(chronicle-core
 PRIVATE
+    "VulkanBindGroup.cpp"
+    "VulkanBindGroup.h"
+    "VulkanBindGroupLayout.cpp"
+    "VulkanBindGroupLayout.h"
     "VulkanBuffer.cpp"
     "VulkanBuffer.h"
     "VulkanCommandEncoder.cpp"
