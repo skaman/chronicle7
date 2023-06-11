@@ -10,7 +10,7 @@
 namespace chronicle::graphics
 {
 
-/// @brief Error exception for invalid buffer operations.
+/// @brief Error exception for invalid bind group layout operations.
 class BindGroupLayoutError : public GraphicsError
 {
   public:

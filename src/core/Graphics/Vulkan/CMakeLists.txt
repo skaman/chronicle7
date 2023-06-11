@@ -11,12 +11,17 @@ PRIVATE
     "VulkanCommon.h"
     "VulkanDevice.cpp"
     "VulkanDevice.h"
+    "VulkanPipelineLayout.cpp"
+    "VulkanPipelineLayout.h"
     "VulkanSampler.cpp"
     "VulkanSampler.h"
+    "VulkanShaderModule.cpp"
+    "VulkanShaderModule.h"
     "VulkanSystem.cpp"
     "VulkanSystem.h"
     "VulkanTexture.cpp"
     "VulkanTexture.h"
     "VulkanTextureView.cpp"
     "VulkanTextureView.h"
+    
 )

@@ -226,6 +226,13 @@ enum class ShaderStageFlags : uint32_t
     eCompute = 1 << 2
 };
 
+enum class ShaderStage : uint32_t
+{
+    eVertex,
+    eFragment,
+    eCompute
+};
+
 enum class BufferBindingType : uint32_t
 {
     eUniform,
@@ -252,6 +259,13 @@ enum class TextureSampleType : uint32_t
 enum class StorageTextureAccess : uint32_t
 {
     eWriteOnly
+};
+
+enum class ShaderOptimizationLevel : uint32_t
+{
+    eZero,       ///< No optimization.
+    eSize,       ///< Optimize towards reducing code size.
+    ePerformance ///< Optimize towards performance.
 };
 
 /// @brief Informations used to initialize the graphic system.
